@@ -17,7 +17,7 @@
 Bootstrap and package your project with Angular 17 and Electron 30 (Typescript + SASS + Hot Reload) for creating Desktop applications.
 
 Currently runs with:
-
+ 
 - Angular v17.3.6
 - Electron v30.0.1
 
