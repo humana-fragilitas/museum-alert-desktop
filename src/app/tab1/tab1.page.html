@@ -1,0 +1,85 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+      @if (authenticatorService.route === 'authenticated') {
+        <ion-title>
+          <ion-icon name="person-circle-outline" size="large"></ion-icon>
+          {{ authenticatorService.user.signInDetails?.loginId }}
+        </ion-title>
+        <ion-button color="primary">Sign out</ion-button>
+      } @else {
+        <ion-title>
+        Welcome to Museum Alert
+        </ion-title>
+      }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  
+  <ion-grid>
+    <ion-row class="ion-align-items-center">
+      <ion-col>
+        <amplify-authenticator [hideSignUp]="false" [loginMechanisms]="['email']">
+
+          <ng-template amplifySlot="sign-up-form-fields">
+            <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
+            <amplify-text-field
+                label="Company"
+                autocomplete="false"
+                placeholder="Your Company's name"
+                name="custom:Company"
+                type="text">
+            </amplify-text-field>
+          </ng-template>
+
+          <ng-template amplifySlot="verify-user-header">
+            <h3
+              class="amplify-heading"
+              style="padding: var(--amplify-space-xl) 0 0 var(--amplify-space-xl)"
+            >
+              Enter Information:
+            </h3>
+          </ng-template>
+        
+          <ng-template amplifySlot="verify-user-footer">
+            <div>Footer Information</div>
+          </ng-template>
+          <ng-template amplifySlot="confirm-verify-user-header">
+            <h3
+              class="amplify-heading"
+              style="padding: var(--amplify-space-xl) 0 0 var(--amplify-space-xl)"
+            >
+              Enter Information:
+            </h3>
+          </ng-template>
+        
+          <ng-template amplifySlot="confirm-verify-user-footer">
+            <div>Footer Information</div>
+          </ng-template>
+          <ng-template
+            amplifySlot="authenticated"
+            let-user="user"
+            let-signOut="signOut"
+          >
+
+            @if (bluetoothService.devices.length) {
+              <ul>
+                @for (scanResult of bluetoothService.devices; track scanResult.device.deviceId) {
+                  <li (click)="createProvisioningClaim()">{{ scanResult.localName }}</li>
+                }
+              </ul>
+            } @else {
+              <p>No devices found.</p>
+            }
+
+            <ion-button color="primary" (click)="signOut()">Sign out</ion-button>
+            <ion-button color="primary" (click)="addDevice()">Add device</ion-button>
+            <ion-button color="primary" (click)="scanDevices()">Scan for devices</ion-button>
+            <ion-button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</ion-button>
+          </ng-template>
+        </amplify-authenticator>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-content>
