@@ -21,7 +21,7 @@ Currently runs with:
 - Angular v17.3.6
 - Electron v30.0.1
 
-With this sample, you can:
+With this sample, you can: 
 
 - Run your app in a local development environment with Electron & Hot reload
 - Run your app in a production environment
