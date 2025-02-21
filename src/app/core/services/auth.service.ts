@@ -4,6 +4,13 @@ import { map } from 'rxjs/operators';
 import { fetchAuthSession, FetchAuthSessionOptions, AuthSession } from 'aws-amplify/auth';
 import { Hub } from '@aws-amplify/core';
 import { HubCapsule } from 'aws-amplify/utils';
+import { Amplify } from 'aws-amplify';
+import { environment } from '../../environments/environment';
+
+/**
+ * humana.fragilitas@gmail.com
+ * zZ&c0qIz
+ */
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({
@@ -19,6 +26,8 @@ export class AuthService {
 
   constructor() {
 
+    Amplify.configure(environment.aws.amplify); 
+
     this.fetchSession();
 
     // https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
@@ -26,7 +35,7 @@ export class AuthService {
     Hub.listen('auth', () => this.fetchSession());
 
   }
-
+ 
   fetchSession(options: FetchAuthSessionOptions = { forceRefresh: false }): void {
 
     fetchAuthSession(options).then(

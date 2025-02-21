@@ -6,7 +6,7 @@ import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc';
 import mqtt from 'mqtt';
 
-import { SigV4Service } from './helpers/sig-v4.service';
+import { SigV4Service } from '../../shared/helpers/sig-v4.service';
 import { AuthService } from './auth.service';
 
 @Injectable({

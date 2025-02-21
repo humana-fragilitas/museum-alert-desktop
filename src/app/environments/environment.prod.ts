@@ -1,6 +1,5 @@
-export const APP_CONFIG = {
+export const environment = {
   production: true,
-  environment: 'PROD',
   aws: {
     apiGateway: 'https://dkeyv8nw8j.execute-api.eu-west-1.amazonaws.com/development',
     region: 'eu-west-1',

@@ -57,6 +57,7 @@
     "@aws-amplify/ui-angular": "^5.0.37",
     "@types/crypto-js": "^4.2.2",
     "aws-amplify": "^6.13.1",
+    "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
     "mqtt": "^5.10.3",
     "rxjs": "7.8.1",
