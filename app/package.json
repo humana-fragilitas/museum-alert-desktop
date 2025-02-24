@@ -10,10 +10,12 @@
   "private": true,
   "dependencies": {
     "@aws-amplify/ui-angular": "^5.0.37",
+    "@serialport/parser-regex": "^13.0.0",
     "@types/crypto-js": "^4.2.2",
     "aws-amplify": "^6.13.1",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
-    "mqtt": "^5.10.3"
+    "mqtt": "^5.10.3",
+    "serialport": "^13.0.0"
   }
 }

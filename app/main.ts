@@ -1,10 +1,14 @@
-import {app, BrowserWindow, screen} from 'electron';
+import {app, BrowserWindow, screen, ipcMain} from 'electron';
+import { SerialPort } from 'serialport';
+import { RegexParser } from '@serialport/parser-regex';
 import * as path from 'path';
 import * as fs from 'fs';
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
+
+let serialPort: SerialPort;
 
 function createWindow(): BrowserWindow {
 
@@ -17,9 +21,10 @@ function createWindow(): BrowserWindow {
     width: size.width,
     height: size.height,
     webPreferences: {
-      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
       allowRunningInsecureContent: (serve),
-      contextIsolation: false,
+      contextIsolation: true,
     },
   });
 
@@ -49,6 +54,8 @@ function createWindow(): BrowserWindow {
     // when you should delete the corresponding element.
     win = null;
   });
+
+ initialize(win);
 
   return win;
 }
@@ -81,3 +88,75 @@ try {
   // Catch Error
   // throw e;
 }
+
+function initialize(win: BrowserWindow) {
+
+    /**
+     * list serial port on a MAC
+     * ls /dev/tty.*
+     * ls /dev/cu.*
+     */
+
+    // Open the serial port (adjust COM port for your system)
+    serialPort = new SerialPort({
+      path: '/dev/cu.usbmodem3485187A35EC2', // Change this to match your Arduino port (e.g., "/dev/ttyUSB0" for Linux)
+      //path: '/dev/tty.usbmodem3485187A35EC2',
+      baudRate: 9600
+    });
+
+    const parser = serialPort.pipe(new RegexParser({ regex: /<\|(.*?)\|>/ }));
+
+    open();
+
+    serialPort.on('close', attemptReconnect);
+    serialPort.on('error', (err) => {
+      console.error('Serial Port Error:', err.message);
+      attemptReconnect();
+    });
+
+    serialPort.on('data', (data) => {
+      console.log('Serial port received data:', data.toString());
+      win.webContents.send('main-to-renderer', data.toString('utf-8'));
+    });  
+
+    parser.on('data', (data) => {
+      console.log('Parser received data:', data.toString());
+      win.webContents.send('main-to-renderer', data.toString('utf-8'));
+    });
+  
+    ipcMain.on('renderer-to-main', (event, message) => {
+      console.log('Message from renderer:', message);  
+      // serialPort.write(message, (err) => {
+      //   if (err) {
+      //     console.error('Error writing to serial port:', err.message);
+      //   }
+      // });
+    });
+
+    win.webContents.send('main-to-renderer', 'Hello from main.ts');
+
+    function attemptReconnect() {
+
+      open();
+
+    }
+
+    function open() {
+
+      serialPort.on('open', () => {
+        console.log('Serial Port Opened');
+        setInterval(() => {
+          serialPort.write('ciao', (err) => {
+            if (err) {
+              console.error('Error writing to serial port:', err.message);
+            } else {
+              console.log('Message sent successfully!');
+            }
+          });
+        }, 5000);  
+      });
+      
+    }
+
+}
+
