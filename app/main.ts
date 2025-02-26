@@ -73,25 +73,22 @@ function createWindow(): BrowserWindow {
 
     serialCom.detectUSBDevice('Arduino').then((device) => {
 
-      if (device && win) {
+      win!.webContents.send('device-found', device);
 
-        win!.webContents.send('device-found', device);
-  
-        serialCom.connectToUSBDevice(device).subscribe((status: DeviceStatus) => {
+      let deviceStatusSubscription = serialCom.connectToUSBDevice(device).subscribe((status: DeviceStatus) => {
 
-          win!.webContents.send('device-status-update', status);
-  
-          if (!status.connected) {
-            console.log('Device disconnected, restarting detection...');
-            // Add a small delay before restarting detection to avoid potential rapid reconnection loops
-            setTimeout(() => {
-              startDeviceDetection();
-            }, 1000);
-          }
+        win!.webContents.send('device-status-update', status);
 
-        });
+        if (!status.connected) {
+          console.log('Device disconnected, restarting detection...');
+          deviceStatusSubscription.unsubscribe();
+          // Add a small delay before restarting detection to avoid potential rapid reconnection loops
+          setTimeout(() => {
+            startDeviceDetection();
+          }, 1000);
+        }
 
-      }
+      });
 
     });
 
