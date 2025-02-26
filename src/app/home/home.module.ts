@@ -7,9 +7,10 @@ import { HomeComponent } from './home.component';
 import { SharedModule } from '../shared/shared.module';
 
 import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+import { WiFiCredentialsComponent } from '../shared/components/wifi-credentials/wifi-credentials.component';
 
 @NgModule({
-  declarations: [HomeComponent],
+  declarations: [HomeComponent, WiFiCredentialsComponent],
   imports: [CommonModule, SharedModule, HomeRoutingModule, AmplifyAuthenticatorModule],
   exports: [AmplifyAuthenticatorModule] 
 })
