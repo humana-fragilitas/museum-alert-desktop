@@ -1,7 +1,8 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 
-import { AuthService } from 'src/app/shared/auth.service';
+import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 
 export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
 
@@ -14,10 +15,16 @@ export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
                     ?.idToken
                     ?.toString();
 
-  const reqWithHeader = req.clone({
-    headers: req.headers.set('Authorization', idToken!),
-  });
 
-  return next(reqWithHeader);
+  const allowedBasePath = environment.aws.apiGateway;
+
+  if (req.url.startsWith(allowedBasePath)) {
+    const reqWithHeader = req.clone({
+      headers: req.headers.set('Authorization', idToken!),
+    });
+    return next(reqWithHeader);
+  }
+
+  return next(req);
 
 };

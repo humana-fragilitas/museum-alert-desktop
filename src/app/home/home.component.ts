@@ -1,14 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { AuthenticatorService, AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
 import { DeviceService } from '../core/services/device.service';
+
+/**
+ * humana.fragilitas@gmail.com
+ * zZ&c0qIz
+ */
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
-  imports: []
+  imports: [
+    AmplifyAuthenticatorModule
+  ]
 })
 export class HomeComponent implements OnInit {
 
@@ -26,6 +33,10 @@ export class HomeComponent implements OnInit {
 
     this.deviceService.createProvisioningClaim();
   
+  }
+
+  signOut() {
+    this.authenticatorService.signOut();
   }
 
 }

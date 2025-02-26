@@ -1,21 +1,15 @@
 <div class="container">
+  
   <h1 class="title">
     {{ 'PAGES.HOME.TITLE' | translate }}
   </h1>
-
-  <a routerLink="/detail">{{ 'PAGES.HOME.GO_TO_DETAIL' | translate }}</a>
-
-</div>
 
   @if (authenticatorService.route === 'authenticated') {
     <p>
       {{ authenticatorService.user.signInDetails?.loginId }}
     </p>
-    <button color="primary">Sign out</button>
-  } @else {
-    <p>
-    Welcome to Museum Alert
-    </p>
+    <button color="primary" (click)="signOut()" >Sign out</button>
+    <button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</button>
   }
 
 <amplify-authenticator [hideSignUp]="false" [loginMechanisms]="['email']">
@@ -55,14 +49,17 @@
   <ng-template amplifySlot="confirm-verify-user-footer">
     <div>Footer Information</div>
   </ng-template>
+
   <ng-template
     amplifySlot="authenticated"
     let-user="user"
     let-signOut="signOut"
   >
 
-    <button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</button>
+    
 
   </ng-template>
 </amplify-authenticator>
+
+</div>
 

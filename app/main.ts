@@ -24,7 +24,6 @@ function createWindow(): BrowserWindow {
     height: size.height,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: false,
       allowRunningInsecureContent: (serve),
       contextIsolation: true,
     },
