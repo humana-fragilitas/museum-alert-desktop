@@ -26,8 +26,12 @@ export class SerialService {
 
     if (window.electron) {
 
-        window.electron.ipcRenderer.on('main-to-renderer', (data) => {
-            console.log('Received:', data);
+        window.electron.ipcRenderer.on('device-found', (data) => {
+          console.log('[ANGULAR APP] Device found:', data);
+        });
+
+        window.electron.ipcRenderer.on('device-status-update', (data) => {
+          console.log('[ANGULAR APP] Device status update:', data);
         });
 
         window.electron.ipcRenderer.send('renderer-to-main', { msg: 'Hello from Angular!' });

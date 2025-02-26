@@ -5,6 +5,7 @@ const serialport_1 = require("serialport");
 const parser_regex_1 = require("@serialport/parser-regex");
 const path = require("path");
 const fs = require("fs");
+const serial_com_service_1 = require("./core/serial-com.service");
 let win = null;
 const args = process.argv.slice(1), serve = args.some(val => val === '--serve');
 let serialPort;
@@ -46,7 +47,29 @@ function createWindow() {
         // when you should delete the corresponding element.
         win = null;
     });
-    initialize(win);
+    const serialCom = new serial_com_service_1.SerialCom(win);
+    (function startDeviceDetection() {
+        /**
+         * In a real-world application, you would want to specify your
+         * actual manufacturer name here. For the sake of this example,
+         * we are using 'Arduino' as the manufacturer name.
+         */
+        serialCom.detectUSBDevice('Arduino').then((device) => {
+            if (device && win) {
+                win.webContents.send('device-found', device);
+                serialCom.connectToUSBDevice(device).subscribe((status) => {
+                    win.webContents.send('device-status-update', status);
+                    if (!status.connected) {
+                        console.log('Device disconnected, restarting detection...');
+                        // Add a small delay before restarting detection to avoid potential rapid reconnection loops
+                        setTimeout(() => {
+                            startDeviceDetection();
+                        }, 1000);
+                    }
+                });
+            }
+        });
+    }());
     return win;
 }
 try {
@@ -76,11 +99,12 @@ catch (e) {
     // throw e;
 }
 function initialize(win) {
-    /**
-     * list serial port on a MAC
-     * ls /dev/tty.*
-     * ls /dev/cu.*
-     */
+    detectUSBDevice().then((device) => {
+        if (device) {
+            console.log(`DEVICE FOUND: ${JSON.stringify(device)}`);
+            win.webContents.send('device-found', device);
+        }
+    });
     // Open the serial port (adjust COM port for your system)
     serialPort = new serialport_1.SerialPort({
         path: '/dev/cu.usbmodem3485187A35EC2', // Change this to match your Arduino port (e.g., "/dev/ttyUSB0" for Linux)
@@ -129,5 +153,23 @@ function initialize(win) {
             }, 5000);
         });
     }
+}
+function detectUSBDevice() {
+    console.log("detectUSBDevice called");
+    return new Promise((resolve) => {
+        const interval = setInterval(() => {
+            serialport_1.SerialPort.list().then((devices) => {
+                console.log("Scanned devices:");
+                console.log(JSON.stringify(devices));
+                const device = devices.find((entry) => entry.manufacturer && entry.manufacturer.includes("Arduino")); // Fix typo and improve matching
+                if (device) {
+                    clearInterval(interval); // Stop scanning
+                    resolve(device); // Return the found device
+                }
+            }).catch((err) => {
+                console.error("Error listing USB devices:", err);
+            });
+        }, 2000); // Scan every second
+    });
 }
 //# sourceMappingURL=main.js.map
