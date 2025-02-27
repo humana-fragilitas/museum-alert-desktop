@@ -2,6 +2,7 @@ import {app, BrowserWindow, ipcMain} from 'electron';
 import { SerialPort } from 'serialport';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { RegexParser } from '@serialport/parser-regex';
+import { DelimiterParser } from '@serialport/parser-delimiter';
 import { Subject } from 'rxjs';
 
 // {"path":"/dev/tty.usbmodem3485187A35EC2","manufacturer":"Arduino","serialNumber":"3485187A35EC","locationId":"00100000","vendorId":"2341","productId":"0070"}
@@ -15,6 +16,7 @@ class SerialCom {
 
     private serialPort!: SerialPort;
     private regexParser!: RegexParser;
+    private delimiterParser!: DelimiterParser;
     private deviceStatus: Subject<DeviceStatus> = new Subject<DeviceStatus>();
 
     constructor(private browserWindow: BrowserWindow) { }
@@ -52,7 +54,8 @@ class SerialCom {
     connectToUSBDevice(device: PortInfo): Subject<DeviceStatus> {
 
         this.serialPort = new SerialPort({ path: device.path, baudRate: 9600 });
-        this.regexParser = this.serialPort.pipe(new RegexParser({ regex: /<\|(.*?)\|>/ }));
+        this.delimiterParser = this.serialPort.pipe(new DelimiterParser({delimiter: '\n' }));
+        this.regexParser = this.delimiterParser.pipe(new RegexParser({ regex: /<\|(.*?)\|>/ }));
 
         this.serialPort.on('open', () => {
             console.log(`Opened serial connection with device ${device.path} (${device.manufacturer})`);
@@ -65,9 +68,21 @@ class SerialCom {
             this.deviceStatus.next({ connected: false });
         });
 
+        this.delimiterParser.on('data', (data) => {
+            const payload = data.toString().trim();     
+            console.log(`Received data via serial connection from DELIMITER: ${payload}`);  
+        });
+
         this.regexParser.on('data', (data) => {
-            console.log(`Received data via serial connection from device ${device.path} (${device.manufacturer}):`, data); 
-            this.deviceStatus.next({ connected: true, data: data });
+            const payload = data.toString();
+            console.log(`Received data via serial connection from REGEX PARSER: ${payload}`);
+            try {
+                const jsonPayload = JSON.parse(payload);
+                this.deviceStatus.next({ connected: true, ...jsonPayload });
+            } catch(e) {
+                console.log("Data received via serial connection is not valid Json");
+            }
+            
         });
 
         return this.deviceStatus;
@@ -86,6 +101,8 @@ class SerialCom {
             console.error('Error closing serial port:', err);
         }
         this.serialPort.removeAllListeners();
+        this.delimiterParser.removeAllListeners();
+        this.regexParser.removeAllListeners();
         }
 
     }

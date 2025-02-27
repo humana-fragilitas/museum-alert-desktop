@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
-const serialport_1 = require("serialport");
-const parser_regex_1 = require("@serialport/parser-regex");
 const path = require("path");
 const fs = require("fs");
 const serial_com_service_1 = require("./core/serial-com.service");
@@ -18,9 +16,10 @@ function createWindow() {
         width: size.width,
         height: size.height,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
             allowRunningInsecureContent: (serve),
             contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
         },
     });
     if (serve) {
@@ -54,13 +53,13 @@ function createWindow() {
          * we are using 'Arduino' as the manufacturer name.
          */
         serialCom.detectUSBDevice('Arduino').then((device) => {
+            console.log("serialCom.detectUSBDevice CALLED ************");
             win.webContents.send('device-found', device);
-            let deviceStatusSubscription = serialCom.connectToUSBDevice(device).subscribe((status) => {
+            const deviceStatusSubscription = serialCom.connectToUSBDevice(device).subscribe((status) => {
                 win.webContents.send('device-status-update', status);
                 if (!status.connected) {
                     console.log('Device disconnected, restarting detection...');
                     deviceStatusSubscription.unsubscribe();
-                    // Add a small delay before restarting detection to avoid potential rapid reconnection loops
                     setTimeout(() => {
                         startDeviceDetection();
                     }, 1000);
@@ -95,79 +94,5 @@ try {
 catch (e) {
     // Catch Error
     // throw e;
-}
-function initialize(win) {
-    detectUSBDevice().then((device) => {
-        if (device) {
-            console.log(`DEVICE FOUND: ${JSON.stringify(device)}`);
-            win.webContents.send('device-found', device);
-        }
-    });
-    // Open the serial port (adjust COM port for your system)
-    serialPort = new serialport_1.SerialPort({
-        path: '/dev/cu.usbmodem3485187A35EC2', // Change this to match your Arduino port (e.g., "/dev/ttyUSB0" for Linux)
-        //path: '/dev/tty.usbmodem3485187A35EC2',
-        baudRate: 9600
-    });
-    const parser = serialPort.pipe(new parser_regex_1.RegexParser({ regex: /<\|(.*?)\|>/ }));
-    open();
-    serialPort.on('close', attemptReconnect);
-    serialPort.on('error', (err) => {
-        console.error('Serial Port Error:', err.message);
-        attemptReconnect();
-    });
-    serialPort.on('data', (data) => {
-        console.log('Serial port received data:', data.toString());
-        win.webContents.send('main-to-renderer', data.toString('utf-8'));
-    });
-    parser.on('data', (data) => {
-        console.log('Parser received data:', data.toString());
-        win.webContents.send('main-to-renderer', data.toString('utf-8'));
-    });
-    electron_1.ipcMain.on('renderer-to-main', (event, message) => {
-        console.log('Message from renderer:', message);
-        // serialPort.write(message, (err) => {
-        //   if (err) {
-        //     console.error('Error writing to serial port:', err.message);
-        //   }
-        // });
-    });
-    win.webContents.send('main-to-renderer', 'Hello from main.ts');
-    function attemptReconnect() {
-        open();
-    }
-    function open() {
-        serialPort.on('open', () => {
-            console.log('Serial Port Opened');
-            setInterval(() => {
-                serialPort.write('ciao', (err) => {
-                    if (err) {
-                        console.error('Error writing to serial port:', err.message);
-                    }
-                    else {
-                        console.log('Message sent successfully!');
-                    }
-                });
-            }, 5000);
-        });
-    }
-}
-function detectUSBDevice() {
-    console.log("detectUSBDevice called");
-    return new Promise((resolve) => {
-        const interval = setInterval(() => {
-            serialport_1.SerialPort.list().then((devices) => {
-                console.log("Scanned devices:");
-                console.log(JSON.stringify(devices));
-                const device = devices.find((entry) => entry.manufacturer && entry.manufacturer.includes("Arduino")); // Fix typo and improve matching
-                if (device) {
-                    clearInterval(interval); // Stop scanning
-                    resolve(device); // Return the found device
-                }
-            }).catch((err) => {
-                console.error("Error listing USB devices:", err);
-            });
-        }, 2000); // Scan every second
-    });
 }
 //# sourceMappingURL=main.js.map

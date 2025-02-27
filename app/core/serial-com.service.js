@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SerialCom = void 0;
 const serialport_1 = require("serialport");
 const parser_regex_1 = require("@serialport/parser-regex");
+const parser_delimiter_1 = require("@serialport/parser-delimiter");
 const rxjs_1 = require("rxjs");
 class SerialCom {
     constructor(browserWindow) {
@@ -29,7 +30,8 @@ class SerialCom {
     }
     connectToUSBDevice(device) {
         this.serialPort = new serialport_1.SerialPort({ path: device.path, baudRate: 9600 });
-        this.regexParser = this.serialPort.pipe(new parser_regex_1.RegexParser({ regex: /<\|(.*?)\|>/ }));
+        this.delimiterParser = this.serialPort.pipe(new parser_delimiter_1.DelimiterParser({ delimiter: '\n' }));
+        this.regexParser = this.delimiterParser.pipe(new parser_regex_1.RegexParser({ regex: /<\|(.*?)\|>/ }));
         this.serialPort.on('open', () => {
             console.log(`Opened serial connection with device ${device.path} (${device.manufacturer})`);
             this.deviceStatus.next({ connected: true });
@@ -40,9 +42,20 @@ class SerialCom {
             console.log(`Closed serial connection with device ${device.path} (${device.manufacturer})`);
             this.deviceStatus.next({ connected: false });
         });
+        this.delimiterParser.on('data', (data) => {
+            const payload = data.toString().trim();
+            console.log(`Received data via serial connection from DELIMITER: ${payload}`);
+        });
         this.regexParser.on('data', (data) => {
-            console.log(`Received data via serial connection from device ${device.path} (${device.manufacturer}):`, data);
-            this.deviceStatus.next({ connected: true, data: data });
+            const payload = data.toString();
+            console.log(`Received data via serial connection from REGEX PARSER: ${payload}`);
+            try {
+                const jsonPayload = JSON.parse(payload);
+                this.deviceStatus.next(Object.assign({ connected: true }, jsonPayload));
+            }
+            catch (e) {
+                console.log("Data received via serial connection is not valid Json");
+            }
         });
         return this.deviceStatus;
     }
@@ -58,6 +71,8 @@ class SerialCom {
                 console.error('Error closing serial port:', err);
             }
             this.serialPort.removeAllListeners();
+            this.delimiterParser.removeAllListeners();
+            this.regexParser.removeAllListeners();
         }
     }
 }
