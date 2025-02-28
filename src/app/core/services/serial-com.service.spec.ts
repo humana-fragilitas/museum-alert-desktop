@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { BluetoothService } from './bluetooth.service';
+import { SerialService } from './serial-com.service';
 
-describe('BluetoothService', () => {
-  let service: BluetoothService;
+describe('SerialService', () => {
+  let service: SerialService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(BluetoothService);
+    service = TestBed.inject(SerialService);
   });
 
   it('should be created', () => {

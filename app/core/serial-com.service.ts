@@ -3,23 +3,45 @@ import { SerialPort } from 'serialport';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { RegexParser } from '@serialport/parser-regex';
 import { DelimiterParser } from '@serialport/parser-delimiter';
+import { DeviceIncomingData, DeviceAppState, DeviceMessageType } from '@shared/models';
 import { Subject } from 'rxjs';
 
 // {"path":"/dev/tty.usbmodem3485187A35EC2","manufacturer":"Arduino","serialNumber":"3485187A35EC","locationId":"00100000","vendorId":"2341","productId":"0070"}
-
-interface DeviceStatus {
-    connected: boolean;
-    data?: string | null;
-}
-
 class SerialCom {
 
     private serialPort!: SerialPort;
     private regexParser!: RegexParser;
     private delimiterParser!: DelimiterParser;
-    private deviceStatus: Subject<DeviceStatus> = new Subject<DeviceStatus>();
+    
+    public readonly device: Subject<PortInfo> = new Subject<PortInfo>();
+    public readonly deviceConnectionStatus: Subject<boolean> = new Subject<boolean>();
+    public readonly deviceIncomingData: Subject<DeviceIncomingData> = new Subject<DeviceIncomingData>();
 
-    constructor(private browserWindow: BrowserWindow) { }
+    constructor(private browserWindow: BrowserWindow) {
+
+        // Renderer to main process IPC communication
+        ipcMain.on('start-device-detection', () => {
+            this.startDeviceDetection();
+        });
+
+        ipcMain.on('close-serial-connection', () => {
+            this.closeConnection();
+        });
+
+        // Main to renderer process IPC communication
+        this.device.subscribe((device: PortInfo) => {
+            this.browserWindow.webContents.send('device-found', device);
+        });
+
+        this.deviceConnectionStatus.subscribe((status: boolean) => {
+            this.browserWindow.webContents.send('device-connection-status-update', status);
+        });
+
+        this.deviceIncomingData.subscribe((data: DeviceIncomingData) => {   
+            this.browserWindow.webContents.send('device-incoming-data', data);
+        });
+
+    }
 
     detectUSBDevice(manufacturer: string): Promise<PortInfo> {
 
@@ -29,9 +51,12 @@ class SerialCom {
 
                 SerialPort.list().then((devices) => {
                 
-                    console.log(devices.length ? `Serial interfaces scanning found the following available ports: \n${JSON.stringify(devices)}` :
+                    console.log(devices.length ?
+                        `Serial interfaces scanning found the following available ports: \n${JSON.stringify(devices)}` :
                             "Serial interfaces scanning found no available ports");
-                    const device = devices.find((entry) => entry.manufacturer && entry.manufacturer.includes(manufacturer));
+                            
+                    const device = devices.find((entry) => entry.manufacturer &&
+                                                           entry.manufacturer.includes(manufacturer));
             
                     if (device) {
                         console.log(`Found device: ${device.path} (${device.manufacturer})`);
@@ -45,13 +70,13 @@ class SerialCom {
 
                 });
 
-            }, 2000);
+            }, 1000);
 
         });
 
     }
 
-    connectToUSBDevice(device: PortInfo): Subject<DeviceStatus> {
+    connectToUSBDevice(device: PortInfo): void {
 
         this.serialPort = new SerialPort({ path: device.path, baudRate: 9600 });
         this.delimiterParser = this.serialPort.pipe(new DelimiterParser({delimiter: '\n' }));
@@ -59,13 +84,13 @@ class SerialCom {
 
         this.serialPort.on('open', () => {
             console.log(`Opened serial connection with device ${device.path} (${device.manufacturer})`);
-            this.deviceStatus.next({ connected: true });
+            this.deviceConnectionStatus.next(true);
         }).on('error', (err) => {
             console.error(`Error while communicating via serial connection with device ${device.path} (${device.manufacturer}):`, err);
-            this.deviceStatus.next({ connected: false });
+            this.deviceConnectionStatus.next(false);
         }).on('close', () => {      
             console.log(`Closed serial connection with device ${device.path} (${device.manufacturer})`);
-            this.deviceStatus.next({ connected: false });
+            this.deviceConnectionStatus.next(false);
         });
 
         this.delimiterParser.on('data', (data) => {
@@ -78,14 +103,12 @@ class SerialCom {
             console.log(`Received data via serial connection from REGEX PARSER: ${payload}`);
             try {
                 const jsonPayload = JSON.parse(payload);
-                this.deviceStatus.next({ connected: true, ...jsonPayload });
+                this.deviceIncomingData.next({ ...jsonPayload });
             } catch(e) {
                 console.log("Data received via serial connection is not valid Json");
             }
             
         });
-
-        return this.deviceStatus;
         
     }
 
@@ -115,28 +138,31 @@ class SerialCom {
          * we are using 'Arduino' as the manufacturer name.
          */
       
-        this.detectUSBDevice('Arduino').then((device) => {
+        this.detectUSBDevice('Arduino').then((device: PortInfo) => {
       
-            this.browserWindow.webContents.send('device-found', device);
-      
-          const deviceStatusSubscription = this.connectToUSBDevice(device).subscribe((status: DeviceStatus) => {
-      
-            this.browserWindow.webContents.send('device-status-update', status);
-      
-            if (!status.connected) {
-              console.log('Device disconnected, restarting detection...');
-              deviceStatusSubscription.unsubscribe();
-              setTimeout(() => {
-                this.startDeviceDetection();
-              }, 1000);
-            }
+            this.device.next(device);
+
+            const deviceStatusSubscription = this.deviceConnectionStatus.subscribe((status: boolean) => {
+
+                if (!status) {
+                    console.log('Device disconnected, restarting detection...');
+                    deviceStatusSubscription.unsubscribe();
+                    setTimeout(() => {
+                        this.startDeviceDetection();
+                    }, 5000);
+                }
+
+            });
+
+            this.connectToUSBDevice(device);
       
           });
       
-        });
-      
-    };
+    }
 
 }
 
-export { SerialCom, DeviceStatus };
+export { SerialCom,
+         DeviceIncomingData,
+         DeviceAppState, 
+         DeviceMessageType };

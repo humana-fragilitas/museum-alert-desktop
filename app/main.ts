@@ -2,7 +2,7 @@ import {app, BrowserWindow, screen, ipcMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { SerialCom, DeviceStatus } from './core/serial-com.service';
+import { SerialCom } from './core/serial-com.service';
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),

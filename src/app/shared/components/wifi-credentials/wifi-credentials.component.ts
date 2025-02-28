@@ -6,7 +6,7 @@ import { FormGroup, FormControl } from '@angular/forms';
   selector: 'app-wifi-credentials',
   templateUrl: './wifi-credentials.component.html',
   styleUrls: ['./wifi-credentials.component.scss'],
-  imports: [SharedModule],
+  imports: [],
 })
 export class WiFiCredentialsComponent implements OnInit {
 
@@ -19,6 +19,10 @@ export class WiFiCredentialsComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('WiFiCredentials INIT');
+  }
+
+  onSubmit() {
+    console.log('Form submitted:', this.credentialsForm.value);
   }
 
 }

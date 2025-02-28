@@ -1,22 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SerialCom = void 0;
+exports.DeviceMessageType = exports.DeviceAppState = exports.SerialCom = void 0;
+const electron_1 = require("electron");
 const serialport_1 = require("serialport");
 const parser_regex_1 = require("@serialport/parser-regex");
 const parser_delimiter_1 = require("@serialport/parser-delimiter");
+const models_1 = require("@shared/models");
+Object.defineProperty(exports, "DeviceAppState", { enumerable: true, get: function () { return models_1.DeviceAppState; } });
+Object.defineProperty(exports, "DeviceMessageType", { enumerable: true, get: function () { return models_1.DeviceMessageType; } });
 const rxjs_1 = require("rxjs");
+// {"path":"/dev/tty.usbmodem3485187A35EC2","manufacturer":"Arduino","serialNumber":"3485187A35EC","locationId":"00100000","vendorId":"2341","productId":"0070"}
 class SerialCom {
     constructor(browserWindow) {
         this.browserWindow = browserWindow;
-        this.deviceStatus = new rxjs_1.Subject();
+        this.device = new rxjs_1.Subject();
+        this.deviceConnectionStatus = new rxjs_1.Subject();
+        this.deviceIncomingData = new rxjs_1.Subject();
+        // Renderer to main process IPC communication
+        electron_1.ipcMain.on('start-device-detection', () => {
+            this.startDeviceDetection();
+        });
+        electron_1.ipcMain.on('close-serial-connection', () => {
+            this.closeConnection();
+        });
+        // Main to renderer process IPC communication
+        this.device.subscribe((device) => {
+            this.browserWindow.webContents.send('device-found', device);
+        });
+        this.deviceConnectionStatus.subscribe((status) => {
+            this.browserWindow.webContents.send('device-connection-status-update', status);
+        });
+        this.deviceIncomingData.subscribe((data) => {
+            this.browserWindow.webContents.send('device-incoming-data', data);
+        });
     }
     detectUSBDevice(manufacturer) {
         return new Promise((resolve) => {
             const interval = setInterval(() => {
                 serialport_1.SerialPort.list().then((devices) => {
-                    console.log(devices.length ? `Serial interfaces scanning found the following available ports: \n${JSON.stringify(devices)}` :
+                    console.log(devices.length ?
+                        `Serial interfaces scanning found the following available ports: \n${JSON.stringify(devices)}` :
                         "Serial interfaces scanning found no available ports");
-                    const device = devices.find((entry) => entry.manufacturer && entry.manufacturer.includes(manufacturer));
+                    const device = devices.find((entry) => entry.manufacturer &&
+                        entry.manufacturer.includes(manufacturer));
                     if (device) {
                         console.log(`Found device: ${device.path} (${device.manufacturer})`);
                         clearInterval(interval);
@@ -25,7 +51,7 @@ class SerialCom {
                 }).catch((err) => {
                     console.error("Error while scanning available serial interfaces:", err);
                 });
-            }, 2000);
+            }, 1000);
         });
     }
     connectToUSBDevice(device) {
@@ -34,13 +60,13 @@ class SerialCom {
         this.regexParser = this.delimiterParser.pipe(new parser_regex_1.RegexParser({ regex: /<\|(.*?)\|>/ }));
         this.serialPort.on('open', () => {
             console.log(`Opened serial connection with device ${device.path} (${device.manufacturer})`);
-            this.deviceStatus.next({ connected: true });
+            this.deviceConnectionStatus.next(true);
         }).on('error', (err) => {
             console.error(`Error while communicating via serial connection with device ${device.path} (${device.manufacturer}):`, err);
-            this.deviceStatus.next({ connected: false });
+            this.deviceConnectionStatus.next(false);
         }).on('close', () => {
             console.log(`Closed serial connection with device ${device.path} (${device.manufacturer})`);
-            this.deviceStatus.next({ connected: false });
+            this.deviceConnectionStatus.next(false);
         });
         this.delimiterParser.on('data', (data) => {
             const payload = data.toString().trim();
@@ -51,13 +77,12 @@ class SerialCom {
             console.log(`Received data via serial connection from REGEX PARSER: ${payload}`);
             try {
                 const jsonPayload = JSON.parse(payload);
-                this.deviceStatus.next(Object.assign({ connected: true }, jsonPayload));
+                this.deviceIncomingData.next(Object.assign({}, jsonPayload));
             }
             catch (e) {
                 console.log("Data received via serial connection is not valid Json");
             }
         });
-        return this.deviceStatus;
     }
     closeConnection() {
         if (this.serialPort) {
@@ -82,20 +107,19 @@ class SerialCom {
          * we are using 'Arduino' as the manufacturer name.
          */
         this.detectUSBDevice('Arduino').then((device) => {
-            this.browserWindow.webContents.send('device-found', device);
-            const deviceStatusSubscription = this.connectToUSBDevice(device).subscribe((status) => {
-                this.browserWindow.webContents.send('device-status-update', status);
-                if (!status.connected) {
+            this.device.next(device);
+            const deviceStatusSubscription = this.deviceConnectionStatus.subscribe((status) => {
+                if (!status) {
                     console.log('Device disconnected, restarting detection...');
                     deviceStatusSubscription.unsubscribe();
                     setTimeout(() => {
                         this.startDeviceDetection();
-                    }, 1000);
+                    }, 5000);
                 }
             });
+            this.connectToUSBDevice(device);
         });
     }
-    ;
 }
 exports.SerialCom = SerialCom;
 //# sourceMappingURL=serial-com.service.js.map

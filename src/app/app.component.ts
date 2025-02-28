@@ -3,7 +3,7 @@ import { ElectronService } from './core/services';
 import { AuthService } from './core/services/auth.service';
 import { MqttService } from './core/services/mqtt.service'; 
 import { PolicyService } from './core/services/policy.service';
-import { SerialService } from './core/services/electron/serial.service'; 
+import { SerialService } from './core/services/serial-com.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
 

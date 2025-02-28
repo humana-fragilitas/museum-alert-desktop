@@ -17,8 +17,12 @@ export class SerialService {
         console.log('[ANGULAR APP] Device found:', data);
       });
   
-      window.electron.ipcRenderer.on('device-status-update', (data) => {
-        console.log('[ANGULAR APP] Device status update:', data);
+      window.electron.ipcRenderer.on('device-connection-status-update', (data) => {
+        console.log('[ANGULAR APP] Device connection status update:', data);
+      });
+
+      window.electron.ipcRenderer.on('device-incoming-data', (data) => {
+        console.log('[ANGULAR APP] Device incoming data:', data);
       });
 
     }
@@ -26,10 +30,6 @@ export class SerialService {
     // Example: send data to main process
     // window.electron!.ipcRenderer.send('renderer-to-main', { msg: 'Hello from Angular!' });
         
-  }
-
-  async scanPorts(): Promise<string[]> {
-    return [];
   }
 
 }

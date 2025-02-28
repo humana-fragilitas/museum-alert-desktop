@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthenticatorService, AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+import { ProvisioningService } from '../core/services/provisioning.service';
 import { DeviceService } from '../core/services/device.service';
 
 /**
@@ -21,8 +22,9 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private deviceService: DeviceService,
-    private authenticatorService: AuthenticatorService
+    private provisioningService: ProvisioningService,
+    private authenticatorService: AuthenticatorService,
+    public deviceService: DeviceService
   ) { }
 
   ngOnInit(): void {
@@ -31,7 +33,7 @@ export class HomeComponent implements OnInit {
 
   createProvisioningClaim() {
 
-    this.deviceService.createProvisioningClaim();
+    this.provisioningService.createClaim();
   
   }
 

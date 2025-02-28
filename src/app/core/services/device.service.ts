@@ -1,52 +1,66 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { environment } from '../../environments/environment';
+import { WINDOW } from './shared/window';
+import { PortInfo } from '@serialport/bindings-cpp';
+import { DeviceIncomingData,
+         DeviceAppState,
+         DeviceMessageType,
+         WiFiNetwork,
+         AlarmPayload } from '@shared/models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceService {
 
-  constructor(private httpClient: HttpClient) { }
+  public portInfo?: PortInfo;
+  public alarmStatus?: AlarmPayload;
+  public deviceAppStatus?: DeviceAppState;
+  public connectionStatus: boolean = false;
+  public wiFiNetworks: WiFiNetwork[] = [];
 
-  register(deviceName: string) {
+  constructor(@Inject(WINDOW) private window: Window) {
 
-    const apiUrl = `${environment.aws.apiGateway}/device-management/managed-devices/`;
+    console.log('DeviceService created!');
+
+    if (window.electron) {
+      
+      window.electron.ipcRenderer.on('device-found', (data) => {
+        console.log('[ANGULAR APP] Device found:', data);
+        this.portInfo = data as PortInfo;
+      });
   
-    this.httpClient.post(apiUrl, {
-      deviceName 
-    }).subscribe((certificates:any) => {
+      window.electron.ipcRenderer.on('device-connection-status-update', (data) => {
+        console.log('[ANGULAR APP] Device connection status update:', data);
+        this.connectionStatus = data as boolean;
+      });
 
-      console.log(certificates);
+      window.electron.ipcRenderer.on('device-incoming-data', (data) => {
+        console.log('[ANGULAR APP] Device incoming data:', data);
+        this.parseIncomingData(data as DeviceIncomingData);
+      });
 
-    });
+    }
+
+    // Example: send data to main process
+    // window.electron!.ipcRenderer.send('renderer-to-main', { msg: 'Hello from Angular!' });
+    
+  }
+
+  private parseIncomingData(payload: DeviceIncomingData) {
+
+    switch (payload.type) {
+      case DeviceMessageType.APP_STATE:
+        this.deviceAppStatus = payload.data as DeviceAppState;
+        break;
+      case DeviceMessageType.SENSOR_DETECTION:
+        this.alarmStatus = payload.data as AlarmPayload;
+        break;
+      case DeviceMessageType.WIFI_NETWORKS_LIST:
+        this.wiFiNetworks = payload.data as WiFiNetwork[];
+        break;
+    }
 
   }
 
-  /**
-   *  Root CA Certificate (CACert):
-      The certificatePem value should be used here.
-      Set it using net.setCACert(certificatePem).
-      Client Certificate and Private Key:
-      For the client certificate, use the same certificatePem value.
-      For the client private key, use the keyPair.PrivateKey value.
-      Set them using net.setCertificate(clientCertificate) and net.setPrivateKey(clientPrivateKey).
-   */
-
-  // <| { "ssid": "Test", "password": "qyqijczyz2p37xz" } |>
-  createProvisioningClaim() {
-
-    const apiUrl = `${environment.aws.apiGateway}/device-management/provisioning-claims/`;
-    this.httpClient.post(apiUrl, null).subscribe((claim:any)=> {
-
-      const testBluetoothPayload = {
-        tempCertPem: claim.certificatePem,
-        tempPrivateKey: claim.keyPair.PrivateKey
-      };
-      console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
-      console.log(claim);
-    });
-
-  }
-
-}
+} 

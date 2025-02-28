@@ -4,6 +4,13 @@
     {{ 'PAGES.HOME.TITLE' | translate }}
   </h1>
 
+  <h4>
+    Device found: {{ deviceService.portInfo | json}}
+    Device app status: {{ deviceService.deviceAppStatus }}
+    Device coonection status: {{ deviceService.connectionStatus }}
+    Device detected WiFi networks: {{ deviceService.wiFiNetworks | json }}
+  </h4>
+  
   @if (authenticatorService.route === 'authenticated') {
     <p>
       {{ authenticatorService.user.signInDetails?.loginId }}
@@ -24,6 +31,8 @@
         type="text">
     </amplify-text-field>
   </ng-template>
+
+  <!--
 
   <ng-template amplifySlot="verify-user-header">
     <h3
@@ -59,6 +68,9 @@
     
 
   </ng-template>
+
+-->
+
 </amplify-authenticator>
 
 </div>
