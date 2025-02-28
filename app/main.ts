@@ -1,5 +1,4 @@
 import {app, BrowserWindow, screen, ipcMain} from 'electron';
-import { SerialPort } from 'serialport';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -9,7 +8,7 @@ let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
 
-let serialPort: SerialPort;
+let serialCom: SerialCom;
 
 function createWindow(): BrowserWindow {
 
@@ -60,40 +59,6 @@ function createWindow(): BrowserWindow {
     win = null;
   });
 
-  const serialCom = new SerialCom(win);
-
-  (function startDeviceDetection() {
-
-    /**
-     * In a real-world application, you would want to specify your
-     * actual manufacturer name here. For the sake of this example,
-     * we are using 'Arduino' as the manufacturer name.
-     */
-
-    serialCom.detectUSBDevice('Arduino').then((device) => {
-
-      console.log("serialCom.detectUSBDevice CALLED ************");
-
-      win!.webContents.send('device-found', device);
-
-      const deviceStatusSubscription = serialCom.connectToUSBDevice(device).subscribe((status: DeviceStatus) => {
-
-        win!.webContents.send('device-status-update', status);
-
-        if (!status.connected) {
-          console.log('Device disconnected, restarting detection...');
-          deviceStatusSubscription.unsubscribe();
-          setTimeout(() => {
-            startDeviceDetection();
-          }, 1000);
-        }
-
-      });
-
-    });
-
-  }());
-
   return win;
 
 }
@@ -103,7 +68,11 @@ try {
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-  app.on('ready', () => setTimeout(createWindow, 400));
+  app.on('ready', () => setTimeout(() => {
+
+    new SerialCom(createWindow()).startDeviceDetection();
+
+  }, 400));
 
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {

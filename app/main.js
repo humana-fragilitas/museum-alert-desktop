@@ -6,7 +6,7 @@ const fs = require("fs");
 const serial_com_service_1 = require("./core/serial-com.service");
 let win = null;
 const args = process.argv.slice(1), serve = args.some(val => val === '--serve');
-let serialPort;
+let serialCom;
 function createWindow() {
     const size = electron_1.screen.getPrimaryDisplay().workAreaSize;
     // Create the browser window.
@@ -45,28 +45,6 @@ function createWindow() {
         // when you should delete the corresponding element.
         win = null;
     });
-    const serialCom = new serial_com_service_1.SerialCom(win);
-    (function startDeviceDetection() {
-        /**
-         * In a real-world application, you would want to specify your
-         * actual manufacturer name here. For the sake of this example,
-         * we are using 'Arduino' as the manufacturer name.
-         */
-        serialCom.detectUSBDevice('Arduino').then((device) => {
-            console.log("serialCom.detectUSBDevice CALLED ************");
-            win.webContents.send('device-found', device);
-            const deviceStatusSubscription = serialCom.connectToUSBDevice(device).subscribe((status) => {
-                win.webContents.send('device-status-update', status);
-                if (!status.connected) {
-                    console.log('Device disconnected, restarting detection...');
-                    deviceStatusSubscription.unsubscribe();
-                    setTimeout(() => {
-                        startDeviceDetection();
-                    }, 1000);
-                }
-            });
-        });
-    }());
     return win;
 }
 try {
@@ -74,7 +52,9 @@ try {
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
-    electron_1.app.on('ready', () => setTimeout(createWindow, 400));
+    electron_1.app.on('ready', () => setTimeout(() => {
+        new serial_com_service_1.SerialCom(createWindow()).startDeviceDetection();
+    }, 400));
     // Quit when all windows are closed.
     electron_1.app.on('window-all-closed', () => {
         // On OS X it is common for applications and their menu bar

@@ -75,6 +75,27 @@ class SerialCom {
             this.regexParser.removeAllListeners();
         }
     }
+    startDeviceDetection() {
+        /**
+         * In a real-world application, you would want to specify your
+         * actual manufacturer name here. For the sake of this example,
+         * we are using 'Arduino' as the manufacturer name.
+         */
+        this.detectUSBDevice('Arduino').then((device) => {
+            this.browserWindow.webContents.send('device-found', device);
+            const deviceStatusSubscription = this.connectToUSBDevice(device).subscribe((status) => {
+                this.browserWindow.webContents.send('device-status-update', status);
+                if (!status.connected) {
+                    console.log('Device disconnected, restarting detection...');
+                    deviceStatusSubscription.unsubscribe();
+                    setTimeout(() => {
+                        this.startDeviceDetection();
+                    }, 1000);
+                }
+            });
+        });
+    }
+    ;
 }
 exports.SerialCom = SerialCom;
 //# sourceMappingURL=serial-com.service.js.map
