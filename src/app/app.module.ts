@@ -16,6 +16,12 @@ import { DetailModule } from './detail/detail.module';
 
 import { AppComponent } from './app.component';
 import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
+import { DeviceService } from './core/services/device.service';
+import { PolicyService } from './core/services/policy.service';
+import { AuthService } from './core/services/auth.service';
+import { EventBusService } from './core/services/event-bus.service';
+import { MqttService } from './core/services/mqtt.service';
+import { ProvisioningService } from './core/services/provisioning.service';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new TranslateHttpLoader(http, './assets/i18n/', '.json');

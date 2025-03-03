@@ -3,7 +3,6 @@ import { ElectronService } from './core/services';
 import { AuthService } from './core/services/auth.service';
 import { MqttService } from './core/services/mqtt.service'; 
 import { PolicyService } from './core/services/policy.service';
-import { SerialService } from './core/services/serial-com.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
 
@@ -21,8 +20,7 @@ export class AppComponent {
     private translate: TranslateService,
     private mqttService: MqttService,
     private authService: AuthService,
-    private policyService: PolicyService,
-    private serialService: SerialService  
+    private policyService: PolicyService
   ) {
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);

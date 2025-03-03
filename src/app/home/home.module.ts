@@ -7,10 +7,11 @@ import { HomeComponent } from './home.component';
 import { SharedModule } from '../shared/shared.module';
 
 import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
+import { CoreModule } from '../core/core.module';
 
 @NgModule({
   declarations: [HomeComponent],
-  imports: [CommonModule, SharedModule, HomeRoutingModule, AmplifyAuthenticatorModule],
-  exports: [AmplifyAuthenticatorModule] 
+  imports: [CommonModule, SharedModule, CoreModule, HomeRoutingModule, AmplifyAuthenticatorModule],
+  exports: [AmplifyAuthenticatorModule, CoreModule, SharedModule] 
 })
 export class HomeModule {}

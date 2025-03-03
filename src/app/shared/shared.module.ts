@@ -3,16 +3,16 @@ import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { PageNotFoundComponent } from './components/';
 import { WebviewDirective } from './directives/';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { WiFiCredentialsComponent } from './components/wifi-credentials/wifi-credentials.component';
 import { DeviceService } from '../core/services/device.service';
+import { CoreModule } from '../core/core.module';
 
 @NgModule({
-  declarations: [PageNotFoundComponent, WebviewDirective, WiFiCredentialsComponent],
-  imports: [CommonModule, TranslateModule, FormsModule],
-  exports: [TranslateModule, WebviewDirective, FormsModule],
+  declarations: [WebviewDirective, WiFiCredentialsComponent],
+  imports: [CommonModule, CoreModule, TranslateModule, FormsModule, ReactiveFormsModule],
+  exports: [TranslateModule, CoreModule, WebviewDirective, FormsModule, ReactiveFormsModule, WebviewDirective, WiFiCredentialsComponent],
   providers: [DeviceService],
 })
 export class SharedModule {}

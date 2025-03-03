@@ -1,7 +1,7 @@
 export type DeviceIncomingData =
-  | { type: DeviceMessageType.APP_STATE; data: DeviceAppState }
-  | { type: DeviceMessageType.SENSOR_DETECTION; data: AlarmPayload }
-  | { type: DeviceMessageType.WIFI_NETWORKS_LIST; data: WiFiNetwork[] } // JSON-like object
+  | { type: DeviceMessageType.APP_STATE; data: DeviceStateUpdate }
+  | { type: DeviceMessageType.WIFI_NETWORKS_LIST; data: WiFiNetwork[] }
+  | { type: DeviceMessageType.ERROR; data: DeviceErrorType }
   | { type: DeviceMessageType; data?: undefined };
 
   export enum DeviceAppState {
@@ -18,7 +18,6 @@ export type DeviceIncomingData =
 export enum DeviceMessageType {
     APP_STATE,
     WIFI_NETWORKS_LIST,
-    SENSOR_DETECTION,
     ERROR
 };
 
@@ -42,4 +41,12 @@ export interface WiFiNetwork {
 export interface AlarmPayload {
     hasAlarm: boolean;
     distance: number;
+}
+
+export interface Error {
+    type: DeviceErrorType;
+}
+
+export interface DeviceStateUpdate {
+    appState: DeviceAppState
 }

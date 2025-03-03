@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeviceMessageType = exports.DeviceAppState = void 0;
+exports.DeviceErrorType = exports.DeviceMessageType = exports.DeviceAppState = void 0;
 var DeviceAppState;
 (function (DeviceAppState) {
     DeviceAppState[DeviceAppState["STARTED"] = 0] = "STARTED";
@@ -17,7 +17,19 @@ var DeviceMessageType;
 (function (DeviceMessageType) {
     DeviceMessageType[DeviceMessageType["APP_STATE"] = 0] = "APP_STATE";
     DeviceMessageType[DeviceMessageType["WIFI_NETWORKS_LIST"] = 1] = "WIFI_NETWORKS_LIST";
-    DeviceMessageType[DeviceMessageType["SENSOR_DETECTION"] = 2] = "SENSOR_DETECTION";
+    DeviceMessageType[DeviceMessageType["ERROR"] = 2] = "ERROR";
 })(DeviceMessageType || (exports.DeviceMessageType = DeviceMessageType = {}));
+;
+var DeviceErrorType;
+(function (DeviceErrorType) {
+    DeviceErrorType[DeviceErrorType["CIPHERING_INITIALIZATION_ERROR"] = 0] = "CIPHERING_INITIALIZATION_ERROR";
+    DeviceErrorType[DeviceErrorType["INVALID_WIFI_CREDENTIALS"] = 1] = "INVALID_WIFI_CREDENTIALS";
+    DeviceErrorType[DeviceErrorType["FAILED_WIFI_CONNECTION_ATTEMPT"] = 2] = "FAILED_WIFI_CONNECTION_ATTEMPT";
+    DeviceErrorType[DeviceErrorType["INVALID_DEVICE_PROVISIONING_SETTINGS"] = 3] = "INVALID_DEVICE_PROVISIONING_SETTINGS";
+    DeviceErrorType[DeviceErrorType["FAILED_PROVISIONING_SETTINGS_STORAGE"] = 4] = "FAILED_PROVISIONING_SETTINGS_STORAGE";
+    DeviceErrorType[DeviceErrorType["FAILED_DEVICE_PROVISIONING_ATTEMPT"] = 5] = "FAILED_DEVICE_PROVISIONING_ATTEMPT";
+    DeviceErrorType[DeviceErrorType["FAILED_MQTT_BROKER_CONNECTION"] = 6] = "FAILED_MQTT_BROKER_CONNECTION";
+    DeviceErrorType[DeviceErrorType["FAILED_SENSOR_DETECTION_REPORT"] = 7] = "FAILED_SENSOR_DETECTION_REPORT";
+})(DeviceErrorType || (exports.DeviceErrorType = DeviceErrorType = {}));
 ;
 //# sourceMappingURL=models.js.map

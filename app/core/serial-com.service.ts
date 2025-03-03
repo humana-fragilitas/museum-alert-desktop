@@ -149,7 +149,7 @@ class SerialCom {
                     deviceStatusSubscription.unsubscribe();
                     setTimeout(() => {
                         this.startDeviceDetection();
-                    }, 5000);
+                    }, 1000);
                 }
 
             });
