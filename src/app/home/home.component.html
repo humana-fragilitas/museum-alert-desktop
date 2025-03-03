@@ -11,12 +11,7 @@
     <button color="primary" (click)="signOut()" >Sign out</button>
     <button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</button>
 
-    <h4>
-      Device found: {{ deviceService.portInfo | json}} <br>
-      Device app status: {{ deviceService.deviceAppStatus }} <br>
-      Device connection status: {{ deviceService.connectionStatus }} <br>
-      Device detected WiFi networks: {{ deviceService.wiFiNetworks | json }} <br>
-    </h4>
+    <app-device></app-device>
 
     <app-wifi-credentials></app-wifi-credentials>
 

@@ -8,16 +8,21 @@ import { DeviceIncomingData,
          WiFiNetwork,
          AlarmPayload, 
          DeviceErrorType} from '@shared/models';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceService {
 
-  public portInfo?: PortInfo;
-  public deviceAppStatus?: DeviceAppState;
-  public connectionStatus: boolean = false;
-  public wiFiNetworks: WiFiNetwork[] = [];
+  public readonly portInfo$: BehaviorSubject<Nullable<PortInfo>> =
+      new BehaviorSubject<Nullable<PortInfo>>(null);
+  public readonly deviceAppStatus$: BehaviorSubject<Nullable<DeviceAppState>> =
+      new BehaviorSubject<Nullable<DeviceAppState>>(null);
+  public readonly connectionStatus$: BehaviorSubject<boolean> =
+      new BehaviorSubject<boolean>(false);
+  public readonly wiFiNetworks$: BehaviorSubject<WiFiNetwork[]> =
+      new BehaviorSubject<WiFiNetwork[]>([]);
 
   constructor(@Inject(WINDOW) private window: Window, private ngZone: NgZone) {
 
@@ -28,14 +33,14 @@ export class DeviceService {
       window.electron.ipcRenderer.on('device-found', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device found:', data);
-          this.portInfo = data as PortInfo;
+          this.portInfo$.next(data as PortInfo);
         });
       });
   
       window.electron.ipcRenderer.on('device-connection-status-update', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
-          this.connectionStatus = data as boolean;
+          this.connectionStatus$.next(data as boolean);
         });
       });
 
@@ -57,10 +62,10 @@ export class DeviceService {
 
     switch (payload.type) {
       case DeviceMessageType.APP_STATE:
-        this.deviceAppStatus = payload.data?.appState as DeviceAppState;
+        this.deviceAppStatus$.next(payload.data?.appState as DeviceAppState);
         break;
       case DeviceMessageType.WIFI_NETWORKS_LIST:
-        this.wiFiNetworks = payload.data as WiFiNetwork[];
+        this.wiFiNetworks$.next(payload.data as WiFiNetwork[]);
         break;
       case DeviceMessageType.ERROR:
         //this.error = payload.data as DeviceErrorType;
