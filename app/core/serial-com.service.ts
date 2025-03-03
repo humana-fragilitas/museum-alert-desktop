@@ -95,12 +95,12 @@ class SerialCom {
 
         this.delimiterParser.on('data', (data) => {
             const payload = data.toString().trim();     
-            console.log(`Received data via serial connection from DELIMITER: ${payload}`);  
+            console.log(`Received data via serial connection from DELIMITER PARSER: ${payload}`);  
         });
 
         this.regexParser.on('data', (data) => {
             const payload = data.toString();
-            console.log(`Received data via serial connection from REGEX PARSER: ${payload}`);
+            console.log(`Received data (non-log message) via serial connection from REGEX PARSER: ${payload}`);
             try {
                 const jsonPayload = JSON.parse(payload);
                 this.deviceIncomingData.next({ ...jsonPayload });
