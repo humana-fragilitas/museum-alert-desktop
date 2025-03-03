@@ -55,7 +55,7 @@
     "@angular/platform-browser-dynamic": "17.3.6",
     "@angular/router": "17.3.6",
     "@aws-amplify/ui-angular": "^5.0.37",
-    "@primeng/themes": "^19.0.9",
+    "@primeng/themes": "^18.0.4-lts",
     "@serialport/parser-delimiter": "^13.0.0",
     "@serialport/parser-readline": "^13.0.0",
     "@serialport/parser-regex": "^13.0.0",
