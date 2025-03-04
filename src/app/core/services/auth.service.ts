@@ -5,7 +5,7 @@ import { fetchAuthSession, FetchAuthSessionOptions, AuthSession } from 'aws-ampl
 import { Hub } from '@aws-amplify/core';
 import { HubCapsule } from 'aws-amplify/utils';
 import { Amplify } from 'aws-amplify';
-import { environment } from '../../environments/environment';
+import { APP_CONFIG } from '../../../environments/environment';
 
 /**
  * humana.fragilitas@gmail.com
@@ -26,7 +26,7 @@ export class AuthService {
 
   constructor() {
 
-    Amplify.configure(environment.aws.amplify); 
+    Amplify.configure(APP_CONFIG.aws.amplify); 
 
     this.fetchSession();
 

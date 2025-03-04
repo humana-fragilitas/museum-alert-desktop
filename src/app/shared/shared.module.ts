@@ -9,19 +9,39 @@ import { WiFiCredentialsComponent } from './components/wifi-credentials/wifi-cre
 import { DeviceService } from '../core/services/device.service';
 import { CoreModule } from '../core/core.module';
 import { DeviceComponent } from './components/device/device.component';
+import { WizardComponent } from './components/wizard-component/wizard.component';
+
+import {MatInputModule} from '@angular/material/input';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatStepperModule} from '@angular/material/stepper';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import {MatCardModule} from '@angular/material/card';
+import {MatChipsModule} from '@angular/material/chips';
+
 
 @NgModule({
   declarations: [
     WebviewDirective,
     WiFiCredentialsComponent,
-    DeviceComponent
+    DeviceComponent,
+    WizardComponent
   ],
   imports: [
     CommonModule,
     CoreModule,
     TranslateModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatStepperModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    MatCardModule,
+    MatChipsModule
   ],
   exports: [
     TranslateModule,
@@ -29,6 +49,14 @@ import { DeviceComponent } from './components/device/device.component';
     WebviewDirective,
     FormsModule,
     ReactiveFormsModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatStepperModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSelectModule,
+    MatCardModule,
+    MatChipsModule,
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent

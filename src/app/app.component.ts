@@ -5,6 +5,7 @@ import { MqttService } from './core/services/mqtt.service';
 import { PolicyService } from './core/services/policy.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,8 @@ export class AppComponent {
     private translate: TranslateService,
     private mqttService: MqttService,
     private authService: AuthService,
-    private policyService: PolicyService
+    private policyService: PolicyService,
+    private authenticatorService: AuthenticatorService
   ) {
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);
@@ -33,14 +35,11 @@ export class AppComponent {
     } else {
       console.log('Run in browser');
     }
-
-   
   
   }
 
-  async scanForArduino() {
-    //this.detectedPorts = await this.serialService.scanPorts();
-    console.log('Detected Arduino Ports:', this.detectedPorts);
+  signOut() {
+    this.authenticatorService.signOut();
   }
 
 }

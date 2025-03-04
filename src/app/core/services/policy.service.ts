@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { APP_CONFIG } from '../../../environments/environment';
 
 import { AuthSession } from 'aws-amplify/auth';
 
@@ -25,7 +25,7 @@ export class PolicyService {
 
   async attachPolicy(session: AuthSession) {
 
-    const apiUrl = `${environment.aws.apiGateway}/user-policy`;
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/user-policy`;
   
     this.httpClient.post(apiUrl, null).subscribe({
         error: (e) => console.error(e),

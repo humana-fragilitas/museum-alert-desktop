@@ -16,12 +16,11 @@ import { DetailModule } from './detail/detail.module';
 
 import { AppComponent } from './app.component';
 import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
-import { DeviceService } from './core/services/device.service';
-import { PolicyService } from './core/services/policy.service';
-import { AuthService } from './core/services/auth.service';
-import { EventBusService } from './core/services/event-bus.service';
-import { MqttService } from './core/services/mqtt.service';
-import { ProvisioningService } from './core/services/provisioning.service';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+
+import {MatIconModule} from '@angular/material/icon';
+
+
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -37,6 +36,8 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
     HomeModule,
     DetailModule,
     AppRoutingModule,
+    BrowserAnimationsModule,
+    MatIconModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

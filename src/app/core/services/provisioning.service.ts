@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { APP_CONFIG } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +14,7 @@ export class ProvisioningService {
 
   register(deviceName: string) {
 
-    const apiUrl = `${environment.aws.apiGateway}/device-management/managed-devices/`;
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/device-management/managed-devices/`;
   
     this.httpClient.post(apiUrl, {
       deviceName 
@@ -39,7 +39,7 @@ export class ProvisioningService {
   // <| { "ssid": "Test", "password": "qyqijczyz2p37xz" } |>
   createClaim() {
 
-    const apiUrl = `${environment.aws.apiGateway}/device-management/provisioning-claims/`;
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/device-management/provisioning-claims/`;
     this.httpClient.post(apiUrl, null).subscribe((claim:any)=> {
 
       const testBluetoothPayload = {

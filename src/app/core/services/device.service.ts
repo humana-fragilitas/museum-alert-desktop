@@ -1,5 +1,5 @@
 import { Injectable, Inject, NgZone } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { APP_CONFIG } from '../../../environments/environment';
 import { WINDOW } from './shared/window';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,

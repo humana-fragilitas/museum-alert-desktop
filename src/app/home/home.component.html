@@ -1,19 +1,12 @@
 <div class="container">
   
-  <h1 class="title">
+  <!-- <p class="title">
     {{ 'PAGES.HOME.TITLE' | translate }}
-  </h1>
+  </p> -->
   
   @if (authenticatorService.route === 'authenticated') {
-    <p>
-      {{ authenticatorService.user.signInDetails?.loginId }}
-    </p>
-    <button color="primary" (click)="signOut()" >Sign out</button>
-    <button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</button>
 
     <app-device></app-device>
-
-    <app-wifi-credentials></app-wifi-credentials>
 
   }
 

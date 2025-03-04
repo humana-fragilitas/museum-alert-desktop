@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { APP_CONFIG } from '../../../environments/environment';
 
 import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
 import * as dayjs from 'dayjs'
@@ -35,10 +35,10 @@ export class MqttService {
 
   connect(sessionData: AuthSession) {
 
-    const host = environment.aws.IoTCore.endpoint;
-    const algorithm = environment.aws.algorithm;
-    const service = environment.aws.IoTCore.service;
-    const region = environment.aws.region;
+    const host = APP_CONFIG.aws.IoTCore.endpoint;
+    const algorithm = APP_CONFIG.aws.algorithm;
+    const service = APP_CONFIG.aws.IoTCore.service;
+    const region = APP_CONFIG.aws.region;
     const method = 'GET';
     const canonicalUri = '/mqtt';
 

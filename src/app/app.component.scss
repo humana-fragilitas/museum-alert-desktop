@@ -1,3 +1,26 @@
-:host {
-  
+.logo {
+    display: block;
+    max-width: 300px;
+    margin: 96px auto 48px auto;
+}
+
+.auth-user-nav {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background-color: #d7e3ff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-user-email {
+    margin: 20px;
+}
+
+button {
+    margin: 2px 10px 2px auto;
 }

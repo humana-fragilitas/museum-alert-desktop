@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
+import { ProvisioningService } from '../../../core/services/provisioning.service';
 
 @Component({
   selector: 'app-wizard',
@@ -9,10 +10,16 @@ import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.c
 })
 export class WizardComponent implements OnInit {
 
-  constructor() {}
+  constructor(private provisioningService: ProvisioningService) {}
 
   ngOnInit(): void {
     console.log('WizardComponent INIT');
+  }
+
+  createProvisioningClaim() {
+
+    this.provisioningService.createClaim();
+  
   }
 
 }

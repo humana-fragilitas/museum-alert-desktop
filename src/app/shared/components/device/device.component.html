@@ -1,31 +1,40 @@
+<mat-card>
+  <mat-card-header>
+    <p [ngSwitch]="(deviceService.deviceAppStatus$ | async)">
+      <span>Device state: </span>
+      <span *ngSwitchCase="deviceAppState.STARTED">Started</span>
+      <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">Ciphering initialization</span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">Configuring WiFi</span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_CERTIFICATES">Configuring certificates</span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_WIFI">Connecting to WiFi</span>
+      <span *ngSwitchCase="deviceAppState.PROVISION_DEVICE">Provisioning TLS certificate and private key</span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_MQTT_BROKER">Connecting to MQTT Broker</span>
+      <span *ngSwitchCase="deviceAppState.DEVICE_INITIALIZED">Initialized</span>
+      <span *ngSwitchDefault>Device idle</span>
+    </p>
+  </mat-card-header>
+  <mat-card-content>
+    <p *ngIf="deviceService.portInfo$ | async as device">
+      <span>Device path: </span>
+      <span>{{ device.path }}</span><br>
+      <span>Manufacturer: </span>
+      <span>{{ device.manufacturer }}</span><br>
+      <span>Serial number: </span>
+      <span>{{ device.serialNumber }}</span><br>
+      <span>Product: </span>
+      <span>{{ device.productId }}</span><br>
+      <span>Vendor: </span>
+      <span>{{ device.vendor }}</span>
+    </p>
+  </mat-card-content>
+  <mat-card-footer>
+    <mat-chip 
+      [disabled]="true" 
+      [color]="(deviceService.connectionStatus$ | async) ? 'primary' : 'warn'"
+    >
+      {{ (deviceService.connectionStatus$ | async) ? "connected" : "disconnected" }}
+    </mat-chip>
+  </mat-card-footer>
+</mat-card>
 
-<p [ngSwitch]="(deviceService.deviceAppStatus$ | async)">
-  <span>Device state: </span>
-  <span *ngSwitchCase="deviceAppState.STARTED">Started</span>
-  <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">Ciphering initialization</span>
-  <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">Configuring WiFi</span>
-  <span *ngSwitchCase="deviceAppState.CONFIGURE_CERTIFICATES">Configuring certificates</span>
-  <span *ngSwitchCase="deviceAppState.CONNECT_TO_WIFI">Connecting to WiFi</span>
-  <span *ngSwitchCase="deviceAppState.PROVISION_DEVICE">Provisioning TLS certificate and private key</span>
-  <span *ngSwitchCase="deviceAppState.CONNECT_TO_MQTT_BROKER">Connecting to MQTT Broker</span>
-  <span *ngSwitchCase="deviceAppState.DEVICE_INITIALIZED">Initialized</span>
-  <span *ngSwitchDefault>Device idle</span>
-</p>
-
-<span>Serial connection: </span>
-<span *ngIf="deviceService.connectionStatus$ | async as status">
-  {{ status ? 'connected' : 'disconnected' }}
-</span>
-
-<p *ngIf="deviceService.portInfo$ | async as device">
-  <span>Device path: </span>
-  <span>{{ device.path }}</span><br>
-  <span>Manufacturer: </span>
-  <span>{{ device.manufacturer }}</span><br>
-  <span>Serial number: </span>
-  <span>{{ device.serialNumber }}</span><br>
-  <span>Product: </span>
-  <span>{{ device.productId }}</span><br>
-  <span>Vendor: </span>
-  <span>{{ device.vendor }}</span>
-</p>
+<app-wizard></app-wizard>

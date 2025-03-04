@@ -1,16 +1,28 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 // import { PageNotFoundComponent } from './shared/components';
-
-import { HomeRoutingModule } from './home/home-routing.module';
-import { DetailRoutingModule } from './detail/detail-routing.module';
+import { HomeComponent } from './home/home.component';
+import { DeviceComponent } from './shared/components/device/device.component';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'index',
     pathMatch: 'full'
   },
+  {
+    path: 'index',
+    component: HomeComponent
+  },
+  {
+    path: 'device',
+    component: DeviceComponent
+  },
+  {
+    path: 'device/:path/:serial',
+    component: DeviceComponent
+  },
+
   // {
   //   path: '**',
   //   component: PageNotFoundComponent
@@ -20,8 +32,6 @@ const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, {}),
-    HomeRoutingModule,
-    DetailRoutingModule
   ],
   exports: [RouterModule]
 })

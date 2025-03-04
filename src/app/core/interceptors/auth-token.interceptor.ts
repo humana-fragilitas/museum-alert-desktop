@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 
 import { AuthService } from '../services/auth.service';
-import { environment } from '../../environments/environment';
+import { APP_CONFIG } from '../../../environments/environment';
 
 export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
 
@@ -16,7 +16,7 @@ export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
                     ?.toString();
 
 
-  const allowedBasePath = environment.aws.apiGateway;
+  const allowedBasePath = APP_CONFIG.aws.apiGateway;
 
   if (req.url.startsWith(allowedBasePath)) {
     const reqWithHeader = req.clone({
