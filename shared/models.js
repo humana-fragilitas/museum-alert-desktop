@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeviceErrorType = exports.DeviceMessageType = exports.DeviceAppState = void 0;
+exports.ErrorType = exports.AppErrorType = exports.DeviceErrorType = exports.DeviceMessageType = exports.DeviceAppState = void 0;
 var DeviceAppState;
 (function (DeviceAppState) {
     DeviceAppState[DeviceAppState["STARTED"] = 0] = "STARTED";
@@ -22,14 +22,26 @@ var DeviceMessageType;
 ;
 var DeviceErrorType;
 (function (DeviceErrorType) {
-    DeviceErrorType[DeviceErrorType["CIPHERING_INITIALIZATION_ERROR"] = 0] = "CIPHERING_INITIALIZATION_ERROR";
-    DeviceErrorType[DeviceErrorType["INVALID_WIFI_CREDENTIALS"] = 1] = "INVALID_WIFI_CREDENTIALS";
-    DeviceErrorType[DeviceErrorType["FAILED_WIFI_CONNECTION_ATTEMPT"] = 2] = "FAILED_WIFI_CONNECTION_ATTEMPT";
-    DeviceErrorType[DeviceErrorType["INVALID_DEVICE_PROVISIONING_SETTINGS"] = 3] = "INVALID_DEVICE_PROVISIONING_SETTINGS";
-    DeviceErrorType[DeviceErrorType["FAILED_PROVISIONING_SETTINGS_STORAGE"] = 4] = "FAILED_PROVISIONING_SETTINGS_STORAGE";
-    DeviceErrorType[DeviceErrorType["FAILED_DEVICE_PROVISIONING_ATTEMPT"] = 5] = "FAILED_DEVICE_PROVISIONING_ATTEMPT";
-    DeviceErrorType[DeviceErrorType["FAILED_MQTT_BROKER_CONNECTION"] = 6] = "FAILED_MQTT_BROKER_CONNECTION";
-    DeviceErrorType[DeviceErrorType["FAILED_SENSOR_DETECTION_REPORT"] = 7] = "FAILED_SENSOR_DETECTION_REPORT";
+    DeviceErrorType[DeviceErrorType["NONE"] = 0] = "NONE";
+    DeviceErrorType[DeviceErrorType["CIPHERING_INITIALIZATION_ERROR"] = 1] = "CIPHERING_INITIALIZATION_ERROR";
+    DeviceErrorType[DeviceErrorType["INVALID_WIFI_CREDENTIALS"] = 2] = "INVALID_WIFI_CREDENTIALS";
+    DeviceErrorType[DeviceErrorType["FAILED_WIFI_CONNECTION_ATTEMPT"] = 3] = "FAILED_WIFI_CONNECTION_ATTEMPT";
+    DeviceErrorType[DeviceErrorType["INVALID_DEVICE_PROVISIONING_SETTINGS"] = 4] = "INVALID_DEVICE_PROVISIONING_SETTINGS";
+    DeviceErrorType[DeviceErrorType["FAILED_PROVISIONING_SETTINGS_STORAGE"] = 5] = "FAILED_PROVISIONING_SETTINGS_STORAGE";
+    DeviceErrorType[DeviceErrorType["FAILED_DEVICE_PROVISIONING_ATTEMPT"] = 6] = "FAILED_DEVICE_PROVISIONING_ATTEMPT";
+    DeviceErrorType[DeviceErrorType["FAILED_MQTT_BROKER_CONNECTION"] = 7] = "FAILED_MQTT_BROKER_CONNECTION";
+    DeviceErrorType[DeviceErrorType["FAILED_SENSOR_DETECTION_REPORT"] = 8] = "FAILED_SENSOR_DETECTION_REPORT";
 })(DeviceErrorType || (exports.DeviceErrorType = DeviceErrorType = {}));
+;
+var AppErrorType;
+(function (AppErrorType) {
+    AppErrorType[AppErrorType["API_ERROR"] = 0] = "API_ERROR";
+})(AppErrorType || (exports.AppErrorType = AppErrorType = {}));
+;
+var ErrorType;
+(function (ErrorType) {
+    ErrorType[ErrorType["DEVICE_ERROR"] = 0] = "DEVICE_ERROR";
+    ErrorType[ErrorType["APP_ERROR"] = 1] = "APP_ERROR";
+})(ErrorType || (exports.ErrorType = ErrorType = {}));
 ;
 //# sourceMappingURL=models.js.map

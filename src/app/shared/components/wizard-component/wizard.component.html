@@ -1,18 +1,14 @@
-<mat-stepper [linear]="false" #stepper>
-    <mat-step [stepControl]="firstFormGroup" label="Choose a WiFi network and enter its password">
-  
+<mat-stepper linear #stepper>
+    <mat-step [editable]="false" label="Choose a WiFi network" [completed]="false">
       <app-wifi-credentials></app-wifi-credentials>
-      
     </mat-step>
-    <mat-step [stepControl]="secondFormGroup" label="Fill out your address">
+    <mat-step [editable]="false" label="Provision device" [completed]="false">
         <button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</button>
     </mat-step>
-    <mat-step>
-      <ng-template matStepLabel>Done</ng-template>
-      <p>You are now done.</p>
-      <div>
-        <button mat-button matStepperPrevious>Back</button>
-        <button mat-button (click)="stepper.reset()">Reset</button>
-      </div>
+    <mat-step [editable]="false" label="Register device" [completed]="false">
+      <p>Your device is contacting the server to register itself. Please wait.</p>
+    </mat-step>
+    <mat-step [editable]="false" label="Done" [completed]="false">
+      <p>Your device has successfully been registered.</p>
     </mat-step>
   </mat-stepper>

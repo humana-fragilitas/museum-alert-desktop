@@ -1,7 +1,7 @@
 export type DeviceIncomingData =
   | { type: DeviceMessageType.APP_STATE; data: DeviceStateUpdate }
   | { type: DeviceMessageType.WIFI_NETWORKS_LIST; data: WiFiNetwork[] }
-  | { type: DeviceMessageType.ERROR; data: DeviceErrorType }
+  | { type: DeviceMessageType.ERROR; data: { error: DeviceErrorType }  }
   | { type: DeviceMessageType; data?: undefined };
 
   export enum DeviceAppState {
@@ -22,6 +22,7 @@ export enum DeviceMessageType {
 };
 
 export enum DeviceErrorType {
+    NONE,
     CIPHERING_INITIALIZATION_ERROR,
     INVALID_WIFI_CREDENTIALS,
     FAILED_WIFI_CONNECTION_ATTEMPT,
@@ -30,6 +31,15 @@ export enum DeviceErrorType {
     FAILED_DEVICE_PROVISIONING_ATTEMPT,
     FAILED_MQTT_BROKER_CONNECTION,
     FAILED_SENSOR_DETECTION_REPORT
+};
+
+export enum AppErrorType {
+    API_ERROR
+};
+
+export enum ErrorType {
+    DEVICE_ERROR,
+    APP_ERROR
 };
 
 export interface WiFiNetwork {
@@ -50,3 +60,15 @@ export interface Error {
 export interface DeviceStateUpdate {
     appState: DeviceAppState
 }
+
+export interface WiFiCredentials {
+    ssid: string;
+    password: string;
+}
+
+export interface ProvisioningData {
+    tempCert: string;
+    tempKey: string;
+}
+
+export type DeviceOutgoingData = WiFiCredentials | ProvisioningData;

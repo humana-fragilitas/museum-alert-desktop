@@ -6,6 +6,8 @@ import { PolicyService } from './core/services/policy.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { ErrorService } from './core/services/error.service';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +24,8 @@ export class AppComponent {
     private mqttService: MqttService,
     private authService: AuthService,
     private policyService: PolicyService,
-    private authenticatorService: AuthenticatorService
+    private authenticatorService: AuthenticatorService,
+    private notificationService: NotificationService
   ) {
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);

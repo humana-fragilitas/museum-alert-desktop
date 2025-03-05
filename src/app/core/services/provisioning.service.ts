@@ -1,16 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '../../../environments/environment';
+import { Observable, Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProvisioningService {
 
-  constructor(private httpClient: HttpClient) {
-
-    
-  }
+  constructor(private httpClient: HttpClient) { }
 
   register(deviceName: string) {
 
@@ -37,18 +35,10 @@ export class ProvisioningService {
    */
 
   // <| { "ssid": "Test", "password": "qyqijczyz2p37xz" } |>
-  createClaim() {
+  createClaim(): Observable<any> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/device-management/provisioning-claims/`;
-    this.httpClient.post(apiUrl, null).subscribe((claim:any)=> {
-
-      const testBluetoothPayload = {
-        tempCertPem: claim.certificatePem,
-        tempPrivateKey: claim.keyPair.PrivateKey
-      };
-      console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
-      console.log(claim);
-    });
+    return this.httpClient.post(apiUrl, null);
 
   }
 

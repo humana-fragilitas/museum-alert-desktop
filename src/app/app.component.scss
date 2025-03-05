@@ -1,9 +1,12 @@
+@use '@angular/material' as mat;
+@use '../styles.scss' as theme;
+
 .logo {
     display: block;
     max-width: 300px;
     margin: 96px auto 48px auto;
 }
-
+ 
 .auth-user-nav {
     position: fixed;
     display: flex;
@@ -14,6 +17,7 @@
     right: 0;
     z-index: 2;
     background-color: #d7e3ff;
+    background-color: mat.get-color-from-palette(theme.$angular-electron-primary, 50);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 

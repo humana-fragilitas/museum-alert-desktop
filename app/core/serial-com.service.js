@@ -23,6 +23,9 @@ class SerialCom {
         electron_1.ipcMain.on('close-serial-connection', () => {
             this.closeConnection();
         });
+        electron_1.ipcMain.on('device-send-data', (event, payload) => {
+            this.sendDataToUSBDevice(payload);
+        });
         // Main to renderer process IPC communication
         this.device.subscribe((device) => {
             this.browserWindow.webContents.send('device-found', device);
@@ -85,20 +88,19 @@ class SerialCom {
         });
     }
     closeConnection() {
-        if (this.serialPort) {
-            try {
-                if (this.serialPort.isOpen) {
-                    console.log('Closing existing serial connection...');
-                    this.serialPort.close();
-                }
+        var _a, _b, _c, _d;
+        try {
+            if ((_a = this.serialPort) === null || _a === void 0 ? void 0 : _a.isOpen) {
+                console.log('Closing existing serial connection...');
+                this.serialPort.close();
             }
-            catch (err) {
-                console.error('Error closing serial port:', err);
-            }
-            this.serialPort.removeAllListeners();
-            this.delimiterParser.removeAllListeners();
-            this.regexParser.removeAllListeners();
         }
+        catch (err) {
+            console.error('Error closing serial port:', err);
+        }
+        (_b = this.serialPort) === null || _b === void 0 ? void 0 : _b.removeAllListeners();
+        (_c = this.delimiterParser) === null || _c === void 0 ? void 0 : _c.removeAllListeners();
+        (_d = this.regexParser) === null || _d === void 0 ? void 0 : _d.removeAllListeners();
     }
     startDeviceDetection() {
         /**
@@ -118,6 +120,17 @@ class SerialCom {
                 }
             });
             this.connectToUSBDevice(device);
+        });
+    }
+    sendDataToUSBDevice(payload) {
+        var _a;
+        (_a = this.serialPort) === null || _a === void 0 ? void 0 : _a.write(payload, (err) => {
+            if (err) {
+                console.error('Error while sending data to device:', err);
+            }
+            else {
+                console.log(`Sent data to device: ${payload}`);
+            }
         });
     }
 }

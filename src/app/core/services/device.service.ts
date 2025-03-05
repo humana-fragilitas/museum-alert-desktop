@@ -23,28 +23,30 @@ export class DeviceService {
       new BehaviorSubject<boolean>(false);
   public readonly wiFiNetworks$: BehaviorSubject<WiFiNetwork[]> =
       new BehaviorSubject<WiFiNetwork[]>([]);
+  public readonly error$: BehaviorSubject<DeviceErrorType> =
+      new BehaviorSubject<DeviceErrorType>(DeviceErrorType.NONE);
 
-  constructor(@Inject(WINDOW) private window: Window, private ngZone: NgZone) {
+  constructor(@Inject(WINDOW) private win: Window, private ngZone: NgZone) {
 
     console.log('DeviceService created!');
 
-    if (window.electron) {
+    if (win.electron) {
       
-      window.electron.ipcRenderer.on('device-found', (data) => {
+      win.electron.ipcRenderer.on('device-found', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device found:', data);
           this.portInfo$.next(data as PortInfo);
         });
       });
   
-      window.electron.ipcRenderer.on('device-connection-status-update', (data) => {
+      win.electron.ipcRenderer.on('device-connection-status-update', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
           this.connectionStatus$.next(data as boolean);
         });
       });
 
-      window.electron.ipcRenderer.on('device-incoming-data', (data) => {
+      win.electron.ipcRenderer.on('device-incoming-data', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device incoming data:', data);
           this.parseIncomingData(data as DeviceIncomingData);
@@ -68,9 +70,32 @@ export class DeviceService {
         this.wiFiNetworks$.next(payload.data as WiFiNetwork[]);
         break;
       case DeviceMessageType.ERROR:
-        //this.error = payload.data as DeviceErrorType;
-        // TO DO: manage error snackbar
+        console.log("INCOMING ERROR:", payload.data);
+        this.error$.next(payload.data?.error as DeviceErrorType);
         break;
+    }
+
+  }
+
+  public sendData(payload: any) {
+
+    let jsonPayload;
+
+    try {
+
+      jsonPayload = JSON.stringify(payload);
+
+      if (this.win.electron) {
+        console.log(`Sending data to device: ${jsonPayload}`);
+        this.win.electron.ipcRenderer.send('device-send-data', `<|${jsonPayload}|>`);
+      } else {
+        console.error('Error while sending data to device: Electron not available!');
+      }
+      
+    } catch (error) {
+
+      console.error('Error sending data to device:', error);
+
     }
 
   }

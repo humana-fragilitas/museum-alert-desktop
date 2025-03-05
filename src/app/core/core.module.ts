@@ -6,6 +6,8 @@ import { AuthService } from './services/auth.service';
 import { EventBusService } from './services/event-bus.service';
 import { MqttService } from './services/mqtt.service';
 import { ProvisioningService } from './services/provisioning.service';
+import { ErrorService } from './services/error.service';
+import { NotificationService } from './services/notification.service';
 
 @NgModule({
   declarations: [],
@@ -18,6 +20,8 @@ import { ProvisioningService } from './services/provisioning.service';
     AuthService,
     EventBusService,
     MqttService,
-    ProvisioningService]
+    ProvisioningService,
+    ErrorService,
+    NotificationService]
 })
 export class CoreModule { }

@@ -1,17 +1,17 @@
-import {app, BrowserWindow, ipcMain} from 'electron';
+import {app, BrowserWindow, ipcMain, IpcMainEvent} from 'electron';
 import { SerialPort } from 'serialport';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { RegexParser } from '@serialport/parser-regex';
 import { DelimiterParser } from '@serialport/parser-delimiter';
-import { DeviceIncomingData, DeviceAppState, DeviceMessageType } from '../../shared/models';
+import { DeviceIncomingData, DeviceAppState, DeviceMessageType, DeviceOutgoingData } from '../../shared/models';
 import { Subject } from 'rxjs';
 
 // {"path":"/dev/tty.usbmodem3485187A35EC2","manufacturer":"Arduino","serialNumber":"3485187A35EC","locationId":"00100000","vendorId":"2341","productId":"0070"}
 class SerialCom {
 
-    private serialPort!: SerialPort;
-    private regexParser!: RegexParser;
-    private delimiterParser!: DelimiterParser;
+    private serialPort?: SerialPort;
+    private regexParser?: RegexParser;
+    private delimiterParser?: DelimiterParser;
     
     public readonly device: Subject<PortInfo> = new Subject<PortInfo>();
     public readonly deviceConnectionStatus: Subject<boolean> = new Subject<boolean>();
@@ -26,6 +26,10 @@ class SerialCom {
 
         ipcMain.on('close-serial-connection', () => {
             this.closeConnection();
+        });
+
+        ipcMain.on('device-send-data', (event: IpcMainEvent, payload: DeviceOutgoingData) => {
+            this.sendDataToUSBDevice(payload);
         });
 
         // Main to renderer process IPC communication
@@ -114,19 +118,17 @@ class SerialCom {
 
     closeConnection(): void {
 
-        if (this.serialPort) {
         try {
-            if (this.serialPort.isOpen) {
+            if (this.serialPort?.isOpen) {
             console.log('Closing existing serial connection...');
             this.serialPort.close();
             }
         } catch (err) {
             console.error('Error closing serial port:', err);
         }
-        this.serialPort.removeAllListeners();
-        this.delimiterParser.removeAllListeners();
-        this.regexParser.removeAllListeners();
-        }
+        this.serialPort?.removeAllListeners();
+        this.delimiterParser?.removeAllListeners();
+        this.regexParser?.removeAllListeners();
 
     }
 
@@ -158,6 +160,20 @@ class SerialCom {
       
           });
       
+    }
+
+    sendDataToUSBDevice(payload: DeviceOutgoingData) {
+
+        this.serialPort?.write(payload, (err) => {
+
+            if (err) {
+                console.error('Error while sending data to device:', err);
+            } else {
+                console.log(`Sent data to device: ${payload}`);
+            }
+
+        });
+
     }
 
 }
