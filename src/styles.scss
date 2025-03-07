@@ -39,6 +39,5 @@ $angular-electron-theme: mat.define-light-theme((
 html, body {
   margin: 0;
   padding: 0;
-
-  height: 100%;
+  min-height: auto !important;
 }

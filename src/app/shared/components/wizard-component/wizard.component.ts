@@ -5,6 +5,7 @@ import { DeviceService } from '../../../core/services/device.service';
 import { Subscription } from 'rxjs';
 import { DeviceAppState } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-wizard',
@@ -20,7 +21,8 @@ export class WizardComponent implements OnInit, OnDestroy {
 
   constructor(
     private deviceService: DeviceService,
-    private provisioningService: ProvisioningService
+    private provisioningService: ProvisioningService,
+    private authService: AuthService
   ) {
 
     this.deviceAppStateSubscription = this.deviceService
@@ -75,7 +77,14 @@ export class WizardComponent implements OnInit, OnDestroy {
       console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
       console.log(claim);
 
-      this.deviceService.sendData(testBluetoothPayload);
+      const idToken = this.authService
+                          .sessionData
+                          .value
+                          ?.tokens
+                          ?.idToken
+                          ?.toString();
+
+      this.deviceService.sendData({ ...testBluetoothPayload, idToken });
       
     });
 

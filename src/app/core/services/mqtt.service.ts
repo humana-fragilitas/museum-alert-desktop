@@ -15,7 +15,6 @@ import { AuthService } from './auth.service';
 export class MqttService {
 
   private client: mqtt.MqttClient | undefined;
-  private readonly companyName: string = 'ACME';
 
   constructor(authService: AuthService, private sigV4Service: SigV4Service) {
 
