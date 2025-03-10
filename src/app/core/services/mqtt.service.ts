@@ -133,9 +133,9 @@ export class MqttService {
       // Subscribe to topics and handle messages
       // this.client?.subscribe('company/ACME/events');
       // this.client?.subscribe(`company/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
-      this.client?.subscribe(`company/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
+      this.client?.subscribe(`companies/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
 
-      console.log(`company/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
+      console.log(`companies/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
       
     });
 
