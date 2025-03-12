@@ -30,7 +30,7 @@ export class PolicyService {
     this.httpClient.post(apiUrl, null).subscribe({
         error: (e) => console.error(e),
         complete: () => {
-          this.authService.fetchSession({ forceRefresh: true});
+          this.authService.fetchSession({ forceRefresh: true });
         } 
     });
 

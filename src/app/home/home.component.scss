@@ -1,7 +1,45 @@
-:host {
-  
-}
+@use '@angular/material' as mat;
+@use '../../styles.scss' as theme;
 
 h1 {
     text-align: center;
+}
+
+.company-name-preview {
+    text-transform: uppercase;
+    padding: 6px 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+}
+
+.logo {
+    max-width: 268px;
+}
+
+[data-amplify-authenticator], [amplify-forgot-password] {
+
+    --amplify-components-authenticator-form-padding: var(--amplify-space-medium) var(--amplify-space-xl);
+
+    [data-amplify-footer] {
+        padding-left: var(--amplify-space-xl);
+        padding-right: var(--amplify-space-xl);
+        text-align: center;
+    }
+
+    h3 {
+        font-size: var(--amplify-font-sizes-xl);
+    }
+
+}
+
+:root {
+
+    --amplify-colors-primary-10: #{mat.get-color-from-palette(theme.$angular-electron-primary, 100)};
+    --amplify-colors-primary-20: #{mat.get-color-from-palette(theme.$angular-electron-primary, 200)};
+    --amplify-colors-primary-40: #{mat.get-color-from-palette(theme.$angular-electron-primary, 300)};
+    --amplify-colors-primary-60: #{mat.get-color-from-palette(theme.$angular-electron-primary, 400)};
+    --amplify-colors-primary-80: #{mat.get-color-from-palette(theme.$angular-electron-primary, 500)};
+    --amplify-colors-primary-90: #{mat.get-color-from-palette(theme.$angular-electron-primary, 600)};
+    --amplify-colors-primary-100: #{mat.get-color-from-palette(theme.$angular-electron-primary, 700)};
+ 
 }

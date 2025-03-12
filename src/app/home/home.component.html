@@ -10,20 +10,51 @@
 
   }
 
-<amplify-authenticator [hideSignUp]="false" [loginMechanisms]="['email']">
+<amplify-authenticator [hideSignUp]="false"
+                       [loginMechanisms]="['email']">
+
+  <ng-template amplifySlot="header">
+    <div style="padding: var(--amplify-space-large); text-align: center">
+      <img src="assets/images/museum_alert_logo.svg" alt="Museum Alert" class="logo">
+    </div>
+  </ng-template>
 
   <ng-template amplifySlot="sign-up-form-fields">
     <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
     <amplify-text-field
-        label="Company"
+        label="Your Company's Name"
         autocomplete="false"
         placeholder="Your Company's name"
         name="custom:Company"
-        type="text">
-    </amplify-text-field>
+        type="text"
+        (input)="change($event)"
+        pattern="\ciao\gi">
+    </amplify-text-field> 
+
+    <label>Your Company's ID on Museum Alert</label>
+    <input type="text" class="company-name-preview" disabled #companyNamePreview>
+    <!-- <amplify-text-field
+      autocomplete="false"
+      placeholder="Formatted Company Name"
+      name="formattedCompany"
+      type="text"
+      [value]="formattedCompany"
+      disabled="true">
+    </amplify-text-field> -->
+
   </ng-template>
 
-  <!--
+  <ng-template amplifySlot="footer">
+    <div style="padding: var(--amplify-space-large); text-align: center">
+      <p class="amplify-text" style="color: var(--amplify-colors-neutral-80)">
+        © Andrea Blasio, 2023 - 2025. All Rights Reserved
+      </p>
+    </div>
+  </ng-template>
+
+</amplify-authenticator>
+
+  <!-- 
 
   <ng-template amplifySlot="verify-user-header">
     <h3
@@ -62,7 +93,6 @@
 
 -->
 
-</amplify-authenticator>
 
 
 
