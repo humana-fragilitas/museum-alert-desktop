@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 // import { PageNotFoundComponent } from './shared/components';
 import { HomeComponent } from './home/home.component';
-import { DeviceComponent } from './shared/components/device/device.component';
+import { DeviceComponent } from './device/device.component';
 
 const routes: Routes = [
   {
@@ -17,11 +17,7 @@ const routes: Routes = [
   {
     path: 'device',
     component: DeviceComponent
-  },
-  {
-    path: 'device/:path/:serial',
-    component: DeviceComponent
-  },
+  }
 
   // {
   //   path: '**',

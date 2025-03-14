@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
-import { ElectronService } from './core/services';
-import { AuthService } from './core/services/auth.service';
-import { MqttService } from './core/services/mqtt.service'; 
-import { PolicyService } from './core/services/policy.service';
+import { ElectronService } from './core/services/electron/electron.service';
+import { AuthService } from './core/services/auth/auth.service';
+import { MqttService } from './core/services/mqtt/mqtt.service'; 
+import { PolicyService } from './core/services/policy/policy.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { ErrorService } from './core/services/error.service';
-import { NotificationService } from './core/services/notification.service';
+import { ErrorService } from './core/services/error/error.service';
+import { NotificationService } from './core/services/notification/notification.service';
+import { RedirectService } from './core/services/redirect/redirect.service';
 
 @Component({
   selector: 'app-root',
@@ -25,7 +26,8 @@ export class AppComponent {
     private authService: AuthService,
     private policyService: PolicyService,
     private authenticatorService: AuthenticatorService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private redirectService: RedirectService
   ) {
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);

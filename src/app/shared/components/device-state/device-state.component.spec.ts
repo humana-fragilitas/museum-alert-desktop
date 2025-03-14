@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { PageNotFoundComponent } from './page-not-found.component';
+import { DeviceStateComponent } from './device-state.component';
 
-describe('PageNotFoundComponent', () => {
-  let component: PageNotFoundComponent;
-  let fixture: ComponentFixture<PageNotFoundComponent>;
+describe('WizardComponent', () => {
+  let component: DeviceStateComponent;
+  let fixture: ComponentFixture<DeviceStateComponent>;
 
   beforeEach(waitForAsync(() => {
     void TestBed.configureTestingModule({
-      declarations: [PageNotFoundComponent]
+      declarations: [DeviceStateComponent]
     })
       .compileComponents();
 
-    fixture = TestBed.createComponent(PageNotFoundComponent);
+    fixture = TestBed.createComponent(DeviceStateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));
@@ -20,4 +20,5 @@ describe('PageNotFoundComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+  
 });

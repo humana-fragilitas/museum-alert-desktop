@@ -6,9 +6,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import { WebviewDirective } from './directives/';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { WiFiCredentialsComponent } from './components/wifi-credentials/wifi-credentials.component';
-import { DeviceService } from '../core/services/device.service';
+import { DeviceService } from '../core/services/device/device.service';
 import { CoreModule } from '../core/core.module';
-import { DeviceComponent } from './components/device/device.component';
+import { DeviceComponent } from '../device/device.component';
 import { WizardComponent } from './components/wizard-component/wizard.component';
 
 import {MatInputModule} from '@angular/material/input';
@@ -20,6 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import {MatCardModule} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
+import { DeviceStateComponent } from './components/device-state/device-state.component';
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent,
-    WizardComponent
+    WizardComponent,
+    DeviceStateComponent
   ],
   imports: [
     CommonModule,

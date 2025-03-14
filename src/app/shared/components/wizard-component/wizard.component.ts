@@ -1,11 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
-import { ProvisioningService } from '../../../core/services/provisioning.service';
-import { DeviceService } from '../../../core/services/device.service';
-import { Subscription } from 'rxjs';
+import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
+import { DeviceService } from '../../../core/services/device/device.service';
+import { combineLatest, Subscription, takeUntil } from 'rxjs';
 import { DeviceAppState } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth/auth.service';
 
 @Component({
   selector: 'app-wizard',
@@ -16,44 +16,27 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class WizardComponent implements OnInit, OnDestroy {
 
-  private deviceAppStateSubscription: Subscription;
+  private deviceCombinedStateSubscription: Subscription;
+
+  isVisible: boolean = false;
+  isReady: boolean = false;
   @ViewChild('stepper') stepper!: MatStepper;
 
   constructor(
-    private deviceService: DeviceService,
+    public deviceService: DeviceService,
     private provisioningService: ProvisioningService,
     private authService: AuthService
   ) {
 
-    this.deviceAppStateSubscription = this.deviceService
-        .deviceAppStatus$
-        .subscribe((deviceAppState) => {
+    this.deviceCombinedStateSubscription = combineLatest(
+      [this.deviceService.connectionStatus$, this.deviceService.deviceAppStatus$]
+    ).subscribe(([isConnected, appStatus]) => {
 
-          switch (deviceAppState) {
+      this.setStepperState(appStatus);
+      this.isVisible = isConnected;
+      this.isReady = isConnected && appStatus != DeviceAppState.STARTED;
 
-            case DeviceAppState.CONFIGURE_WIFI:
-              this.stepper.steps.get(0)!.editable = true;
-              this.stepper.selectedIndex = 0;
-              break;
-            case DeviceAppState.CONFIGURE_CERTIFICATES:
-              this.stepper.steps.get(0)!.completed = true;
-              this.stepper.selectedIndex = 1;
-              break;
-            case DeviceAppState.PROVISION_DEVICE:
-              this.stepper.steps.get(1)!.completed = true;
-              this.stepper.selected!.completed = true;
-              this.stepper.selectedIndex = 2;
-              break;
-            case DeviceAppState.DEVICE_INITIALIZED:
-              this.stepper.steps.get(2)!.completed = true;
-              this.stepper.selected!.completed = true;
-              this.stepper.selectedIndex = 3;
-              break;
-            default:
-
-          }
-
-        });
+    });
 
   }
 
@@ -63,6 +46,8 @@ export class WizardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+
+    this.deviceCombinedStateSubscription.unsubscribe();
 
   }
 
@@ -89,5 +74,34 @@ export class WizardComponent implements OnInit, OnDestroy {
     });
 
   }
+
+  setStepperState(state: Nullable<DeviceAppState>) {
+
+    switch (state) {
+
+      case DeviceAppState.CONFIGURE_WIFI:
+        this.stepper.steps.get(0)!.editable = true;
+        this.stepper.selectedIndex = 0;
+        break;
+      case DeviceAppState.CONFIGURE_CERTIFICATES:
+        this.stepper.steps.get(0)!.completed = true;
+        this.stepper.selectedIndex = 1;
+        break;
+      case DeviceAppState.PROVISION_DEVICE:
+        this.stepper.steps.get(1)!.completed = true;
+        this.stepper.selected!.completed = true;
+        this.stepper.selectedIndex = 2;
+        break;
+      case DeviceAppState.DEVICE_INITIALIZED:
+        this.stepper.steps.get(2)!.completed = true;
+        this.stepper.selected!.completed = true;
+        this.stepper.selectedIndex = 3;
+        break;
+
+    }
+
+  } 
+
+
 
 }

@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { APP_CONFIG } from '../../../environments/environment';
+import { APP_CONFIG } from '../../../../environments/environment';
 
 import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
 import * as dayjs from 'dayjs'
 import * as utc from 'dayjs/plugin/utc';
 import mqtt from 'mqtt';
 
-import { SigV4Service } from '../../shared/helpers/sig-v4.service';
-import { AuthService } from './auth.service';
+import { SigV4Service } from '../../../shared/helpers/sig-v4.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +20,7 @@ export class MqttService {
 
     console.log('MqttService instance! New version! ');
 
-    authService.sessionData$.subscribe((sessionData: AuthSession | null) => {
+    authService.sessionData.subscribe((sessionData: AuthSession | null) => {
 
       if (sessionData && !this.isConnected) {
         this.connect(sessionData);

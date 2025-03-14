@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import { DeviceService } from './device.service';
-import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../shared/models';
+import { DeviceService } from '../device/device.service';
+import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../shared/models';
 
 interface ErrorsMap {
   [ErrorType.APP_ERROR]: { [key in AppErrorType] : string };
@@ -26,6 +26,7 @@ export class ErrorService {
       [DeviceErrorType.FAILED_PROVISIONING_SETTINGS_STORAGE]: "Device errored while attempting to encryot and store TLS certificate and private key",
       [DeviceErrorType.FAILED_DEVICE_PROVISIONING_ATTEMPT]: "Cannot provision device",
       [DeviceErrorType.FAILED_MQTT_BROKER_CONNECTION]: "Cannot connect device to MQTT broker",
+      [DeviceErrorType.FAILED_DEVICE_CONFIGURATION_RETRIEVAL]: "Cannot retrieve device configuration",
       [DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT]: "Device errored while attempting to publish an alarm report"
     }
   };

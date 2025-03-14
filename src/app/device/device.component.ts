@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { DeviceService } from '../../../../app/core/services/device.service';
+import { DeviceService } from '../core/services/device/device.service';
 import { Observable, Subscription } from 'rxjs';
-import { DeviceAppState } from '../../../../../shared/models';
+import { DeviceAppState } from '../../../shared/models';
 @Component({
   selector: 'app-device',
   templateUrl: './device.component.html',

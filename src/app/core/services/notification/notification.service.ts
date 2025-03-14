@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import { DeviceService } from './device.service';
+import { DeviceService } from '../device/device.service';
 import { DeviceErrorType, ErrorType } from '@shared/models';
-import { ErrorService } from './error.service';
+import { ErrorService } from '../error/error.service';
 
 @Injectable({
   providedIn: 'root'

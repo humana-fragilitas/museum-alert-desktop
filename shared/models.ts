@@ -1,8 +1,8 @@
 export type DeviceIncomingData =
-  | { type: DeviceMessageType.APP_STATE; data: DeviceStateUpdate }
-  | { type: DeviceMessageType.WIFI_NETWORKS_LIST; data: WiFiNetwork[] }
-  | { type: DeviceMessageType.ERROR; data: { error: DeviceErrorType }  }
-  | { type: DeviceMessageType; data?: undefined };
+  | { type: DeviceMessageType.APP_STATE; sn: string, data: DeviceStateUpdate }
+  | { type: DeviceMessageType.WIFI_NETWORKS_LIST; sn: string, data: WiFiNetwork[] }
+  | { type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
+  | { type: DeviceMessageType; sn: string, data?: undefined };
 
   export enum DeviceAppState {
     STARTED,

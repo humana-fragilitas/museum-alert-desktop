@@ -1,0 +1,50 @@
+<!-- <mat-card *ngIf="(deviceService.connectionStatus$ | async)"> -->
+<mat-card *ngIf="deviceService.connectionStatus$ | async">
+  <mat-card-header class="device-status">
+    <h4>Device found</h4>
+    <mat-chip [ngSwitch]="(deviceService.deviceAppStatus$ | async)" class="device-status-label" [disabled]="true">
+      <span>Status: </span>
+      <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">ciphering initialization</span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">waiting for WiFi configuration</span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_CERTIFICATES">waiting for provisioning settings</span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_WIFI">connecting to WiFi</span>
+      <span *ngSwitchCase="deviceAppState.PROVISION_DEVICE">waiting for TLS certificate and private key</span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_MQTT_BROKER">connecting to MQTT Broker</span>
+      <span *ngSwitchCase="deviceAppState.DEVICE_INITIALIZED">initialized</span>
+      <span *ngSwitchDefault>idle</span>
+    </mat-chip>
+  </mat-card-header>
+  <mat-card-content>
+    <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
+      <tr>
+        <td class="device-spec-label">Path</td>
+        <td class="device-spec-value">{{ device.path }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Manufacturer</td>
+        <td class="device-spec-value">{{ device.manufacturer }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Serial number</td>
+        <td class="device-spec-value">
+          <ng-container *ngIf="(deviceService.serialNumber$ | async) as serialNumber; else loading">
+            {{ serialNumber }}
+          </ng-container>
+          <ng-template #loading>
+            <mat-spinner diameter="20"></mat-spinner>
+          </ng-template>
+        </td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Product</td>
+        <td class="device-spec-value">{{ device.productId }}</td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>
+
+<mat-card *ngIf="!(deviceService.connectionStatus$ | async)">
+  <mat-card-content>
+    <h3>Please connect your Museum Alert Sensor (MAS)<br>to an available USB port on your machine</h3>
+  </mat-card-content>
+</mat-card>

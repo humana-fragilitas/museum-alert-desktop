@@ -1,23 +1,5 @@
-
-  
-  <!-- <p class="title">
-    {{ 'PAGES.HOME.TITLE' | translate }}
-  </p> -->
-  
-  @if (authenticatorService.route === 'authenticated') {
-
-    <app-device></app-device>
-
-  }
-
 <amplify-authenticator [hideSignUp]="false"
                        [loginMechanisms]="['email']">
-
-  <ng-template amplifySlot="header">
-    <div style="padding: var(--amplify-space-large); text-align: center">
-      <img src="assets/images/museum_alert_logo.svg" alt="Museum Alert" class="logo">
-    </div>
-  </ng-template>
 
   <ng-template amplifySlot="sign-up-form-fields">
     <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
@@ -30,18 +12,8 @@
         (input)="change($event)"
         pattern="\ciao\gi">
     </amplify-text-field> 
-
     <label>Your Company's ID on Museum Alert</label>
     <input type="text" class="company-name-preview" disabled #companyNamePreview>
-    <!-- <amplify-text-field
-      autocomplete="false"
-      placeholder="Formatted Company Name"
-      name="formattedCompany"
-      type="text"
-      [value]="formattedCompany"
-      disabled="true">
-    </amplify-text-field> -->
-
   </ng-template>
 
   <ng-template amplifySlot="footer">
@@ -53,46 +25,6 @@
   </ng-template>
 
 </amplify-authenticator>
-
-  <!-- 
-
-  <ng-template amplifySlot="verify-user-header">
-    <h3
-      class="amplify-heading"
-      style="padding: var(--amplify-space-xl) 0 0 var(--amplify-space-xl)"
-    >
-      Enter Information:
-    </h3>
-  </ng-template>
-
-  <ng-template amplifySlot="verify-user-footer">
-    <div>Footer Information</div>
-  </ng-template>
-  <ng-template amplifySlot="confirm-verify-user-header">
-    <h3
-      class="amplify-heading"
-      style="padding: var(--amplify-space-xl) 0 0 var(--amplify-space-xl)"
-    >
-      Enter Information:
-    </h3>
-  </ng-template>
-
-  <ng-template amplifySlot="confirm-verify-user-footer">
-    <div>Footer Information</div>
-  </ng-template>
-
-  <ng-template
-    amplifySlot="authenticated"
-    let-user="user"
-    let-signOut="signOut"
-  >
-
-    
-
-  </ng-template>
-
--->
-
 
 
 

@@ -1,6 +1,6 @@
 import { Injectable, Inject, NgZone } from '@angular/core';
-import { APP_CONFIG } from '../../../environments/environment';
-import { WINDOW } from './shared/window';
+import { APP_CONFIG } from '../../../../environments/environment';
+import { WINDOW } from '../shared/window';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,
          DeviceAppState,
@@ -15,10 +15,12 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class DeviceService {
 
+  public readonly serialNumber$: BehaviorSubject<string> =
+      new BehaviorSubject<string>('');
   public readonly portInfo$: BehaviorSubject<Nullable<PortInfo>> =
       new BehaviorSubject<Nullable<PortInfo>>(null);
   public readonly deviceAppStatus$: BehaviorSubject<Nullable<DeviceAppState>> =
-      new BehaviorSubject<Nullable<DeviceAppState>>(null);
+      new BehaviorSubject<Nullable<DeviceAppState>>(DeviceAppState.STARTED);
   public readonly connectionStatus$: BehaviorSubject<boolean> =
       new BehaviorSubject<boolean>(false);
   public readonly wiFiNetworks$: BehaviorSubject<WiFiNetwork[]> =
@@ -43,7 +45,8 @@ export class DeviceService {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
           this.connectionStatus$.next(data as boolean);
-        });
+          if (!data) { this.reset(); }
+        }); 
       });
 
       win.electron.ipcRenderer.on('device-incoming-data', (data) => {
@@ -60,7 +63,11 @@ export class DeviceService {
     
   }
 
-  private parseIncomingData(payload: DeviceIncomingData) {
+  public parseIncomingData(payload: DeviceIncomingData) {
+
+    if (!this.serialNumber$.getValue() && payload.sn) {
+      this.serialNumber$.next(payload.sn);
+    }
 
     switch (payload.type) {
       case DeviceMessageType.APP_STATE:
@@ -97,6 +104,16 @@ export class DeviceService {
       console.error('Error sending data to device:', error);
 
     }
+
+  }
+
+  public reset() {
+
+    this.serialNumber$.next('');
+    this.portInfo$.next(null);
+    this.deviceAppStatus$.next(DeviceAppState.STARTED);
+    this.wiFiNetworks$.next([]);
+    this.error$.next(DeviceErrorType.NONE);
 
   }
 

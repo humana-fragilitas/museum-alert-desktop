@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { DeviceService } from '../../../../app/core/services/device.service';
+import { DeviceService } from '../../../../app/core/services/device/device.service';
 import { WiFiNetwork } from '@shared/models';
 import { Observable, Subscription } from 'rxjs';
 

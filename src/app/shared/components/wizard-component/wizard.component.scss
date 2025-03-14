@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 mat-stepper {
     max-width: 800px;
     margin: auto;
@@ -8,4 +10,17 @@ mat-stepper {
 
     pointer-events: none;
 
+}
+
+h3 {
+
+    text-align: center;
+    font-weight: normal;
+    mat-spinner {
+        display: inline-block !important;
+    }
+}
+
+.wait-message {
+    color: mat.get-color-from-palette(mat.$grey-palette, 600);
 }

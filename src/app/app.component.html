@@ -1,14 +1,21 @@
-<nav class="auth-user-nav">
-@if (authenticatorService.route === 'authenticated') {
-    <p class="auth-user-email">
-        {{ authenticatorService.user.signInDetails?.loginId }}
-    </p>
-    <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
+@if (authService.sessionData | async) {
+
+    <nav class="auth-user-nav">
+
+        <p class="auth-user-email">
+            {{ authenticatorService.user?.signInDetails?.loginId }}
+        </p>
+        <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
+    </nav>
+
 }
-</nav>
 
 <div class="container">
+
+    <img src="/assets/images/museum_alert_logo.svg" class="logo">
+
     <router-outlet></router-outlet>
+
 </div>
 
 

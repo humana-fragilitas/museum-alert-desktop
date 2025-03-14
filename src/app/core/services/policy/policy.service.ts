@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { APP_CONFIG } from '../../../environments/environment';
+import { APP_CONFIG } from '../../../../environments/environment';
 
 import { AuthSession } from 'aws-amplify/auth';
 
-import { AuthService } from './auth.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class PolicyService {
 
   constructor(private httpClient: HttpClient, private authService: AuthService) {
 
-    authService.sessionData$.subscribe({
+    authService.sessionData.subscribe({
       next: (session: AuthSession | null) => {
         if (session && session.tokens?.idToken?.payload['custom:hasPolicy'] !== '1') {
           this.attachPolicy(session);
