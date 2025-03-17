@@ -1,7 +1,6 @@
 @if (authService.sessionData | async) {
 
     <nav class="auth-user-nav">
-
         <p class="auth-user-email">
             {{ authenticatorService.user?.signInDetails?.loginId }}
         </p>

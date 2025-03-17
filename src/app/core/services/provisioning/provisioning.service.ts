@@ -1,14 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
-import { Observable, Subscription } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProvisioningService {
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(private httpClient: HttpClient, private authService: AuthService) { }
 
   register(deviceName: string) {
 
@@ -38,7 +39,17 @@ export class ProvisioningService {
   createClaim(): Observable<any> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/device-management/provisioning-claims/`;
-    return this.httpClient.post(apiUrl, null);
+    return this.httpClient.post(apiUrl, null).pipe(
+      map((response: any) => ({
+        ...response,
+        idToken: this.authService
+        .sessionData
+        .value
+        ?.tokens
+        ?.idToken
+        ?.toString()
+      }))
+    );
 
   }
 

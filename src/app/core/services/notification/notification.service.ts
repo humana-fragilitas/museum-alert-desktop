@@ -17,9 +17,8 @@ export class NotificationService {
 
     deviceService.error$.subscribe((error: DeviceErrorType) => {
 
-      console.log("NotificationService: received error: ", error);
-
       if (error != DeviceErrorType.NONE) {
+        console.log("NotificationService: received error: ", error);
         snackBar.open(errorService.translate(ErrorType.DEVICE_ERROR, error), "Dismiss")
       }
 

@@ -18,6 +18,8 @@ import { APP_CONFIG } from '../../../../environments/environment';
 })
 export class AuthService {
 
+  private timeOutID: number = 0;
+
   readonly sessionData = new BehaviorSubject<AuthSession | null>(
     null
   );
@@ -47,7 +49,6 @@ export class AuthService {
          */
 
         this.sessionData.next(
-
           (session.credentials &&
            session.identityId &&
            session.tokens &&
@@ -64,12 +65,25 @@ export class AuthService {
         console.log(session.tokens?.idToken?.toString());
         console.log('ID TOKEN -----------------------');
 
+        console.log(`User session is set to expire at: ${session.credentials!.expiration}`);
+
+        if (this.timeOutID) { clearTimeout(this.timeOutID); }
+
+        const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
+            new Date().getTime()) - (1000 * 60);
+
+        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
+        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
+
+        console.log(`User session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
+
+        this.timeOutID = Number(setTimeout(() => this.fetchSession(), sessionRefreshInterval));
+
       },
       () => {
-
         console.log('[AuthService]: can\'t retrieve session data');
         this.sessionData.next(null);
-
       }
     );
 

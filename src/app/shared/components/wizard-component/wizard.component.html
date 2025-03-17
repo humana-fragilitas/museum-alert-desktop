@@ -11,13 +11,13 @@
       <mat-step [editable]="false" label="Register device" [completed]="false">
         <p>Your device is contacting the server to register itself. Please wait.</p>
       </mat-step>
-      <mat-step [editable]="false" label="Done" [completed]="false">
+      <mat-step [editable]="false" label="Done" [completed]="false" [state]="done">
         <p>Your device has successfully been registered.</p>
       </mat-step>
     </mat-stepper>
   </ng-container>
   <ng-template #communicating>
-    <h3 class="wait-message">Communicating; please wait... <mat-spinner diameter="20"></mat-spinner></h3>
+    <h3 class="wait-message">Communicating; please wait...</h3>
   </ng-template>
 </ng-container>
 

@@ -82,25 +82,34 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setStepperState(state: Nullable<DeviceAppState>) {
+
     switch (state) {
       case DeviceAppState.CONFIGURE_WIFI:
-        this.stepper.steps.get(0)!.editable = true;
-        this.stepper.selectedIndex = 0;
+        this.onStep(0);
         break;
       case DeviceAppState.CONFIGURE_CERTIFICATES:
-        this.stepper.steps.get(0)!.completed = true;
-        this.stepper.selectedIndex = 1;
+        this.onStep(1);
         break;
       case DeviceAppState.PROVISION_DEVICE:
-        this.stepper.steps.get(1)!.completed = true;
-        this.stepper.selected!.completed = true;
-        this.stepper.selectedIndex = 2;
+        this.onStep(2);
         break;
       case DeviceAppState.DEVICE_INITIALIZED:
-        this.stepper.steps.get(2)!.completed = true;
-        this.stepper.selected!.completed = true;
-        this.stepper.selectedIndex = 3;
+        this.onStep(3);
         break;
     }
+
   }
+
+  onStep(index: number) {
+
+    this.stepper.selectedIndex = index;
+
+    Array.from(this.stepper.steps).forEach((step, i, arr) => {
+      step.completed = i <= index;
+      step.editable = false;
+      step.state = 'done';
+    });
+
+  }
+
 }
