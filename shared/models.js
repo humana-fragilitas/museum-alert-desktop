@@ -18,6 +18,7 @@ var DeviceMessageType;
     DeviceMessageType[DeviceMessageType["APP_STATE"] = 0] = "APP_STATE";
     DeviceMessageType[DeviceMessageType["WIFI_NETWORKS_LIST"] = 1] = "WIFI_NETWORKS_LIST";
     DeviceMessageType[DeviceMessageType["ERROR"] = 2] = "ERROR";
+    DeviceMessageType[DeviceMessageType["CONNECTION_STATUS"] = 3] = "CONNECTION_STATUS";
 })(DeviceMessageType || (exports.DeviceMessageType = DeviceMessageType = {}));
 ;
 var DeviceErrorType;

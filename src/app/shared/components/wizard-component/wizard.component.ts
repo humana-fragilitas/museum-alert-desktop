@@ -35,7 +35,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('WizardComponent INIT');
 
     combineLatest([
-      this.deviceService.connectionStatus$,
+      this.deviceService.usbConnectionStatus$,
       this.deviceService.deviceAppStatus$
     ])
       .pipe(takeUntil(this.destroy$))
@@ -45,8 +45,6 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Store the latest app state for use in ngAfterViewInit
         this.latestAppStatus = appStatus;
-
-        // If ViewChild is already available, update stepper
         if (this.stepper) {
           this.setStepperState(appStatus);
         }
@@ -58,27 +56,15 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.latestAppStatus) {
       this.setStepperState(this.latestAppStatus);
     }
+
+    // TO DO: remove; debug only
+    //this.setStepperState(DeviceAppState.PROVISION_DEVICE);
+
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  createProvisioningClaim() {
-    this.provisioningService.createClaim().subscribe((claim: any) => {
-      const testBluetoothPayload = {
-        tempCertPem: claim.certificatePem,
-        tempPrivateKey: claim.keyPair.PrivateKey
-      };
-
-      console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
-      console.log(claim);
-
-      const idToken = this.authService.sessionData.value?.tokens?.idToken?.toString();
-
-      this.deviceService.sendData({ ...testBluetoothPayload, idToken });
-    });
   }
 
   setStepperState(state: Nullable<DeviceAppState>) {

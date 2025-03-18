@@ -21,6 +21,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
 import { DeviceStateComponent } from './components/device-state/device-state.component';
+import { ProvisioningComponent } from './components/provisioning/provisioning.component';
 
 
 @NgModule({
@@ -29,7 +30,8 @@ import { DeviceStateComponent } from './components/device-state/device-state.com
     WiFiCredentialsComponent,
     DeviceComponent,
     WizardComponent,
-    DeviceStateComponent
+    DeviceStateComponent,
+    ProvisioningComponent
   ],
   imports: [
     CommonModule,
@@ -64,7 +66,8 @@ import { DeviceStateComponent } from './components/device-state/device-state.com
     MatProgressSpinnerModule,
     WebviewDirective,
     WiFiCredentialsComponent,
-    DeviceComponent
+    DeviceComponent,
+    ProvisioningComponent
   ],
   providers: [DeviceService],
 })

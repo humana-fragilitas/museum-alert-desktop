@@ -1,17 +1,18 @@
-<!-- <ng-container *ngIf="(deviceService.deviceAppStatus$ | async) !== deviceAppState.STARTED; else communicating"> -->
 <ng-container *ngIf="isVisible">
   <ng-container *ngIf="isReady; else communicating">
     <mat-stepper linear #stepper>
-      <mat-step [editable]="false" label="Choose a WiFi network" [completed]="false">
+      <mat-step [editable]="false" label="Choose a WiFi network">
         <app-wifi-credentials></app-wifi-credentials>
       </mat-step>
-      <mat-step [editable]="false" label="Provision device" [completed]="false">
-          <button color="primary" (click)="createProvisioningClaim()">Create provisioning claim</button>
+      <mat-step [editable]="false" label="Provision device">
+         <app-provisioning></app-provisioning>
       </mat-step>
-      <mat-step [editable]="false" label="Register device" [completed]="false">
-        <p>Your device is contacting the server to register itself. Please wait.</p>
+      <mat-step [editable]="false" label="Register device">
+        <h3>Your device is being registered; please wait...<br>
+          <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
+        </h3>
       </mat-step>
-      <mat-step [editable]="false" label="Done" [completed]="false" [state]="done">
+      <mat-step [editable]="false" label="Done">
         <p>Your device has successfully been registered.</p>
       </mat-step>
     </mat-stepper>

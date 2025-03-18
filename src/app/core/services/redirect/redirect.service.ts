@@ -1,29 +1,22 @@
 import { Injectable } from '@angular/core';
 import { Hub } from '@aws-amplify/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RedirectService {
 
-  constructor(private router: Router) {
+  constructor(private authService: AuthService, private router: Router) {
 
-    Hub.listen('auth', ({ payload }) => {
+    this.authService.sessionData.subscribe((session) => {
 
-      switch (payload.event) {
+      const redirectTarget = session ? ['/device'] : ['/index'];
 
-        case 'signedIn':
-          console.log('Redirecting user to device page...');
-          this.router.navigate(['/device']);
-          break;
-        case 'signedOut':
-        case 'tokenRefresh_failure':
-          console.log('Redirecting user to index page...');
-          this.router.navigate(['/index']);
-          break;
+      console.log(`Session ${session ? 'is valid' : 'expired' }: redirecting to ${redirectTarget[0]}`);
 
-      }
+      this.router.navigate(redirectTarget);
 
     });
 

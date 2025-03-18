@@ -1,5 +1,4 @@
-<!-- <mat-card *ngIf="(deviceService.connectionStatus$ | async)"> -->
-<mat-card *ngIf="deviceService.connectionStatus$ | async">
+<mat-card *ngIf="deviceService.usbConnectionStatus$ | async">
   <mat-card-header class="device-status">
     <h4>Device found</h4>
     <mat-chip [ngSwitch]="(deviceService.deviceAppStatus$ | async)" class="device-status-label" [disabled]="true">
@@ -43,7 +42,7 @@
   </mat-card-content>
 </mat-card>
 
-<mat-card *ngIf="!(deviceService.connectionStatus$ | async)">
+<mat-card *ngIf="!(deviceService.usbConnectionStatus$ | async)">
   <mat-card-content>
     <h3>Please connect your Museum Alert Sensor (MAS)<br>to an available USB port on your machine</h3>
   </mat-card-content>

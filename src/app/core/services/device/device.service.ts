@@ -21,7 +21,7 @@ export class DeviceService {
       new BehaviorSubject<Nullable<PortInfo>>(null);
   public readonly deviceAppStatus$: BehaviorSubject<Nullable<DeviceAppState>> =
       new BehaviorSubject<Nullable<DeviceAppState>>(DeviceAppState.STARTED);
-  public readonly connectionStatus$: BehaviorSubject<boolean> =
+  public readonly usbConnectionStatus$: BehaviorSubject<boolean> =
       new BehaviorSubject<boolean>(false);
   public readonly wiFiNetworks$: BehaviorSubject<WiFiNetwork[]> =
       new BehaviorSubject<WiFiNetwork[]>([]);
@@ -44,7 +44,7 @@ export class DeviceService {
       win.electron.ipcRenderer.on('device-connection-status-update', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
-          this.connectionStatus$.next(data as boolean);
+          this.usbConnectionStatus$.next(data as boolean);
           if (!data) { this.reset(); }
         }); 
       });
