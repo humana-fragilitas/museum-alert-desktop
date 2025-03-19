@@ -8,11 +8,109 @@ import mqtt from 'mqtt';
 
 import { SigV4Service } from '../../../shared/helpers/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
+import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
+
+/*
+
+Alarm message (current status):
+
+{
+  "hasAlarm":true,
+  "distance":3,
+  "company":"acme",
+  "sn":"MAS-EC357A188534"
+} on topic: companies/acme/events
+
+Alarm message (to be):
+
+{
+  "type": 0,
+  "sn": "MAS-EC357A188534",
+  "timestamp":1742376361092
+  "data": {
+    "distance":3
+  }
+}
+
+--------------------
+current SQL query:
+
+SELECT *, topic(2) AS company, topic(4) AS sn FROM 'companies/+/devices/+/events'
+--------------------
+
+Connection message (current status):
+
+{
+  "type":3,
+  "data": {
+    "sn":"MAS-EC357A188534",
+    "connected":false,
+    "timestamp":1742376361092
+    }
+  }
+}
+
+Connection message (to be):
+
+{
+  "type":3,
+  "sn":"MAS-EC357A188534",
+  "timestamp":1742376361092
+  "data": {
+    "connected":false
+    }
+  }
+}
+
+*/
+
+export enum MqttMessageType {
+  ALARM_NOTIFICATION,
+  CONNECTION_STATUS,
+  COMMUNICATION_ACKNOWLEDGMENT
+}
+
+export interface AlarmPayload {
+  distance: number;
+}
+
+export interface ConnectionStatus {
+  connected: boolean;
+}
+
+export interface CommunicationAcknowledgment {
+  received: boolean;
+  messageId: string;
+}
+
+// Base message interface with common properties
+interface BaseMqttMessage<T> {
+  type: MqttMessageType;
+  sn: string;
+  timestamp: number;
+  data: T;
+}
+
+// Type mapping for each message type
+type MessageDataMap = {
+  [MqttMessageType.ALARM_NOTIFICATION]: AlarmPayload;
+  [MqttMessageType.CONNECTION_STATUS]: ConnectionStatus;
+  [MqttMessageType.COMMUNICATION_ACKNOWLEDGMENT]: CommunicationAcknowledgment;
+}
+
+// Final discriminated union type
+export type MqttMessage = {
+  [K in MqttMessageType]: BaseMqttMessage<MessageDataMap[K]> & { type: K }
+}[MqttMessageType];
 
 @Injectable({
   providedIn: 'root'
 })
 export class MqttService {
+
+  public readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
+  public readonly devicesConnectionStatus$: BehaviorSubject<Map<string, boolean>> =
+    new BehaviorSubject<Map<string, boolean>>(new Map());
 
   private client: mqtt.MqttClient | undefined;
 
@@ -29,6 +127,25 @@ export class MqttService {
       }       
 
     });
+
+    this.onMessageOfType(MqttMessageType.CONNECTION_STATUS)
+        .subscribe((message) => {
+
+          const currentMap = this.devicesConnectionStatus$.getValue();
+          const newMap = new Map(currentMap);
+          newMap.set(message.sn, message.data.connected);
+          this.devicesConnectionStatus$.next(newMap);
+
+          console.log("Devices connection status: ", newMap);
+
+        });
+
+    this.onMessageOfType(MqttMessageType.ALARM_NOTIFICATION)
+        .subscribe((message) => {
+
+          console.log("Alarm: ", message);
+
+        });
 
   }
 
@@ -141,7 +258,12 @@ export class MqttService {
 
     this.client.on('message', (topic, message) => {
       console.log(`MQTT broker received the following message: ${message.toString()} on topic: ${topic}`);
-      // Handle the message
+      try {
+        const parsedMessage = JSON.parse(message.toString()) as MqttMessage;
+        this.messages$.next(parsedMessage);
+      } catch (error) {
+        console.error('Failed to parse MQTT message:', error);
+      }
     });
 
     this.client.on('error', (error) => {
@@ -168,11 +290,21 @@ export class MqttService {
 
   }
 
-  get isConnected(): boolean {
+  get isConnected(): boolean { 
 
     console.log(`Is connected: ${this.client?.connected }`);
 
     return this.client?.connected as boolean;
+
+  }
+
+  onMessageOfType<T extends MqttMessageType>(messageType: T, deviceSN: string = ''): Observable<Extract<MqttMessage, { type: T }>> {
+
+    return this.messages$.pipe(
+      filter((message): message is MqttMessage => message !== null),
+      filter((message): message is Extract<MqttMessage, { type: T }> => message.type === messageType),
+      filter((message) => deviceSN === '' || message.sn === deviceSN)
+    );
 
   }
 
