@@ -114,11 +114,11 @@ export class MqttService {
 
   private client: mqtt.MqttClient | undefined;
 
-  constructor(authService: AuthService, private sigV4Service: SigV4Service) {
+  constructor(private authService: AuthService, private sigV4Service: SigV4Service) {
 
     console.log('MqttService instance! New version! ');
 
-    authService.sessionData.subscribe((sessionData: AuthSession | null) => {
+    this.authService.sessionData.subscribe((sessionData: AuthSession | null) => {
 
       if (sessionData && !this.isConnected) {
         this.connect(sessionData);
@@ -150,6 +150,79 @@ export class MqttService {
   }
 
   connect(sessionData: AuthSession) {
+
+    const {
+      identityId: clientId
+    } = sessionData;
+
+    this.client = mqtt.connect(
+      this.getSignedURL(sessionData), {
+        clientId,
+        protocolId: 'MQTT',
+        protocolVersion: 4,
+        port: 443,
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 30 * 1000,
+        transformWsUrl: (url, options, client) => {
+          return this.getSignedURL(
+            this.authService.sessionData.getValue()!
+          );
+        }
+        /* will: {
+          topic: 'willTopic',
+          payload: '',
+          qos: 0,
+          retain: false
+        }, */
+        //rejectUnauthorized: false
+      });
+
+    this.client.on('connect', () => {
+
+      console.log('MQTT broker connected');
+      this.client?.subscribe(`companies/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
+      console.log(`companies/${String(sessionData.tokens?.idToken?.payload['custom:Company']).toLocaleLowerCase()}/events`);
+      
+    });
+
+    this.client.on('message', (topic, message) => {
+
+      console.log(`MQTT broker received the following message: ${message.toString()} on topic: ${topic}`);
+      try {
+        const parsedMessage = JSON.parse(message.toString()) as MqttMessage;
+        this.messages$.next(parsedMessage);
+      } catch (error) {
+        console.error('Failed to parse MQTT message:', error);
+      }
+
+    });
+
+    this.client.on('error', (error) => {
+
+      console.log(`Error:`);
+      console.log(error);
+      // Handle the message
+
+    });
+
+    this.client.on('disconnect', (error) => {
+
+      console.log(`Disconnect:`);
+      console.log(error);
+
+    });
+
+    this.client.on('close', () => {
+
+      console.log(`Connection closed`);
+      // Handle the message
+
+    });
+
+  }
+
+  getSignedURL(sessionData: AuthSession): string {
 
     const host = APP_CONFIG.aws.IoTCore.endpoint;
     const algorithm = APP_CONFIG.aws.algorithm;
@@ -228,59 +301,7 @@ export class MqttService {
     console.dir(requestUrl);
     console.log('-------------------------');
 
-    this.client = mqtt.connect(requestUrl, {
-      clientId: clientId,
-      protocolId: 'MQTT',
-      protocolVersion: 4,
-      port: 443,
-      clean: true,
-      reconnectPeriod: 1000,
-      connectTimeout: 30 * 1000,
-      /* will: {
-        topic: 'willTopic',
-        payload: '',
-        qos: 0,
-        retain: false
-      }, */
-      //rejectUnauthorized: false
-    });
-
-    this.client.on('connect', () => {
-      console.log('MQTT broker connected');
-      // Subscribe to topics and handle messages
-      // this.client?.subscribe('company/ACME/events');
-      // this.client?.subscribe(`company/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
-      this.client?.subscribe(`companies/${sessionData.tokens?.idToken?.payload['custom:Company']}/events`);
-
-      console.log(`companies/${String(sessionData.tokens?.idToken?.payload['custom:Company']).toLocaleLowerCase()}/events`);
-      
-    });
-
-    this.client.on('message', (topic, message) => {
-      console.log(`MQTT broker received the following message: ${message.toString()} on topic: ${topic}`);
-      try {
-        const parsedMessage = JSON.parse(message.toString()) as MqttMessage;
-        this.messages$.next(parsedMessage);
-      } catch (error) {
-        console.error('Failed to parse MQTT message:', error);
-      }
-    });
-
-    this.client.on('error', (error) => {
-      console.log(`Error:`);
-      console.log(error);
-      // Handle the message
-    });
-
-    this.client.on('disconnect', (error) => {
-      console.log(`Disconnect:`);
-      console.log(error);
-    });
-
-    this.client.on('close', () => {
-      console.log(`Connection closed`);
-      // Handle the message
-    });
+    return requestUrl;
 
   }
 
