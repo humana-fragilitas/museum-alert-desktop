@@ -12,16 +12,7 @@ import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 
 /*
 
-Alarm message (current status):
-
-{
-  "hasAlarm":true,
-  "distance":3,
-  "company":"acme",
-  "sn":"MAS-EC357A188534"
-} on topic: companies/acme/events
-
-Alarm message (to be):
+Alarm message:
 
 {
   "type": 0,
@@ -32,28 +23,10 @@ Alarm message (to be):
   }
 }
 
---------------------
-current SQL query:
-
-SELECT *, topic(2) AS company, topic(4) AS sn FROM 'companies/+/devices/+/events'
---------------------
-
-Connection message (current status):
+Connection message:
 
 {
-  "type":3,
-  "data": {
-    "sn":"MAS-EC357A188534",
-    "connected":false,
-    "timestamp":1742376361092
-    }
-  }
-}
-
-Connection message (to be):
-
-{
-  "type":3,
+  "type":1,
   "sn":"MAS-EC357A188534",
   "timestamp":1742376361092
   "data": {

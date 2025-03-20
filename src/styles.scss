@@ -41,3 +41,8 @@ html, body {
   padding: 0;
   min-height: auto !important;
 }
+
+// Angular Material global overrides
+.mdc-slider__value-indicator-text {
+  white-space: nowrap !important;
+}

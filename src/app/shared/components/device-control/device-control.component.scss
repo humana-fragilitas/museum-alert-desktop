@@ -1,0 +1,61 @@
+@use '@angular/material' as mat;
+
+mat-slider {
+    display: flex;
+}
+
+mat-card {
+    max-width: 800px;
+    margin: auto
+}
+
+mat-card-footer {
+    padding: 16px;
+}
+
+h3 {
+    text-align: center;
+    margin: 0 auto;
+    font-weight: normal;
+}
+
+.device-status {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+
+    h4 {
+        margin: 0;
+    }
+}
+
+.device-status-label {
+    margin-left: auto;
+}
+
+.device-specs {
+
+    border-spacing: 0;
+    width: 100%;
+    margin: 10px 0;
+
+}
+
+.device-spec-label {
+
+}
+
+.device-spec-value {
+
+    font-family: 'Courier New', Courier, monospace;
+    
+}
+
+.device-specs tr td {
+    border-bottom: 1px mat.get-color-from-palette(mat.$grey-palette, 200) solid;
+}
+
+.device-specs tr:last-child td {
+    border-bottom: none;
+}
+  

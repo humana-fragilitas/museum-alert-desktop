@@ -52,13 +52,16 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+
     // Once the view is ready, update the stepper with the latest app status
     if (this.latestAppStatus) {
       this.setStepperState(this.latestAppStatus);
     }
 
     // TO DO: remove; debug only
-    //this.setStepperState(DeviceAppState.PROVISION_DEVICE);
+    //this.setStepperState(DeviceAppState.DEVICE_INITIALIZED);
+
+    
 
   }
 
@@ -88,12 +91,11 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onStep(index: number) {
 
-    this.stepper.selectedIndex = index;
-
     Array.from(this.stepper.steps).forEach((step, i, arr) => {
-      step.completed = i <= index;
+      step.completed = i < index;
       step.editable = false;
       step.state = 'done';
+      this.stepper.selectedIndex = i;
     });
 
   }

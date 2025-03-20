@@ -22,6 +22,9 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
 import { DeviceStateComponent } from './components/device-state/device-state.component';
 import { ProvisioningComponent } from './components/provisioning/provisioning.component';
+import { DeviceControlComponent } from './components/device-control/device-control.component';
+import { MatSliderModule } from '@angular/material/slider';
+
 
 
 @NgModule({
@@ -31,7 +34,8 @@ import { ProvisioningComponent } from './components/provisioning/provisioning.co
     DeviceComponent,
     WizardComponent,
     DeviceStateComponent,
-    ProvisioningComponent
+    ProvisioningComponent,
+    DeviceControlComponent
   ],
   imports: [
     CommonModule,
@@ -47,7 +51,8 @@ import { ProvisioningComponent } from './components/provisioning/provisioning.co
     MatSelectModule,
     MatCardModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSliderModule
   ],
   exports: [
     TranslateModule,
@@ -64,10 +69,12 @@ import { ProvisioningComponent } from './components/provisioning/provisioning.co
     MatCardModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatSliderModule,
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent,
-    ProvisioningComponent
+    ProvisioningComponent,
+    DeviceControlComponent
   ],
   providers: [DeviceService],
 })

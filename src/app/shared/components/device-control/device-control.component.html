@@ -1,0 +1,40 @@
+<mat-card>
+  <mat-card-header class="device-status">
+    <h4>Device control</h4>
+    <mat-chip class="device-status-label" [disabled]="true">
+      <span *ngIf="mqttService.devicesConnectionStatus$ | async">connected</span>
+      <span *ngIf="!(mqttService.devicesConnectionStatus$ | async)">disconnected</span>
+    </mat-chip>
+  </mat-card-header>
+  <mat-card-content>
+
+    <mat-slider min="10" max="500" step="1" showTickMarks discrete [displayWith]="formatSliderLabel" (change)="onSliderChange($event)">
+      <input matSliderThumb>
+    </mat-slider>
+    <!-- <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
+      <tr>
+        <td class="device-spec-label">Path</td>
+        <td class="device-spec-value">{{ device.path }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Manufacturer</td>
+        <td class="device-spec-value">{{ device.manufacturer }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Serial number</td>
+        <td class="device-spec-value">
+          <ng-container *ngIf="(deviceService.serialNumber$ | async) as serialNumber; else loading">
+            {{ serialNumber }}
+          </ng-container>
+          <ng-template #loading>
+            <mat-spinner diameter="20"></mat-spinner>
+          </ng-template>
+        </td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Product</td>
+        <td class="device-spec-value">{{ device.productId }}</td>
+      </tr>
+    </table> -->
+  </mat-card-content>
+</mat-card>

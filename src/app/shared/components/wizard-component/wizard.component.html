@@ -1,25 +1,40 @@
 <ng-container *ngIf="isVisible">
+  
   <ng-container *ngIf="isReady; else communicating">
+
+    <!-- <mat-stepper linear #stepper> -->
     <mat-stepper linear #stepper>
       <mat-step [editable]="false" label="Choose a WiFi network">
-        <app-wifi-credentials></app-wifi-credentials>
+        <ng-template matStepContent>
+          <app-wifi-credentials></app-wifi-credentials>
+        </ng-template>
       </mat-step>
       <mat-step [editable]="false" label="Provision device">
-         <app-provisioning></app-provisioning>
+        <ng-template matStepContent>
+          <app-provisioning></app-provisioning>
+        </ng-template>
       </mat-step>
       <mat-step [editable]="false" label="Register device">
-        <h3>Your device is being registered; please wait...<br>
-          <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
-        </h3>
+        <ng-template matStepContent>
+          <h3>Your device is being registered; please wait...<br>
+            <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
+          </h3>
+        </ng-template>
       </mat-step>
       <mat-step [editable]="false" label="Done">
-        <p>Your device has successfully been registered.</p>
+        <ng-template matStepContent>
+          <h3>Your device has successfully been registered.</h3>
+          <app-device-control></app-device-control>
+        </ng-template>
       </mat-step>
     </mat-stepper>
+
   </ng-container>
+
   <ng-template #communicating>
     <h3 class="wait-message">Communicating; please wait...</h3>
   </ng-template>
+
 </ng-container>
 
 
