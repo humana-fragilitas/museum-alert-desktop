@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { DeviceAppState } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
-import { MqttService } from '../../../core/services/mqtt/mqtt.service';
+import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.service';
 
 @Component({
   selector: 'app-device-control',
@@ -37,7 +37,12 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
   onSliderChange(event: Event) {
 
-    console.log((event.target as HTMLInputElement).value);
+    const distance = (event.target as HTMLInputElement).value;
+
+    console.log(`Setting minimum alarm distance to: ${distance} cm`);
+
+    this.mqttService.sendCommand(MqttCommandType.SET_CONFIGURATION,
+      { distance });
 
   }
 

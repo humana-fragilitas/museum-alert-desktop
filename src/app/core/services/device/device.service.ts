@@ -45,7 +45,10 @@ export class DeviceService {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
           this.usbConnectionStatus$.next(data as boolean);
-          if (!data) { this.reset(); }
+          if (!data) {
+            // TO DO: this causes a loop, need to fix
+            // this.reset();
+          }
         }); 
       });
 
@@ -57,9 +60,6 @@ export class DeviceService {
       });
 
     }
-
-    // Example: send data to main process
-    // window.electron!.ipcRenderer.send('renderer-to-main', { msg: 'Hello from Angular!' });
     
   }
 

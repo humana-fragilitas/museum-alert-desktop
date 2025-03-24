@@ -9,6 +9,7 @@ import mqtt from 'mqtt';
 import { SigV4Service } from '../../../shared/helpers/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
+import { DeviceService } from '../device/device.service';
 
 /*
 
@@ -35,12 +36,42 @@ Connection message:
   }
 }
 
+enum MqttMessageType {
+  ALARM,
+  // note: connection status is automatically
+  // sent via AWS IoT Core default topics and forwarded
+  // to company-specific events via AWS IoT rule and
+  // associated lambda function
+  CONNECTION_STATUS,
+  // note: message type originated from
+  // a command of type GET_CONFIGURATION
+  // see MqttCommandType enum
+  CONFIGURATION
+};
+
+// Incoming commands: from app to device
+enum MqttCommandType {
+  RESET,
+  GET_CONFIGURATION,
+  SET_CONFIGURATION
+};
+
 */
 
+// Outgoing messages:
+// from device to app
 export enum MqttMessageType {
-  ALARM_NOTIFICATION,
-  CONNECTION_STATUS,
-  COMMUNICATION_ACKNOWLEDGMENT
+  ALARM = 100,
+  CONNECTION_STATUS = 101,
+  CONFIGURATION = 102
+}
+
+// Incoming messages:
+// from app to device
+export enum MqttCommandType {
+  RESET = 200,
+  GET_CONFIGURATION = 201,
+  SET_CONFIGURATION = 202
 }
 
 export interface AlarmPayload {
@@ -51,9 +82,8 @@ export interface ConnectionStatus {
   connected: boolean;
 }
 
-export interface CommunicationAcknowledgment {
-  received: boolean;
-  messageId: string;
+export interface DeviceConfiguration {
+  distance: number
 }
 
 // Base message interface with common properties
@@ -64,17 +94,21 @@ interface BaseMqttMessage<T> {
   data: T;
 }
 
+interface ResetCommand {
+  type: MqttMessageType
+}
+
 // Type mapping for each message type
 type MessageDataMap = {
-  [MqttMessageType.ALARM_NOTIFICATION]: AlarmPayload;
+  [MqttMessageType.ALARM]: AlarmPayload;
   [MqttMessageType.CONNECTION_STATUS]: ConnectionStatus;
-  [MqttMessageType.COMMUNICATION_ACKNOWLEDGMENT]: CommunicationAcknowledgment;
+  [MqttMessageType.CONFIGURATION]: DeviceConfiguration;
 }
 
 // Final discriminated union type
 export type MqttMessage = {
-  [K in MqttMessageType]: BaseMqttMessage<MessageDataMap[K]> & { type: K }
-}[MqttMessageType];
+  [K in keyof MessageDataMap]: BaseMqttMessage<MessageDataMap[K]> & { type: K }
+}[keyof MessageDataMap];
 
 @Injectable({
   providedIn: 'root'
@@ -87,11 +121,15 @@ export class MqttService {
 
   private client: mqtt.MqttClient | undefined;
 
-  constructor(private authService: AuthService, private sigV4Service: SigV4Service) {
+  constructor(
+    private authService: AuthService,
+    private sigV4Service: SigV4Service,
+    private deviceService: DeviceService
+  ) {
 
     console.log('MqttService instance! New version! ');
 
-    this.authService.sessionData.subscribe((sessionData: AuthSession | null) => {
+    this.authService.sessionData.subscribe((sessionData: Nullable<AuthSession>) => {
 
       if (sessionData && !this.isConnected) {
         this.connect(sessionData);
@@ -102,21 +140,27 @@ export class MqttService {
     });
 
     this.onMessageOfType(MqttMessageType.CONNECTION_STATUS)
-        .subscribe((message) => {
+        .subscribe((message: BaseMqttMessage<ConnectionStatus>) => {
 
           const currentMap = this.devicesConnectionStatus$.getValue();
           const newMap = new Map(currentMap);
           newMap.set(message.sn, message.data.connected);
           this.devicesConnectionStatus$.next(newMap);
-
           console.log("Devices connection status: ", newMap);
 
         });
 
-    this.onMessageOfType(MqttMessageType.ALARM_NOTIFICATION)
-        .subscribe((message) => {
+    this.onMessageOfType(MqttMessageType.ALARM)
+        .subscribe((message: BaseMqttMessage<AlarmPayload>) => {
 
           console.log("Alarm: ", message);
+
+        });
+
+    this.onMessageOfType(MqttMessageType.CONFIGURATION)
+        .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
+
+          console.log("Configuration: ", message);
 
         });
 
@@ -299,6 +343,23 @@ export class MqttService {
       filter((message): message is Extract<MqttMessage, { type: T }> => message.type === messageType),
       filter((message) => deviceSN === '' || message.sn === deviceSN)
     );
+
+  }
+
+  sendCommand(type: MqttCommandType, payload: any) {
+
+    console.log('Sending command via MQTT:', type, payload); 
+
+    const company = this.authService.sessionData.getValue()?.tokens?.idToken?.payload['custom:Company'];
+    const deviceSN = this.deviceService.serialNumber$.getValue();
+    const topic = `companies/${company}/devices/${deviceSN}/commands`;
+
+    console.log('Sending command via MQTT:', type, payload, topic); 
+
+    this.client?.publish(topic, JSON.stringify({
+      type,
+      ...payload
+    }));
 
   }
 
