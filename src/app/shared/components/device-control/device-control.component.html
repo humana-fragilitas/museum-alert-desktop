@@ -8,7 +8,7 @@
   </mat-card-header>
   <mat-card-content>
 
-    <mat-slider min="10" max="500" step="1" showTickMarks discrete [displayWith]="formatSliderLabel" (change)="onSliderChange($event)">
+    <mat-slider min="1" max="500" step="1" showTickMarks discrete [displayWith]="formatSliderLabel" (change)="onSliderChange($event)">
       <input matSliderThumb>
     </mat-slider>
     <!-- <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
