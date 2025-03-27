@@ -13,27 +13,12 @@
     </mat-slider>
     <!-- <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
       <tr>
-        <td class="device-spec-label">Path</td>
+        <td class="device-spec-label">Firmware</td>
         <td class="device-spec-value">{{ device.path }}</td>
       </tr>
       <tr>
-        <td class="device-spec-label">Manufacturer</td>
+        <td class="device-spec-label">Minimum alarm distance</td>
         <td class="device-spec-value">{{ device.manufacturer }}</td>
-      </tr>
-      <tr>
-        <td class="device-spec-label">Serial number</td>
-        <td class="device-spec-value">
-          <ng-container *ngIf="(deviceService.serialNumber$ | async) as serialNumber; else loading">
-            {{ serialNumber }}
-          </ng-container>
-          <ng-template #loading>
-            <mat-spinner diameter="20"></mat-spinner>
-          </ng-template>
-        </td>
-      </tr>
-      <tr>
-        <td class="device-spec-label">Product</td>
-        <td class="device-spec-value">{{ device.productId }}</td>
       </tr>
     </table> -->
   </mat-card-content>
