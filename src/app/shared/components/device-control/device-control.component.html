@@ -8,9 +8,20 @@
   </mat-card-header>
   <mat-card-content>
 
-    <mat-slider min="1" max="500" step="1" showTickMarks discrete [displayWith]="formatSliderLabel" (change)="onSliderChange($event)">
-      <input matSliderThumb>
-    </mat-slider>
+    <div class="distance-slider">
+      <span>{{ (minValue >= 100) ? minValue/100 : minValue }} {{ minValue >= 100 ? 'mt' : 'cm' }}</span>
+      <mat-slider 
+        [min]="minValue" 
+        [max]="maxValue" 
+        step="1" 
+        showTickMarks 
+        discrete 
+        [displayWith]="formatSliderLabel" 
+        (change)="onSliderChange($event)">
+        <input matSliderThumb>
+      </mat-slider>
+      <span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>
+    </div>
     <!-- <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
       <tr>
         <td class="device-spec-label">Firmware</td>

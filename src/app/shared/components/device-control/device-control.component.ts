@@ -17,6 +17,8 @@ import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.s
 export class DeviceControlComponent implements OnInit, OnDestroy {
 
   public readonly deviceAppState = DeviceAppState;
+  public readonly minValue = 5;
+  public readonly maxValue = 500;
 
   constructor(
     public readonly deviceService: DeviceService,
@@ -42,7 +44,9 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
     console.log(`Setting minimum alarm distance to: ${distance} cm`);
 
     this.mqttService.sendCommand(MqttCommandType.SET_CONFIGURATION,
-      { distance });
+      { distance }).then((configuration) => {
+        console.log('Configuration updated:', configuration);
+      });
 
   }
 
