@@ -29,12 +29,17 @@
       </mat-step>
     </mat-stepper>
 
+</ng-container>
+
+<ng-template #communicating>
+  <ng-container *ngIf="hasFatalError; else waitMessage">
+    <h3 class="error-message">An error occurred: please reset your device</h3>
+    <button mat-raised-button color="primary" type="button" (click)="reset()">Reset</button>
   </ng-container>
 
-  <ng-template #communicating>
+  <ng-template #waitMessage>
     <h3 class="wait-message">Communicating; please wait...</h3>
   </ng-template>
-
-</ng-container>
+</ng-template>
 
 

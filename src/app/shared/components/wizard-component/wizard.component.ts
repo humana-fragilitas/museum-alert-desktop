@@ -3,7 +3,7 @@ import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.c
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
-import { DeviceAppState } from '@shared/models';
+import { DeviceAppState, USBCommandType } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
 
@@ -20,6 +20,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isVisible: boolean = false;
   isReady: boolean = false;
+  hasFatalError: boolean = false;
 
   @ViewChild('stepper') stepper!: MatStepper;
 
@@ -41,7 +42,9 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(([isConnected, appStatus]) => {
         this.isVisible = isConnected;
-        this.isReady = isConnected && appStatus !== DeviceAppState.STARTED;
+        this.isReady = (appStatus != DeviceAppState.STARTED &&
+                        appStatus != DeviceAppState.FATAL_ERROR);
+        this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
 
         // Store the latest app state for use in ngAfterViewInit
         this.latestAppStatus = appStatus;
@@ -49,6 +52,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
           this.setStepperState(appStatus);
         }
       });
+
   }
 
   ngAfterViewInit(): void {
@@ -97,6 +101,12 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       step.state = 'done';
       this.stepper.selectedIndex = i;
     });
+
+  }
+
+  reset() {
+
+    this.deviceService.sendData({ command: USBCommandType.HARD_RESET });
 
   }
 

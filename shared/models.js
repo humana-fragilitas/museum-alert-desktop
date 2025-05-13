@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ErrorType = exports.AppErrorType = exports.DeviceErrorType = exports.DeviceMessageType = exports.DeviceAppState = void 0;
+exports.ErrorType = exports.AppErrorType = exports.USBCommandType = exports.DeviceErrorType = exports.DeviceMessageType = exports.DeviceAppState = void 0;
+// TO DO: add device outgoing data types: USBCommandType...
 var DeviceAppState;
 (function (DeviceAppState) {
     DeviceAppState[DeviceAppState["STARTED"] = 0] = "STARTED";
@@ -11,6 +12,7 @@ var DeviceAppState;
     DeviceAppState[DeviceAppState["PROVISION_DEVICE"] = 5] = "PROVISION_DEVICE";
     DeviceAppState[DeviceAppState["CONNECT_TO_MQTT_BROKER"] = 6] = "CONNECT_TO_MQTT_BROKER";
     DeviceAppState[DeviceAppState["DEVICE_INITIALIZED"] = 7] = "DEVICE_INITIALIZED";
+    DeviceAppState[DeviceAppState["FATAL_ERROR"] = 8] = "FATAL_ERROR";
 })(DeviceAppState || (exports.DeviceAppState = DeviceAppState = {}));
 ;
 var DeviceMessageType;
@@ -33,6 +35,14 @@ var DeviceErrorType;
     DeviceErrorType[DeviceErrorType["FAILED_DEVICE_CONFIGURATION_RETRIEVAL"] = 8] = "FAILED_DEVICE_CONFIGURATION_RETRIEVAL";
     DeviceErrorType[DeviceErrorType["FAILED_SENSOR_DETECTION_REPORT"] = 9] = "FAILED_SENSOR_DETECTION_REPORT";
 })(DeviceErrorType || (exports.DeviceErrorType = DeviceErrorType = {}));
+;
+var USBCommandType;
+(function (USBCommandType) {
+    USBCommandType[USBCommandType["HARD_RESET"] = 0] = "HARD_RESET";
+    // Add more commands here
+    USBCommandType[USBCommandType["USB_COMMAND_TYPE_COUNT"] = 1] = "USB_COMMAND_TYPE_COUNT";
+    USBCommandType[USBCommandType["USB_COMMAND_INVALID"] = -1] = "USB_COMMAND_INVALID";
+})(USBCommandType || (exports.USBCommandType = USBCommandType = {}));
 ;
 var AppErrorType;
 (function (AppErrorType) {

@@ -8,7 +8,7 @@ import { DeviceIncomingData,
          WiFiNetwork,
          AlarmPayload, 
          DeviceErrorType} from '@shared/models';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -45,10 +45,6 @@ export class DeviceService {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
           this.usbConnectionStatus$.next(data as boolean);
-          if (!data) {
-            // TO DO: this causes a loop, need to fix
-            // this.reset();
-          }
         }); 
       });
 
@@ -60,6 +56,18 @@ export class DeviceService {
       });
 
     }
+
+    this.usbConnectionStatus$
+        .pipe(
+          distinctUntilChanged()
+        )
+        .subscribe(status => {
+          // This will only be called when the value of `status` changes
+          console.log('USB connection status changed:', status);
+          if (!status) {
+            this.reset();
+          }
+      });
     
   }
 

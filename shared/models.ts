@@ -4,6 +4,10 @@ export type DeviceIncomingData =
   | { type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
   | { type: DeviceMessageType; sn: string, data?: undefined };
 
+  export type DeviceOutgoingData = WiFiCredentials | ProvisioningData | USBCommand;
+
+  // TO DO: add device outgoing data types: USBCommandType...
+
   export enum DeviceAppState {
     STARTED,
     INITIALIZE_CIPHERING,
@@ -12,7 +16,8 @@ export type DeviceIncomingData =
     CONNECT_TO_WIFI,
     PROVISION_DEVICE,
     CONNECT_TO_MQTT_BROKER,
-    DEVICE_INITIALIZED
+    DEVICE_INITIALIZED,
+    FATAL_ERROR
   };
 
 export enum DeviceMessageType {
@@ -32,6 +37,13 @@ export enum DeviceErrorType {
     FAILED_MQTT_BROKER_CONNECTION,
     FAILED_DEVICE_CONFIGURATION_RETRIEVAL,
     FAILED_SENSOR_DETECTION_REPORT
+};
+
+export enum USBCommandType {
+    HARD_RESET,
+    // Add more commands here
+    USB_COMMAND_TYPE_COUNT,
+    USB_COMMAND_INVALID = -1
 };
 
 export enum AppErrorType {
@@ -72,4 +84,6 @@ export interface ProvisioningData {
     tempKey: string;
 }
 
-export type DeviceOutgoingData = WiFiCredentials | ProvisioningData;
+export interface USBCommand {
+    command: USBCommandType;
+}
