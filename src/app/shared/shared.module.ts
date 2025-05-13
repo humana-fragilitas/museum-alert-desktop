@@ -24,6 +24,7 @@ import { DeviceStateComponent } from './components/device-state/device-state.com
 import { ProvisioningComponent } from './components/provisioning/provisioning.component';
 import { DeviceControlComponent } from './components/device-control/device-control.component';
 import { MatSliderModule } from '@angular/material/slider';
+import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
 
 
 
@@ -35,7 +36,8 @@ import { MatSliderModule } from '@angular/material/slider';
     WizardComponent,
     DeviceStateComponent,
     ProvisioningComponent,
-    DeviceControlComponent
+    DeviceControlComponent,
+    DeviceDiagnosticsComponent
   ],
   imports: [
     CommonModule,
@@ -74,7 +76,8 @@ import { MatSliderModule } from '@angular/material/slider';
     WiFiCredentialsComponent,
     DeviceComponent,
     ProvisioningComponent,
-    DeviceControlComponent
+    DeviceControlComponent,
+    DeviceDiagnosticsComponent
   ],
   providers: [DeviceService],
 })

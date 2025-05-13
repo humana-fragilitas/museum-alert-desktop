@@ -9,6 +9,7 @@ import { DeviceIncomingData,
          AlarmPayload, 
          DeviceErrorType} from '@shared/models';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+import { DeviceConfiguration } from '../mqtt/mqtt.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,10 @@ export class DeviceService {
       new BehaviorSubject<boolean>(false);
   public readonly wiFiNetworks$: BehaviorSubject<WiFiNetwork[]> =
       new BehaviorSubject<WiFiNetwork[]>([]);
+  public readonly configuration$: BehaviorSubject<Nullable<DeviceConfiguration>> =
+      new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
+  public readonly alarm$: BehaviorSubject<AlarmPayload> =
+      new BehaviorSubject<AlarmPayload>({ hasAlarm: false, distance: 0 });
   public readonly error$: BehaviorSubject<DeviceErrorType> =
       new BehaviorSubject<DeviceErrorType>(DeviceErrorType.NONE);
 

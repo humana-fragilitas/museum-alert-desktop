@@ -22,15 +22,15 @@
       </mat-slider>
       <span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>
     </div>
-    <!-- <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
-      <tr>
-        <td class="device-spec-label">Firmware</td>
-        <td class="device-spec-value">{{ device.path }}</td>
-      </tr>
-      <tr>
-        <td class="device-spec-label">Minimum alarm distance</td>
-        <td class="device-spec-value">{{ device.manufacturer }}</td>
-      </tr>
-    </table> -->
+      <table *ngIf="deviceService.configuration$ | async as configuration" class="device-specs">
+        <tr>
+          <td class="device-spec-label">Firmware</td>
+          <td class="device-spec-value">{{ configuration.firmware }}</td>
+        </tr>
+        <tr>
+          <td class="device-spec-label">Minimum alarm distance</td>
+          <td class="device-spec-value">{{ configuration.distance }}</td>
+        </tr>
+      </table>
   </mat-card-content>
 </mat-card>

@@ -75,7 +75,12 @@ export enum MqttCommandType {
   SET_CONFIGURATION = 202
 }
 
+// TO DO: remove the sibling definition
+// in shared/models.ts
+// also: remove hasAlarm: messages are
+// sent only when alarm is triggered
 export interface AlarmPayload {
+  hasAlarm: boolean;
   distance: number;
 }
 
@@ -84,7 +89,8 @@ export interface ConnectionStatus {
 }
 
 export interface DeviceConfiguration {
-  distance: number
+  distance: number,
+  firmware: string
 }
 
 // Base message interface with common properties
@@ -162,14 +168,16 @@ export class MqttService {
     this.onMessageOfType(MqttMessageType.ALARM)
         .subscribe((message: BaseMqttMessage<AlarmPayload>) => {
 
+          this.deviceService.alarm$.next(message.data);
           console.log("Alarm: ", message);
 
         });
 
     this.onMessageOfType(MqttMessageType.CONFIGURATION)
         .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
-
-          console.log("Configuration: ", message);
+          
+          this.deviceService.configuration$.next(message.data);
+          console.log("Device configuration: ", message);
 
         });
 

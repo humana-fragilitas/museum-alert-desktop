@@ -25,6 +25,7 @@
         <ng-template matStepContent>
           <h3>Your device has successfully been registered.</h3>
           <app-device-control></app-device-control>
+          <app-device-diagnostics></app-device-diagnostics>
         </ng-template>
       </mat-step>
     </mat-stepper>
@@ -32,6 +33,7 @@
 </ng-container>
 
 <ng-template #communicating>
+
   <ng-container *ngIf="hasFatalError; else waitMessage">
     <h3 class="error-message">An error occurred: please reset your device</h3>
     <button mat-raised-button color="primary" type="button" (click)="reset()">Reset</button>
@@ -40,6 +42,7 @@
   <ng-template #waitMessage>
     <h3 class="wait-message">Communicating; please wait...</h3>
   </ng-template>
+
 </ng-template>
 
 

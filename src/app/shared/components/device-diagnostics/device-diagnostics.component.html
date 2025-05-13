@@ -1,0 +1,13 @@
+<mat-card *ngIf="deviceService.alarm$ | async as alarm">
+  <mat-card-header class="device-diagnostics">
+    <h4>Device diagnostics</h4>
+  </mat-card-header>
+  <mat-card-content>
+    <table class="device-diagnostics">
+      <tr>
+        <td class="device-spec-label">Last alarm received:</td>
+        <td class="device-spec-value">{{ alarm.distance }}</td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>
