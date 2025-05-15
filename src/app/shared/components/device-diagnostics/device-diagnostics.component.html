@@ -1,12 +1,19 @@
-<mat-card *ngIf="deviceService.alarm$ | async as alarm">
+<mat-card [class.flash]="flashOnChange">
   <mat-card-header class="device-diagnostics">
     <h4>Device diagnostics</h4>
   </mat-card-header>
   <mat-card-content>
-    <table class="device-diagnostics">
+    <table class="device-diagnostics-table">
       <tr>
-        <td class="device-spec-label">Last alarm received:</td>
-        <td class="device-spec-value">{{ alarm.distance }}</td>
+        <td class="device-spec-label">
+          {{ (deviceService.alarm$ | async)?
+            "Last alarm received at" : "No alarms have been received yet" }}
+        </td>
+        <td class="device-spec-value">{{ (deviceService.alarm$ | async)?.timestamp | date:'M/d/yy, h:mm:ss a' }}</td>
+      </tr>
+      <tr [style.visibility]="(deviceService.alarm$| async) ? 'visible' : 'hidden'">
+        <td class="device-spec-label">Detected distance</td>
+        <td class="device-spec-value">{{ ((deviceService.alarm$ | async)?.data?.distance) | formatDistance }}</td>
       </tr>
     </table>
   </mat-card-content>

@@ -25,6 +25,7 @@ import { ProvisioningComponent } from './components/provisioning/provisioning.co
 import { DeviceControlComponent } from './components/device-control/device-control.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
+import { FormatDistancePipe } from './pipes/format-distance.pipe';
 
 
 
@@ -37,7 +38,8 @@ import { DeviceDiagnosticsComponent } from './components/device-diagnostics/devi
     DeviceStateComponent,
     ProvisioningComponent,
     DeviceControlComponent,
-    DeviceDiagnosticsComponent
+    DeviceDiagnosticsComponent,
+    FormatDistancePipe
   ],
   imports: [
     CommonModule,
@@ -77,7 +79,8 @@ import { DeviceDiagnosticsComponent } from './components/device-diagnostics/devi
     DeviceComponent,
     ProvisioningComponent,
     DeviceControlComponent,
-    DeviceDiagnosticsComponent
+    DeviceDiagnosticsComponent,
+    FormatDistancePipe
   ],
   providers: [DeviceService],
 })

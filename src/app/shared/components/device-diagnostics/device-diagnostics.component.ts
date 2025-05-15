@@ -1,12 +1,7 @@
-import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
-import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
+import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { Subscription } from 'rxjs';
-import { DeviceAppState } from '@shared/models';
-import { MatStepper } from '@angular/material/stepper';
-import { AuthService } from '../../../core/services/auth/auth.service';
-import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.service';
 
 @Component({
   selector: 'app-device-diagnostics',
@@ -16,6 +11,9 @@ import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.s
 })
 export class DeviceDiagnosticsComponent implements OnInit, OnDestroy {
 
+  private alarmSubscription!: Subscription;
+  public flashOnChange = false;
+
   constructor(
     public readonly deviceService: DeviceService
   ) {};
@@ -24,10 +22,16 @@ export class DeviceDiagnosticsComponent implements OnInit, OnDestroy {
 
     console.log('DeviceDiagnosticsComponent INIT');
 
+    this.alarmSubscription = this.deviceService.alarm$.subscribe((alarm) => {  
+      this.flashOnChange = true;
+      console.log('flashOnChange:', alarm);
+        setTimeout(() => this.flashOnChange = false, 1000);
+      });
+
   }
 
   ngOnDestroy(): void {
-
+    this.alarmSubscription?.unsubscribe();
   }
 
 }

@@ -80,6 +80,7 @@ export enum MqttCommandType {
 // also: remove hasAlarm: messages are
 // sent only when alarm is triggered
 export interface AlarmPayload {
+  timestamp: number;
   hasAlarm: boolean;
   distance: number;
 }
@@ -94,7 +95,7 @@ export interface DeviceConfiguration {
 }
 
 // Base message interface with common properties
-interface BaseMqttMessage<T> {
+export interface BaseMqttMessage<T> {
   type: MqttMessageType;
   cid?: string
   sn: string;
@@ -168,7 +169,7 @@ export class MqttService {
     this.onMessageOfType(MqttMessageType.ALARM)
         .subscribe((message: BaseMqttMessage<AlarmPayload>) => {
 
-          this.deviceService.alarm$.next(message.data);
+          this.deviceService.alarm$.next(message);
           console.log("Alarm: ", message);
 
         });
@@ -301,7 +302,7 @@ export class MqttService {
 
   }
 
-  sendCommand(type: MqttCommandType, payload: any): Promise<any> {
+  sendCommand(type: MqttCommandType, payload: any = null): Promise<any> {
 
     return new Promise<any>((resolve, reject) => {
 
@@ -319,7 +320,7 @@ export class MqttService {
           console.error(`Request ${cid} timed out.`);
           reject(new Error("Request timeout"));
           delete this.pendingRequests[cid];
-        }, 5000),
+        }, 10000), // TO DO: make timeout configurable
       };
 
       this.client?.publish(topic, JSON.stringify({

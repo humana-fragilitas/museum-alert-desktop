@@ -1,34 +1,66 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 
+/**
+ * Possible improvements:
+ *
+ * type EventPayloadMap = {
+ *  [EventType.Type1]: string;
+ *  [EventType.Type2]: number;
+ *  [EventType.Type3]: { x: number; y: number };
+ * };
+ *
+ * type TypedEvent = {
+ *  [K in keyof EventPayloadMap]: {
+ *   type: K;
+ *   payload: EventPayloadMap[K];
+ *  }
+ * }[keyof EventPayloadMap];
+ *
+ * [...]
+ *
+ * private eventBus = new BehaviorSubject<Nullable<TypedEvent>>(null);
+ */
+
+enum EventType {
+
+  // types here
+  
+
+}
+
+interface Event<T = any> {
+  type: EventType;
+  payload?: T;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class EventBusService {
 
-  private eventBus = new BehaviorSubject<{ event: string; payload: any } | null>(null);
+  private eventBus = new BehaviorSubject<Nullable<Event>>(null);
 
   /**
    * Publish an event with optional payload.
    * @param event The event name
    * @param payload Optional data to send with the event
    */
-  publish(event: string, payload?: any): void {
-    console.log(`EventBus: Published event '${event}'`, payload);
-    this.eventBus.next({ event, payload });
+  publish(event: Event): void {
+    console.log(`EventBus: published event: '${JSON.stringify(event)}'`);
+    this.eventBus.next(event);
   }
 
   /**
    * Listen for events by name.
-   * @param event The event name to listen for
+   * @param event The event type to listen for
    * @returns Observable of event payload
    */
-  on<T>(event: string): Observable<T> {
+  on<T>(event: EventType): Observable<T> {
     return this.eventBus.asObservable().pipe(
-      filter(e => !!e && e.event === event), // Filter only matching events
-      filter(e => e !== null),              // Filter out null initial value
+      filter(e => !!e && e.type === event), // Filter only matching events
       // Type assertion to ensure correct type
-      filter((e): e is { event: string; payload: T } => e !== null),
+      filter((e): e is { type: EventType; payload: T } => e !== null),
       map(e => e.payload)
     );
   }

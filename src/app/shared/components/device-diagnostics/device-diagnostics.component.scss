@@ -1,8 +1,8 @@
 @use '@angular/material' as mat;
 
 mat-card {
-    max-width: 800px;
-    margin: auto
+    // max-width: 800px;
+    // margin: auto
 }
 
 mat-card-footer {
@@ -15,7 +15,7 @@ h3 {
     font-weight: normal;
 }
 
-.device-status {
+.device-diagnostics {
     display: flex;
     flex-direction: row;
     align-items: baseline;
@@ -43,11 +43,19 @@ h3 {
     
 }
 
-.device-specs tr td {
+.device-diagnostics-table tr td {
     border-bottom: 1px mat.get-color-from-palette(mat.$grey-palette, 200) solid;
 }
 
-.device-specs tr:last-child td {
+.device-diagnostics-table tr:last-child td {
     border-bottom: none;
 }
 
+.flash {
+    animation: flash-red 1s ease;
+}
+
+@keyframes flash-red {
+    0%   { background-color: red; }
+    100% { background-color: inherit; }
+}

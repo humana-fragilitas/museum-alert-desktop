@@ -33,3 +33,27 @@ h3 {
         overflow: visible !important;
     }
 }
+
+.device-summary {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+}
+
+app-device-control, app-device-diagnostics {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    & mat-card {
+        flex: 1;
+    }
+}
+
+app-device-diagnostics {
+    mat-card-content {
+        height: 100%;
+        display: flex !important;
+        flex-direction: column-reverse;
+    }
+}
+

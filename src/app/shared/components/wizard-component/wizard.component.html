@@ -24,8 +24,10 @@
       <mat-step [editable]="false" label="Done">
         <ng-template matStepContent>
           <h3>Your device has successfully been registered.</h3>
-          <app-device-control></app-device-control>
-          <app-device-diagnostics></app-device-diagnostics>
+          <div class="device-summary">
+            <app-device-control></app-device-control>
+            <app-device-diagnostics></app-device-diagnostics>
+          </div>
         </ng-template>
       </mat-step>
     </mat-stepper>

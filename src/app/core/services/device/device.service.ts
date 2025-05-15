@@ -9,7 +9,7 @@ import { DeviceIncomingData,
          AlarmPayload, 
          DeviceErrorType} from '@shared/models';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
-import { DeviceConfiguration } from '../mqtt/mqtt.service';
+import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
 
 @Injectable({
   providedIn: 'root'
@@ -28,12 +28,13 @@ export class DeviceService {
       new BehaviorSubject<WiFiNetwork[]>([]);
   public readonly configuration$: BehaviorSubject<Nullable<DeviceConfiguration>> =
       new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
-  public readonly alarm$: BehaviorSubject<AlarmPayload> =
-      new BehaviorSubject<AlarmPayload>({ hasAlarm: false, distance: 0 });
+  public readonly alarm$: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
+      new BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>>(null);
   public readonly error$: BehaviorSubject<DeviceErrorType> =
       new BehaviorSubject<DeviceErrorType>(DeviceErrorType.NONE);
 
-  constructor(@Inject(WINDOW) private win: Window, private ngZone: NgZone) {
+  constructor(@Inject(WINDOW) private win: Window,
+                              private ngZone: NgZone) {
 
     console.log('DeviceService created!');
 
@@ -127,6 +128,8 @@ export class DeviceService {
     this.deviceAppStatus$.next(DeviceAppState.STARTED);
     this.wiFiNetworks$.next([]);
     this.error$.next(DeviceErrorType.NONE);
+    this.alarm$.next(null);
+    this.configuration$.next(null);
 
   }
 
