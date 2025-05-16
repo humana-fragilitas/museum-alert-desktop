@@ -6,7 +6,7 @@ import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
 import mqtt from 'mqtt';
 import { v4 as uuidv4 } from "uuid";
 
-import { SigV4Service } from '../../../shared/helpers/sig-v4.service';
+import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import { DeviceService } from '../device/device.service';
@@ -75,13 +75,8 @@ export enum MqttCommandType {
   SET_CONFIGURATION = 202
 }
 
-// TO DO: remove the sibling definition
-// in shared/models.ts
-// also: remove hasAlarm: messages are
-// sent only when alarm is triggered
 export interface AlarmPayload {
   timestamp: number;
-  hasAlarm: boolean;
   distance: number;
 }
 
@@ -103,6 +98,7 @@ export interface BaseMqttMessage<T> {
   data: T;
 }
 
+// TO DO: is it needed?
 interface ResetCommand {
   type: MqttMessageType
 }

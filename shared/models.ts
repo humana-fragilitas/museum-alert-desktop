@@ -6,8 +6,6 @@ export type DeviceIncomingData =
 
   export type DeviceOutgoingData = WiFiCredentials | ProvisioningData | USBCommand;
 
-  // TO DO: add device outgoing data types: USBCommandType...
-
   export enum DeviceAppState {
     STARTED,
     INITIALIZE_CIPHERING,
@@ -61,10 +59,11 @@ export interface WiFiNetwork {
     ssid: string;
 }
 
-export interface AlarmPayload {
-    hasAlarm: boolean;
-    distance: number;
-}
+// TO DO: remove this
+// export interface AlarmPayload {
+//     hasAlarm: boolean;
+//     distance: number;
+// }
 
 export interface Error {
     type: DeviceErrorType;

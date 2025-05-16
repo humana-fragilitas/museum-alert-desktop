@@ -46,7 +46,6 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
                         appStatus != DeviceAppState.FATAL_ERROR);
         this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
 
-        // Store the latest app state for use in ngAfterViewInit
         this.latestAppStatus = appStatus;
         if (this.stepper) {
           this.setStepperState(appStatus);
@@ -57,15 +56,9 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
 
-    // Once the view is ready, update the stepper with the latest app status
     if (this.latestAppStatus) {
       this.setStepperState(this.latestAppStatus);
     }
-
-    // TO DO: remove; debug only
-    //this.setStepperState(DeviceAppState.DEVICE_INITIALIZED);
-
-    
 
   }
 

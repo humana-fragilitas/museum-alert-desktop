@@ -6,8 +6,8 @@ import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
          WiFiNetwork,
-         AlarmPayload, 
          DeviceErrorType} from '@shared/models';
+import { AlarmPayload } from '../mqtt/mqtt.service';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
 

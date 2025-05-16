@@ -2,7 +2,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { APP_CONFIG } from '../../../environments/environment';
+import { APP_CONFIG } from '../../../../environments/environment';
 
 import { HmacSHA256, SHA256, enc } from 'crypto-js';
 import * as dayjs from 'dayjs'
