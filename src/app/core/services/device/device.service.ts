@@ -1,5 +1,6 @@
 import { Injectable, Inject, NgZone } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
+import { v4 as uuidv4 } from "uuid";
 import { WINDOW } from '../shared/window';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,
@@ -131,6 +132,13 @@ export class DeviceService {
     this.alarm$.next(null);
     this.configuration$.next(null);
 
+  }
+
+  public generateCid(): string {
+
+    const deviceSN = this.serialNumber$.getValue();
+    return `${deviceSN}-${uuidv4()}-${Date.now()}`;
+    
   }
 
 } 

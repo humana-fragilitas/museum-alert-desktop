@@ -301,11 +301,12 @@ export class MqttService {
   sendCommand(type: MqttCommandType, payload: any = null): Promise<any> {
 
     return new Promise<any>((resolve, reject) => {
-
+      
+      // TO DO: cid should be generated in a dedicated helper
       const company = this.authService.sessionData.getValue()?.tokens?.idToken?.payload['custom:Company'];
       const deviceSN = this.deviceService.serialNumber$.getValue();
       const topic = `companies/${company}/devices/${deviceSN}/commands`;
-      const cid = `${deviceSN}-${uuidv4()}-${Date.now()}`;
+      const cid = this.deviceService.generateCid();
 
       console.log('Sending command via MQTT:', type, payload, topic);
 
