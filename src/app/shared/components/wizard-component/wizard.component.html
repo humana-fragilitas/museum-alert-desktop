@@ -37,8 +37,16 @@
 <ng-template #communicating>
 
   <ng-container *ngIf="hasFatalError; else waitMessage">
-    <h3 class="error-message">An error occurred: please reset your device</h3>
-    <button mat-raised-button color="primary" type="button" (click)="reset()">Reset</button>
+    <div class="reset-container">
+      <h3 class="error-message">An error occurred: please reset your device</h3>
+      <button mat-raised-button color="primary" type="button" (click)="reset()" class="reset-button" [disabled]="isRequestingReset">
+        <span class="button-content">
+        Reset
+        <mat-progress-spinner *ngIf="isRequestingReset" mode="indeterminate" diameter="16"></mat-progress-spinner>
+      </span>
+      </button>
+      
+    </div>
   </ng-container>
 
   <ng-template #waitMessage>

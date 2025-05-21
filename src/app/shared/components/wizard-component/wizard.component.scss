@@ -12,6 +12,19 @@ mat-stepper {
 
 }
 
+.reset-container {
+    .reset-button {
+        display: flex;
+        margin: auto;
+    }
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between text and spinner */
+  }
+
 h3 {
 
     text-align: center;

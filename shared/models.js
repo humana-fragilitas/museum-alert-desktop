@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ErrorType = exports.AppErrorType = exports.USBCommandType = exports.DeviceErrorType = exports.DeviceMessageType = exports.DeviceAppState = void 0;
-// TO DO: add device outgoing data types: USBCommandType...
 var DeviceAppState;
 (function (DeviceAppState) {
     DeviceAppState[DeviceAppState["STARTED"] = 0] = "STARTED";

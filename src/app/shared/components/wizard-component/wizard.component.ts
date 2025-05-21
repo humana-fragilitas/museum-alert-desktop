@@ -21,6 +21,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   isVisible: boolean = false;
   isReady: boolean = false;
   hasFatalError: boolean = false;
+  isRequestingReset: boolean = false;
 
   @ViewChild('stepper') stepper!: MatStepper;
 
@@ -41,16 +42,22 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([isConnected, appStatus]) => {
-        this.isVisible = isConnected;
-        this.isReady = (appStatus != DeviceAppState.STARTED &&
-                        appStatus != DeviceAppState.FATAL_ERROR);
-        this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
+        // this.isVisible = isConnected;
+        // this.isReady = (appStatus != DeviceAppState.STARTED &&
+        //                 appStatus != DeviceAppState.FATAL_ERROR);
+        // this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
 
-        this.latestAppStatus = appStatus;
-        if (this.stepper) {
-          this.setStepperState(appStatus);
-        }
+        // this.latestAppStatus = appStatus;
+        // if (this.stepper) {
+        //   this.setStepperState(appStatus);
+        // }
       });
+
+    // TO DO: remove after testing
+    this.isReady = false;
+    this.isVisible = true;
+    this.hasFatalError = true;
+   
 
   }
 
@@ -59,6 +66,9 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.latestAppStatus) {
       this.setStepperState(this.latestAppStatus);
     }
+
+     // TO DO: remove after testing
+     this.setStepperState(DeviceAppState.FATAL_ERROR);
 
   }
 
@@ -99,6 +109,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   reset() {
 
+    this.isRequestingReset = true
     this.deviceService.sendData({ command: USBCommandType.HARD_RESET });
 
   }
