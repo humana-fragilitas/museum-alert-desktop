@@ -42,21 +42,21 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe(([isConnected, appStatus]) => {
-        // this.isVisible = isConnected;
-        // this.isReady = (appStatus != DeviceAppState.STARTED &&
-        //                 appStatus != DeviceAppState.FATAL_ERROR);
-        // this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
+        this.isVisible = isConnected;
+        this.isReady = (appStatus != DeviceAppState.STARTED &&
+                        appStatus != DeviceAppState.FATAL_ERROR);
+        this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
 
-        // this.latestAppStatus = appStatus;
-        // if (this.stepper) {
-        //   this.setStepperState(appStatus);
-        // }
+        this.latestAppStatus = appStatus;
+        if (this.stepper) {
+          this.setStepperState(appStatus);
+        }
       });
 
     // TO DO: remove after testing
-    this.isReady = false;
-    this.isVisible = true;
-    this.hasFatalError = true;
+    // this.isReady = false;
+    // this.isVisible = true;
+    // this.hasFatalError = true;
    
 
   }
@@ -68,7 +68,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
      // TO DO: remove after testing
-     this.setStepperState(DeviceAppState.FATAL_ERROR);
+    //  this.setStepperState(DeviceAppState.FATAL_ERROR);
 
   }
 
