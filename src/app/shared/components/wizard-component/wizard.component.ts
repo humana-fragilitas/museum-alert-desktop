@@ -107,10 +107,16 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
-  reset() {
+  async reset() {
 
     this.isRequestingReset = true
-    this.deviceService.sendData({ command: USBCommandType.HARD_RESET });
+    this.deviceService.asyncSendData({ command: USBCommandType.HARD_RESET }).then(() => {
+      this.isRequestingReset = false;
+    }).catch(() => {  
+      this.isRequestingReset = false;
+    }).finally(() => {
+      this.isRequestingReset = false;
+    });
 
   }
 

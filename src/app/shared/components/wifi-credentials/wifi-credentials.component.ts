@@ -49,8 +49,15 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
     this.wiFiNetworksSubscription.unsubscribe();
   }
 
-  onSubmit() {
+  async onSubmit() {
     console.log('Form submitted:', this.credentialsForm.value);
-    this.deviceService.sendData(this.credentialsForm.value);
+    //this.deviceService.sendData(this.credentialsForm.value);
+    this.deviceService.asyncSendData(this.credentialsForm.value)
+      .then(() => {
+        console.log('Data sent successfully');
+      })
+      .finally(() => {
+
+      });
   }
 }

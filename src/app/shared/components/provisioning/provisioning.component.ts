@@ -33,7 +33,7 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
   }
 
-  createProvisioningClaim() {
+  async createProvisioningClaim() {
 
     this.isBusy = true;
     
@@ -48,10 +48,11 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
       const idToken = this.authService.sessionData.value?.tokens?.idToken?.toString();
 
-      this.deviceService.sendData({ ...testBluetoothPayload, idToken });
+      this.deviceService.asyncSendData({ ...testBluetoothPayload, idToken }).finally(() => {
+        this.isBusy = false; // TO DO: check if this is the right place to set isBusy to false
+      });
 
-      this.isBusy = false;
-
+    
     });
 
   }

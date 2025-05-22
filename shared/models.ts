@@ -1,8 +1,8 @@
 export type DeviceIncomingData =
-  | { type: DeviceMessageType.APP_STATE; sn: string, data: DeviceStateUpdate }
-  | { type: DeviceMessageType.WIFI_NETWORKS_LIST; sn: string, data: WiFiNetwork[] }
-  | { type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
-  | { type: DeviceMessageType; sn: string, data?: undefined };
+  | { cid?: string, type: DeviceMessageType.APP_STATE; sn: string, data: DeviceStateUpdate }
+  | { cid?: string, type: DeviceMessageType.WIFI_NETWORKS_LIST; sn: string, data: WiFiNetwork[] }
+  | { cid?: string, type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
+  | { cid?: string, type: DeviceMessageType; sn: string, data?: undefined };
 
   export type DeviceOutgoingData = WiFiCredentials | ProvisioningData | USBCommand;
 
@@ -21,7 +21,8 @@ export type DeviceIncomingData =
 export enum DeviceMessageType {
     APP_STATE,
     WIFI_NETWORKS_LIST,
-    ERROR
+    ERROR,
+    ACKNOWLEDGMENT
 };
 
 export enum DeviceErrorType {
@@ -30,6 +31,7 @@ export enum DeviceErrorType {
     INVALID_WIFI_CREDENTIALS,
     FAILED_WIFI_CONNECTION_ATTEMPT,
     INVALID_DEVICE_PROVISIONING_SETTINGS,
+    INVALID_DEVICE_COMMAND,
     FAILED_PROVISIONING_SETTINGS_STORAGE,
     FAILED_DEVICE_PROVISIONING_ATTEMPT,
     FAILED_MQTT_BROKER_CONNECTION,
@@ -85,4 +87,10 @@ export interface ProvisioningData {
 
 export interface USBCommand {
     command: USBCommandType;
+}
+
+export interface PendingRequest<T> {
+  resolve: (data: T) => void;
+  reject: (error: any) => void;
+  timeout: NodeJS.Timeout;
 }

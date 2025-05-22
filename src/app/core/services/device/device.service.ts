@@ -1,12 +1,14 @@
 import { Injectable, Inject, NgZone } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
+import { v4 as uuidv4 } from "uuid";
 import { WINDOW } from '../shared/window';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
          WiFiNetwork,
-         DeviceErrorType} from '@shared/models';
+         DeviceErrorType,
+         PendingRequest} from '@shared/models';
 import { AlarmPayload } from '../mqtt/mqtt.service';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
@@ -15,6 +17,8 @@ import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
   providedIn: 'root'
 })
 export class DeviceService {
+
+  private pendingRequests: Record<string, PendingRequest<any>> = {};
 
   public readonly serialNumber$: BehaviorSubject<string> =
       new BehaviorSubject<string>('');
@@ -83,6 +87,15 @@ export class DeviceService {
       this.serialNumber$.next(payload.sn);
     }
 
+    const correlationId = payload.cid;
+  
+    if(correlationId && this.pendingRequests[correlationId]) {
+      const { resolve, timeout } = this.pendingRequests[correlationId];
+      clearTimeout(timeout);
+      resolve(payload);
+      delete this.pendingRequests[correlationId];
+    }
+
     switch (payload.type) {
       case DeviceMessageType.APP_STATE:
         this.deviceAppStatus$.next(payload.data?.appState as DeviceAppState);
@@ -93,6 +106,9 @@ export class DeviceService {
       case DeviceMessageType.ERROR:
         console.log("INCOMING ERROR:", payload.data);
         this.error$.next(payload.data?.error as DeviceErrorType);
+        break;
+      case DeviceMessageType.ACKNOWLEDGMENT:
+        console.log(`Received response via USB for request with correlation id: ${correlationId}`);
         break;
     }
 
@@ -121,6 +137,33 @@ export class DeviceService {
 
   }
 
+  public async asyncSendData(payload: any): Promise<any> {
+
+    return new Promise<any>((resolve, reject) => {
+
+      const cid = this.generateCid();
+
+      this.pendingRequests[cid] = {
+        resolve: resolve as (data: any) => void,
+        reject,
+        timeout: setTimeout(() => {
+          console.error(`Request ${cid} timed out.`);
+          reject(new Error("USB request timeout"));
+          delete this.pendingRequests[cid];
+        }, APP_CONFIG.settings.USB_RESPONSE_TIMEOUT),
+      };
+
+      this.sendData({
+        cid,
+        ...payload
+      });
+
+      console.log(this.pendingRequests);
+
+    });
+
+  }
+
   public reset() {
 
     this.serialNumber$.next('');
@@ -130,6 +173,13 @@ export class DeviceService {
     this.error$.next(DeviceErrorType.NONE);
     this.alarm$.next(null);
     this.configuration$.next(null);
+
+  }
+
+  public generateCid(): string {
+
+    const deviceSN = this.serialNumber$.getValue();
+    return `${deviceSN}-${uuidv4()}-${Date.now()}`;
 
   }
 
