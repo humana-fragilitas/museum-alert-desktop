@@ -10,53 +10,7 @@ import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import { DeviceService } from '../device/device.service';
-
-/*
-
-Alarm message:
-
-{
-  "type": 0,
-  "sn": "MAS-EC357A188534",
-  "timestamp":1742376361092
-  "data": {
-    "distance":3
-  }
-}
-
-Connection message:
-
-{
-  "type":1,
-  "sn":"MAS-EC357A188534",
-  "timestamp":1742376361092
-  "data": {
-    "connected":false
-    }
-  }
-}
-
-enum MqttMessageType {
-  ALARM,
-  // note: connection status is automatically
-  // sent via AWS IoT Core default topics and forwarded
-  // to company-specific events via AWS IoT rule and
-  // associated lambda function
-  CONNECTION_STATUS,
-  // note: message type originated from
-  // a command of type GET_CONFIGURATION
-  // see MqttCommandType enum
-  CONFIGURATION
-};
-
-// Incoming commands: from app to device
-enum MqttCommandType {
-  RESET,
-  GET_CONFIGURATION,
-  SET_CONFIGURATION
-};
-
-*/
+import { PendingRequest } from '@shared/models';
 
 // Outgoing messages:
 // from device to app
@@ -64,7 +18,7 @@ export enum MqttMessageType {
   ALARM = 100,
   CONNECTION_STATUS = 101,
   CONFIGURATION = 102,
-  ACKNOWLEDGMENT = 103
+  ACK = 103
 }
 
 // Incoming messages:
@@ -114,12 +68,6 @@ type MessageDataMap = {
 export type MqttMessage = {
   [K in keyof MessageDataMap]: BaseMqttMessage<MessageDataMap[K]> & { type: K }
 }[keyof MessageDataMap];
-
-interface PendingRequest<T> {
-  resolve: (data: T) => void;
-  reject: (error: any) => void;
-  timeout: NodeJS.Timeout;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -178,7 +126,7 @@ export class MqttService {
 
         });
 
-    this.onMessageOfType(MqttMessageType.ACKNOWLEDGMENT)
+    this.onMessageOfType(MqttMessageType.ACK)
         .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
 
           console.log("Acknowledgment: ", message);
@@ -239,7 +187,7 @@ export class MqttService {
           clearTimeout(timeout);
           resolve(parsedMessage);
           delete this.pendingRequests[correlationId];
-          console.log(`Received response for request with correlation id: ${correlationId}`);
+          console.log(`Received response via MQTT for request with correlation id: ${correlationId}`);
         }
 
         this.messages$.next(parsedMessage);
@@ -302,7 +250,6 @@ export class MqttService {
 
     return new Promise<any>((resolve, reject) => {
       
-      // TO DO: cid should be generated in a dedicated helper
       const company = this.authService.sessionData.getValue()?.tokens?.idToken?.payload['custom:Company'];
       const deviceSN = this.deviceService.serialNumber$.getValue();
       const topic = `companies/${company}/devices/${deviceSN}/commands`;
@@ -315,9 +262,9 @@ export class MqttService {
         reject,
         timeout: setTimeout(() => {
           console.error(`Request ${cid} timed out.`);
-          reject(new Error("Request timeout"));
+          reject(new Error("MQTT request timeout"));
           delete this.pendingRequests[cid];
-        }, 10000), // TO DO: make timeout configurable
+        }, APP_CONFIG.settings.MQTT_RESPONSE_TIMEOUT),
       };
 
       this.client?.publish(topic, JSON.stringify({

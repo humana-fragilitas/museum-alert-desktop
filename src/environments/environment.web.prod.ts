@@ -20,5 +20,9 @@ export const APP_CONFIG = {
         }
       }
     }
+  },
+  settings: {
+    MQTT_RESPONSE_TIMEOUT: 10000,
+    USB_RESPONSE_TIMEOUT: 10000,
   }
 };
