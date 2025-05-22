@@ -49,7 +49,7 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
       const idToken = this.authService.sessionData.value?.tokens?.idToken?.toString();
 
       this.deviceService.asyncSendData({ ...testBluetoothPayload, idToken }).finally(() => {
-        this.isBusy = false;
+        this.isBusy = false; // TO DO: check if this is the right place to set isBusy to false
       });
 
     
