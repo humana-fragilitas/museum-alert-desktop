@@ -2,31 +2,42 @@
   
   <ng-container *ngIf="isReady; else communicating">
 
-    <!-- <mat-stepper linear #stepper> -->
     <mat-stepper linear #stepper>
+      
       <mat-step [editable]="false" label="Choose a WiFi network">
         <ng-template matStepContent>
-          <app-wifi-credentials></app-wifi-credentials>
+          <div class="wifi-step">
+            <app-wifi-credentials></app-wifi-credentials>
+          </div>
         </ng-template>
       </mat-step>
+
       <mat-step [editable]="false" label="Provision device">
         <ng-template matStepContent>
-          <app-provisioning></app-provisioning>
+          <div class="provisioning-step">
+            <app-provisioning></app-provisioning>
+          </div>
         </ng-template>
       </mat-step>
+      
       <mat-step [editable]="false" label="Register device">
         <ng-template matStepContent>
-          <h3>Your device is being registered; please wait...<br>
-            <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
-          </h3>
+            <div class="registration-step">
+            <h3>Your device is being registered; please wait...<br>
+              <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
+            </h3>
+          </div>
         </ng-template>
       </mat-step>
-      <mat-step [editable]="false" label="Done">
+
+      <mat-step [editable]="false" label="Done" >
         <ng-template matStepContent>
-          <h3>Your device has successfully been registered.</h3>
-          <div class="device-summary">
-            <app-device-control></app-device-control>
-            <app-device-diagnostics></app-device-diagnostics>
+          <div class="done-step">
+            <h3>Your device has successfully been registered.</h3>
+            <div class="device-summary">
+              <app-device-control></app-device-control>
+              <app-device-diagnostics></app-device-diagnostics>
+            </div>
           </div>
         </ng-template>
       </mat-step>

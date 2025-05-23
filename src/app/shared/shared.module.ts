@@ -26,6 +26,7 @@ import { DeviceControlComponent } from './components/device-control/device-contr
 import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
 import { FormatDistancePipe } from './pipes/format-distance.pipe';
+import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
 
 
 
@@ -39,6 +40,7 @@ import { FormatDistancePipe } from './pipes/format-distance.pipe';
     ProvisioningComponent,
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
+    ConnectionStatusComponent,
     FormatDistancePipe
   ],
   imports: [
@@ -80,7 +82,8 @@ import { FormatDistancePipe } from './pipes/format-distance.pipe';
     ProvisioningComponent,
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
-    FormatDistancePipe
+    FormatDistancePipe,
+    ConnectionStatusComponent
   ],
   providers: [DeviceService],
 })

@@ -42,6 +42,12 @@ html, body {
   min-height: auto !important;
 }
 
+h3 {
+
+  color: mat.get-color-from-palette(mat.$grey-palette, 600);
+
+}   
+
 // Angular Material global overrides
 .mdc-slider__value-indicator-text {
   white-space: nowrap !important;

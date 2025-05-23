@@ -3,10 +3,7 @@
     <h4>Device control
       <mat-spinner diameter="20" *ngIf="!(deviceService.configuration$ | async) || disabled"></mat-spinner>
     </h4>
-    <mat-chip class="device-status-label" [disabled]="true">
-      <span *ngIf="mqttService.devicesConnectionStatus$ | async">connected</span>
-      <span *ngIf="!(mqttService.devicesConnectionStatus$ | async)">disconnected</span>
-    </mat-chip>
+    <app-connection-status [deviceSN]="deviceService.serialNumber$ | async"></app-connection-status>
   </mat-card-header>
   <mat-card-content>
 

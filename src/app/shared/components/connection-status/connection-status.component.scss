@@ -1,0 +1,31 @@
+@use '@angular/material' as mat;
+
+
+// .device-specs tr td {
+//     border-bottom: 1px mat.get-color-from-palette(mat.$grey-palette, 200) solid;
+// }
+
+.device-status__indicator {
+    display: inline-block;
+    border-radius: 5px;
+    height: 10px;
+    width: 10px;
+    vertical-align: middle;
+}
+
+.device-connection-status {
+
+    .device-status__indicator {
+        background-color: red;
+    }
+
+    &.connected {
+        
+        .device-status__indicator {
+            background-color: green;
+        }
+
+    }
+
+}
+
