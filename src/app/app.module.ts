@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule, HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClientModule, HttpClient, provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { CoreModule } from './core/core.module';
 import { SharedModule } from './shared/shared.module';
 
@@ -14,7 +14,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { HomeModule } from './home/home.module';
 
 import { AppComponent } from './app.component';
-import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
+import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {MatIconModule} from '@angular/material/icon';
@@ -45,9 +45,12 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
     })
   ],
   providers: [
-    provideHttpClient(
-      withInterceptors([ authTokenInterceptor ])
-    )
+    provideHttpClient(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthTokenInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

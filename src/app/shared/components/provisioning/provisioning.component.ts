@@ -6,6 +6,7 @@ import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DeviceRegistryService, Sensor } from '../../../core/services/device-registry/device-registry.service';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
+import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
 
 @Component({
   selector: 'app-provisioning',
@@ -60,8 +61,10 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
         },
 
         error: (error: any) => {
-
+          
           this.isBusy = false;
+          // TO DO: pass error to dialog service to check if it is an AuthenticationExpiredError?
+          if (error instanceof AuthenticationExpiredError) return;
           this.dialogService.showError('An Error Occurred', 'Cannot provision device. Please try again later.');
 
         }
