@@ -1,0 +1,41 @@
+<div class="dialog-container" [ngClass]="getDialogClass()">
+  <!-- Header -->
+  <div class="dialog-header">
+    <mat-icon [ngClass]="getIconClass()" class="dialog-icon">
+      {{ getIcon() }}
+    </mat-icon>
+    <h2 mat-dialog-title class="dialog-title">{{ data.title }}</h2>
+  </div>
+
+  <!-- Content -->
+  <mat-dialog-content class="dialog-content">
+    <p class="dialog-message">{{ data.message }}</p>
+    <div *ngIf="data.details" class="dialog-details">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>Details</mat-panel-title>
+        </mat-expansion-panel-header>
+        <pre>{{ data.details }}</pre>
+      </mat-expansion-panel>
+    </div>
+  </mat-dialog-content>
+
+  <!-- Actions -->
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button 
+      *ngIf="data.showCancel" 
+      mat-button 
+      (click)="onCancel()"
+      class="cancel-button">
+      {{ data.cancelText || 'Cancel' }}
+    </button>
+    <button 
+      mat-raised-button 
+      [color]="getButtonColor()" 
+      (click)="onConfirm()"
+      class="confirm-button"
+      cdkFocusInitial>
+      {{ data.confirmText || getDefaultConfirmText() }}
+    </button>
+  </mat-dialog-actions>
+</div>

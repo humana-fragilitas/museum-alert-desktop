@@ -9,6 +9,7 @@ import { ProvisioningService } from './services/provisioning/provisioning.servic
 import { ErrorService } from './services/error/error.service';
 import { NotificationService } from './services/notification/notification.service';
 import { RedirectService } from './services/redirect/redirect.service';
+import { DeviceRegistryService } from './services/device-registry/device-registry.service';
 
 @NgModule({
   declarations: [],
@@ -24,7 +25,8 @@ import { RedirectService } from './services/redirect/redirect.service';
     ProvisioningService,
     ErrorService,
     NotificationService,
-    RedirectService
+    RedirectService,
+    DeviceRegistryService
   ]
 })
 export class CoreModule { }

@@ -15,20 +15,6 @@ export class ProvisioningService {
     private authService: AuthService,
     private deviceService: DeviceService) { }
 
-  register(deviceName: string) {
-
-    const apiUrl = `${APP_CONFIG.aws.apiGateway}/device-management/managed-devices/`;
-  
-    this.httpClient.post(apiUrl, {
-      deviceName 
-    }).subscribe((certificates:any) => {
-
-      console.log(certificates);
-
-    });
-
-  }
-
   /**
    *  Root CA Certificate (CACert):
       The certificatePem value should be used here.
@@ -57,6 +43,15 @@ export class ProvisioningService {
         ?.toString()
       }))
     );
+
+  }
+
+  checkThingExists(thingName: string): Observable<any> {
+
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
+    return this.httpClient.get(apiUrl, { 
+      observe: 'response' 
+    });
 
   }
 

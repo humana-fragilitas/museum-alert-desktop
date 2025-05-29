@@ -7,7 +7,6 @@ interface ErrorsMap {
   [ErrorType.APP_ERROR]: { [key in AppErrorType] : string };
   [ErrorType.DEVICE_ERROR]: { [key in DeviceErrorType] : string };
 }
-
 @Injectable({
   providedIn: 'root'
 })
@@ -15,7 +14,12 @@ export class ErrorService {
 
   private errors: ErrorsMap = {
     [ErrorType.APP_ERROR] : {
-      [AppErrorType.API_ERROR]: ""
+      [AppErrorType.UNAUTHORIZED]: "Your session has expired, please log in again",
+      [AppErrorType.FAILED_PROVISIONING_CLAIM_CREATION]: "An error occurred while creating device provisioning claim",
+      [AppErrorType.FAILED_EXISTING_THING_CHECK]: "An error occurred while checking your devices' inventory",
+      [AppErrorType.THING_ALREADY_EXISTS]: "The device you are trying to provision already exists in your inventory",
+      [AppErrorType.THING_ALREADY_EXISTS_IN_OTHER_ORGANIZATION]: "The device you are trying to provision already exists in another organization", 
+      [AppErrorType.GENERIC_ERROR]: "An error occurred, please try again later",
     },
     [ErrorType.DEVICE_ERROR]: {
       [DeviceErrorType.NONE]: "",

@@ -1,17 +1,16 @@
-import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
-import { Subscription } from 'rxjs';
-import { DeviceAppState } from '@shared/models';
-import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { DeviceRegistryService, Sensor } from '../../../core/services/device-registry/device-registry.service';
+import { DialogService } from '../../../core/services/dialog/dialog.service';
 
 @Component({
   selector: 'app-provisioning',
   templateUrl: './provisioning.component.html',
-  styleUrls: ['./provisioning.component.scss'],
-  imports: [ ]
+  styleUrls: ['./provisioning.component.scss']
 })
 export class ProvisioningComponent implements OnInit, OnDestroy {
 
@@ -20,7 +19,9 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
   constructor(
     private readonly authService: AuthService,
     private provisioningService: ProvisioningService,
-    public readonly deviceService: DeviceService
+    public readonly deviceService: DeviceService,
+    private readonly deviceRegistryService: DeviceRegistryService,
+    private readonly dialogService: DialogService
   ) {};
 
   ngOnInit(): void {
@@ -30,6 +31,42 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+
+  }
+
+  async provisionDevice() {
+
+    console.log('[ProvisioningComponent]: Provisioning device...');
+
+    this.isBusy = true;
+    
+    const thingName = this.deviceService.serialNumber$.getValue();
+    this.deviceRegistryService.checkSensorExists(thingName)
+      .subscribe({
+
+        next: (sensor: Nullable<Sensor>) => {
+
+          if (sensor) {
+
+            this.dialogService.showDeviceExists(sensor.thingName, sensor.company).subscribe();
+            this.isBusy = false;
+
+          } else {
+
+            this.createProvisioningClaim();
+
+          }
+
+        },
+
+        error: (error: any) => {
+
+          this.isBusy = false;
+          this.dialogService.showError('An Error Occurred', 'Cannot provision device. Please try again later.');
+
+        }
+
+      });
 
   }
 

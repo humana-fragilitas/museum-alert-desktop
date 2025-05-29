@@ -1,5 +1,5 @@
 <h3>You are about to enroll your device in your Company's <span>({{(authService.sessionData | async)?.tokens?.idToken?.payload?.['custom:Company']}})</span> fleet;<br>do you want to proceed?</h3>
-<button mat-raised-button color="primary" (click)="createProvisioningClaim()" [disabled]="isBusy">
+<button mat-raised-button color="primary" (click)="provisionDevice()" [disabled]="isBusy">
   <span class="button-content">
     Confirm
     <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>

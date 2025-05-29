@@ -10,6 +10,7 @@ import { DeviceService } from '../core/services/device/device.service';
 import { CoreModule } from '../core/core.module';
 import { DeviceComponent } from '../device/device.component';
 import { WizardComponent } from './components/wizard-component/wizard.component';
+import { DialogComponent } from './components/dialog/dialog.component';
 
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
@@ -19,7 +20,9 @@ import {MatIconModule} from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import {MatCardModule} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
+import {MatDialogModule} from '@angular/material/dialog'
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
+import {MatExpansionModule} from '@angular/material/expansion';
 import { DeviceStateComponent } from './components/device-state/device-state.component';
 import { ProvisioningComponent } from './components/provisioning/provisioning.component';
 import { DeviceControlComponent } from './components/device-control/device-control.component';
@@ -41,6 +44,7 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
     ConnectionStatusComponent,
+    DialogComponent,
     FormatDistancePipe
   ],
   imports: [
@@ -58,7 +62,10 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     MatCardModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSliderModule
+    MatSliderModule,
+    MatDialogModule,
+    MatExpansionModule
+    
   ],
   exports: [
     TranslateModule,
@@ -74,8 +81,10 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     MatSelectModule,
     MatCardModule,
     MatChipsModule,
+    MatDialogModule,
     MatProgressSpinnerModule,
     MatSliderModule,
+    MatExpansionModule,
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent,
@@ -83,7 +92,8 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
     FormatDistancePipe,
-    ConnectionStatusComponent
+    ConnectionStatusComponent,
+    DialogComponent
   ],
   providers: [DeviceService],
 })
