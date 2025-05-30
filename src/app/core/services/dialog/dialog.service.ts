@@ -136,10 +136,12 @@ export class DialogService {
   showDeviceExists(deviceName: string, company: string): Observable<DialogResult> {
 
     const warningMessage = ((company) ?
-      `Device "${deviceName}" is already registered for your organization "${company}". ` :
-        `Device "${deviceName}" is already registered for another organization. `) +
-        `If you performed an hard reset of your sensor and are trying to register ` +
-        `it again, please delete the existing device from the registry first.`;
+      `Device "${deviceName}" is already registered for your organization "${company}". ` +
+      `If you performed an hard reset of your sensor and are trying to register ` +
+      `it again, please delete the existing device from the registry first.` :
+        `Device "${deviceName}" is already registered for another organization. ` + 
+        `If you are its legimitate administrator, please delete the existing device ` +
+        `from the registry first.`);
 
     return this.showWarning(
       'Device Already Exists',
