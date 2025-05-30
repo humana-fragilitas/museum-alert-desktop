@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { WiFiNetwork } from '@shared/models';
+import { DeviceErrorType, WiFiNetwork } from '@shared/models';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 })
 export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   
+  public isBusy = false;
   public wiFiNetworks: WiFiNetwork[] = [];
 
   credentialsForm = new FormGroup({
@@ -19,6 +20,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   });
 
   private wiFiNetworksSubscription!: Subscription;
+  private errorSubscription!: Subscription;
 
   constructor(private deviceService: DeviceService) {}
 
@@ -42,22 +44,34 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
       }
 
     });
+
+    this.errorSubscription = this.deviceService.error$.subscribe((error: DeviceErrorType) => {
+    
+      if (error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
+        this.isBusy = false;
+      }
+
+    });
     
   }
 
   ngOnDestroy(): void {
     this.wiFiNetworksSubscription.unsubscribe();
+    this.errorSubscription.unsubscribe();
   }
 
   async onSubmit() {
+
+    this.isBusy = true;
     console.log('Form submitted:', this.credentialsForm.value);
-    //this.deviceService.sendData(this.credentialsForm.value);
     this.deviceService.asyncSendData(this.credentialsForm.value)
       .then(() => {
         console.log('Data sent successfully');
       })
-      .finally(() => {
-
+      .catch((error) => {
+        this.isBusy = false;
       });
+
   }
+
 }
