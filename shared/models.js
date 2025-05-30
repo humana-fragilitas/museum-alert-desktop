@@ -47,7 +47,12 @@ var USBCommandType;
 ;
 var AppErrorType;
 (function (AppErrorType) {
-    AppErrorType[AppErrorType["API_ERROR"] = 0] = "API_ERROR";
+    AppErrorType[AppErrorType["UNAUTHORIZED"] = 0] = "UNAUTHORIZED";
+    AppErrorType[AppErrorType["FAILED_PROVISIONING_CLAIM_CREATION"] = 1] = "FAILED_PROVISIONING_CLAIM_CREATION";
+    AppErrorType[AppErrorType["FAILED_EXISTING_THING_CHECK"] = 2] = "FAILED_EXISTING_THING_CHECK";
+    AppErrorType[AppErrorType["THING_ALREADY_EXISTS"] = 3] = "THING_ALREADY_EXISTS";
+    AppErrorType[AppErrorType["THING_ALREADY_EXISTS_IN_OTHER_ORGANIZATION"] = 4] = "THING_ALREADY_EXISTS_IN_OTHER_ORGANIZATION";
+    AppErrorType[AppErrorType["GENERIC_ERROR"] = 5] = "GENERIC_ERROR";
 })(AppErrorType || (exports.AppErrorType = AppErrorType = {}));
 ;
 var ErrorType;

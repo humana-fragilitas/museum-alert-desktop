@@ -10,6 +10,14 @@ export interface Sensor {
   company: string;
 }
 
+export interface ListThingsResponse {
+  company: string;
+  things: Sensor[];
+  totalCount: number;
+  nextToken?: string;
+  hasMore: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,7 +28,7 @@ export class DeviceRegistryService {
     private authService: AuthService,
     private deviceService: DeviceService) { }
 
-checkSensorExists(thingName: string): Observable<Nullable<Sensor>> {
+  checkSensorExists(thingName: string): Observable<Nullable<Sensor>> {
 
     const company = this.authService.sessionData
       ?.getValue()
@@ -53,6 +61,26 @@ checkSensorExists(thingName: string): Observable<Nullable<Sensor>> {
         } else {
           console.error(`[DeviceRegistryService]: error checking device existence:`, error);
           throw error; // Re-throw other errors
+        }
+      })
+    );
+  }
+
+  getAllSensors(): Observable<Sensor[]> {
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/things`;
+    
+    return this.httpClient.get<ListThingsResponse>(apiUrl).pipe(
+      map((response: ListThingsResponse) => {
+        console.log(`[DeviceRegistryService]: found ${response.things.length} devices for company ${response.company}`);
+        return response.things; // Extract just the things array
+      }),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          console.log(`[DeviceRegistryService]: no devices found`);
+          return of([]);
+        } else {
+          console.error(`[DeviceRegistryService]: error while listing devices:`, error);
+          throw error;
         }
       })
     );

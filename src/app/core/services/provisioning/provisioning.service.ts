@@ -46,13 +46,4 @@ export class ProvisioningService {
 
   }
 
-  checkThingExists(thingName: string): Observable<any> {
-
-    const apiUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
-    return this.httpClient.get(apiUrl, { 
-      observe: 'response' 
-    });
-
-  }
-
 }
