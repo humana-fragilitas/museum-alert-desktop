@@ -1,0 +1,20 @@
+<form [formGroup]="companyNameForm" (ngSubmit)="onSubmit()">
+
+  <!-- Password Input -->
+  <mat-form-field appearance="fill">
+    <mat-label>Company name</mat-label>
+    <input matInput id="company-name" type="text" formControlName="companyName" [disabled]="isBusy">
+    @if (companyNameForm.get('companyName')?.hasError('required') && companyNameForm.get('companyName')?.touched) {
+      <mat-error>Company name is <strong>required</strong></mat-error>
+    }
+  </mat-form-field>
+
+  <!-- Submit Button -->
+  <button mat-raised-button color="primary" type="submit" [disabled]="companyNameForm.invalid || isBusy">
+    <span class="button-content">
+      Submit
+      <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
+    </span>
+  </button>
+
+</form>

@@ -21,6 +21,7 @@ import { MatSelectModule } from '@angular/material/select';
 import {MatCardModule} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatDialogModule} from '@angular/material/dialog'
+import { MatRadioModule } from '@angular/material/radio';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
 import {MatExpansionModule} from '@angular/material/expansion';
 import { DeviceStateComponent } from './components/device-state/device-state.component';
@@ -30,6 +31,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
 import { FormatDistancePipe } from './pipes/format-distance.pipe';
 import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
+import { CompanyFormComponent } from './components/company-form/company-form.component';
 
 
 
@@ -44,6 +46,7 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
     ConnectionStatusComponent,
+    CompanyFormComponent,
     DialogComponent,
     FormatDistancePipe
   ],
@@ -64,8 +67,8 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     MatProgressSpinnerModule,
     MatSliderModule,
     MatDialogModule,
-    MatExpansionModule
-    
+    MatExpansionModule,
+    MatRadioModule    
   ],
   exports: [
     TranslateModule,
@@ -85,6 +88,7 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     MatProgressSpinnerModule,
     MatSliderModule,
     MatExpansionModule,
+    MatRadioModule,
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent,
@@ -93,7 +97,8 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     DeviceDiagnosticsComponent,
     FormatDistancePipe,
     ConnectionStatusComponent,
-    DialogComponent
+    DialogComponent,
+    CompanyFormComponent
   ],
   providers: [DeviceService],
 })

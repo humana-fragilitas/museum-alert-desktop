@@ -2,19 +2,15 @@
                        [loginMechanisms]="['email']">
 
   <ng-template amplifySlot="sign-up-form-fields">
+
+    <input 
+      type="hidden" 
+      name="custom:isProfessional" 
+      value="1">
+
     <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
-    <amplify-text-field
-        label="Your Company's Name"
-        autocomplete="false"
-        placeholder="Your Company's name"
-        name="custom:Company"
-        type="text"
-        (input)="change($event)"
-        pattern="\ciao\gi">
-    </amplify-text-field> 
-    <label>Your Company's ID on Museum Alert</label>
-    <input type="text" class="company-name-preview" disabled #companyNamePreview>
-  </ng-template>
+
+  </ng-template> 
 
   <ng-template amplifySlot="footer">
     <div style="padding: var(--amplify-space-large); text-align: center">

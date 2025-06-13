@@ -21,11 +21,13 @@ import { DeviceService } from '../core/services/device/device.service';
 })
 export class HomeComponent implements OnInit {
 
-  @ViewChild('companyNamePreview', { static: false }) companyNamePreview!: ElementRef;
+  public signUpAttributes = ['email', 'custom:Company', 'custom:isProfessional'];
+  
   public formFields = {
     signUp: {
-      ['custom:Company']: {
-        isRequired: true
+      ['custom:isProfessional']: {
+        defaultValue: 1,
+        type: 'hidden' 
       },
     },
   };
@@ -49,23 +51,6 @@ export class HomeComponent implements OnInit {
 
   signOut() {
     this.authenticatorService.signOut();
-  }
-
-  change(event: any) {
-
-    const inputElement = event.target as HTMLInputElement;
-  const companyName = inputElement.value;
-
-  // Apply transformation: remove non-alphanumeric, lowercase, replace spaces with hyphens
-  this.companyNamePreview.nativeElement.value = companyName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // Allow only letters, numbers, spaces, and '-'
-    .replace(/\s*-\s*/g, '-') // Ensure '-' has no surrounding spaces
-    .replace(/\s+(?=[a-z0-9])/g, '-') // Replace spaces with '-' only if followed by a letter/number
-    .replace(/-{2,}/g, '-') // Collapse multiple '-' into one
-    .replace(/^-+|-+$/g, ''); // Remove '-' at the start or end
-
   }
 
 }
