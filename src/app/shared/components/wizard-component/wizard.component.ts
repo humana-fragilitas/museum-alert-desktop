@@ -6,12 +6,13 @@ import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { DeviceAppState, USBCommandType } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-wizard',
   templateUrl: './wizard.component.html',
   styleUrls: ['./wizard.component.scss'],
-  imports: [WiFiCredentialsComponent],
+  imports: [WiFiCredentialsComponent, CommonModule],
   encapsulation: ViewEncapsulation.None
 })
 export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {

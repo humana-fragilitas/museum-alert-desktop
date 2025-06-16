@@ -12,189 +12,16 @@
 [![Star on GitHub][github-star-badge]][github-star]
 [![Tweet][twitter-badge]][twitter]
 
-# Electron Fiddle
-
-``` javascript
-
-// main.js
-
-const { app, BrowserWindow, ipcMain } = require('electron');
-const {SerialPort} = require('serialport');
-
-let mainWindow;
-
-/*
-Auto-selecting device: Nano ESP32
-Available USB Devices: [
-  {
-    deviceClass: 239,
-    deviceId: '077b2749-aa53-41cd-9f4d-6b749f5c48f7',
-    deviceProtocol: 1,
-    deviceSubclass: 2,
-    deviceVersionMajor: 1,
-    deviceVersionMinor: 0,
-    deviceVersionSubminor: 0,
-    manufacturerName: 'Arduino',
-    productId: 112,
-    productName: 'Nano ESP32',
-    serialNumber: '3485187A35EC',
-    MAS-EC357A188534
-    usbVersionMajor: 2,
-    usbVersionMinor: 0,
-    usbVersionSubminor: 0,
-    vendorId: 9025
-  }
-*/
-
-// device vendor id: 9025
-
-function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      preload: __dirname + '/preload.js',
-      contextIsolation: true
-    },
-  });
-
-  mainWindow.loadFile('index.html');
-
-  initialize(mainWindow);
-
-}
-
-app.whenReady().then(() => {
-
-  createWindow();
-
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      usbDetect.stopMonitoring();
-      app.quit();
-    }
-  });
-
-});
-
-console.log("log from MAIN");
-
-function initialize(win) {
-
-  detectUSBDevice().then(
-    (device) => {
-
-      if (device) {
-         console.log(`DEVICE FOUND: ${JSON.stringify(device)}`);
-         win.webContents.send('device-found', device);
-      }
-   
-  });
-
-    /**
-     * list serial port on a MAC
-     * ls /dev/tty.*
-     * ls /dev/cu.*
-     */
-
-    // Open the serial port (adjust COM port for your system)
-
-
-}
-
-function detectUSBDevice() {
-  console.log("detectUSBDevice called");
-
-  return new Promise((resolve) => {
-    const interval = setInterval(() => {
-      SerialPort.list().then((devices) => {
-        
-        console.log("Scanned devices:");
-        console.log(JSON.stringify(devices));
-
-        const device = devices.find((entry) => entry.manufacturer && entry.manufacturer.includes("Arduino")); // Fix typo and improve matching
-
-        if (device) {
-          clearInterval(interval); // Stop scanning
-          resolve(device); // Return the found device
-        }
-      }).catch((err) => {
-        console.error("Error listing USB devices:", err);
-      });
-    }, 2000); // Scan every second
-  });
-}
-
-```
-
-``` javascript
-
-// renderer.js
-
-/**
- * This file is loaded via the <script> tag in the index.html file and will
- * be executed in the renderer process for that window. No Node.js APIs are
- * available in this process because `nodeIntegration` is turned off and
- * `contextIsolation` is turned on. Use the contextBridge API in `preload.js`
- * to expose Node.js functionality from the main process.
- */
-window.electron.ipcRenderer.on('device-found', (event) => {
-    console.log("RECEIVED FROM MAIN:");
-    console.log(event);
-});
-
-```
-
-``` html
-
-<!-- index.html -->
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Electron USB Detection and Serial Communication</title>
-</head>
-<body>
-  <h1>USB Detection and Serial Communication</h1>
-  <p id="usbStatus">No USB Device Connected</p>
-  <p id="serialData">No Data Received</p>
-  <script src="renderer.js"></script>
-  <script>
-    console.log("log from INDEX.HTML");
-    </script>
-</body>
-</html>
-
-```
-
-``` javascript
-
-// preload.js
-
-const { contextBridge, ipcRenderer } = require('electron');
-
-contextBridge.exposeInMainWorld('electron', {
-  ipcRenderer: {
-    send: (channel, data) => ipcRenderer.send(channel, data),
-    on: (channel, callback) => ipcRenderer.on(channel, (event, ...args) => callback(...args)),
-    removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
-  }
-});
-
-```
-
 # Introduction
 
-Bootstrap and package your project with Angular 17 and Electron 30 (Typescript + SASS + Hot Reload) for creating Desktop applications.
+Bootstrap and package your project with Angular 19 and Electron 36 (Typescript + SASS + Hot Reload) for creating Desktop applications.
 
 Currently runs with:
- 
-- Angular v17.3.6
-- Electron v30.0.1
 
-With this sample, you can: 
+- Angular v19.2.14
+- Electron v36.0.0
+
+With this sample, you can:
 
 - Run your app in a local development environment with Electron & Hot reload
 - Run your app in a production environment
@@ -333,8 +160,9 @@ Please refer to [HOW_TO file](./HOW_TO.md)
 - Angular 14 & Electron 21 : Branch [angular14](https://github.com/maximegris/angular-electron/tree/angular14)
 - Angular 15 & Electron 24 : Branch [angular15](https://github.com/maximegris/angular-electron/tree/angular15)
 - Angular 16 & Electron 25 : Branch [angular16](https://github.com/maximegris/angular-electron/tree/angular16)
-- Angular 17 & Electron 30 : (main)
-- 
+- Angular 17 & Electron 30 : Branch [angular17](https://github.com/maximegris/angular-electron/tree/angular17)
+- Angular 19 & Electron 36 : (main)
+
 [maintained-badge]: https://img.shields.io/badge/maintained-yes-brightgreen
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license]: https://github.com/maximegris/angular-electron/blob/main/LICENSE.md

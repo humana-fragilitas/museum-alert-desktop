@@ -6,12 +6,14 @@ import { Subscription } from 'rxjs';
 import { DeviceAppState } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { MatCard, MatCardContent, MatCardFooter, MatCardHeader } from '@angular/material/card';
 
 @Component({
   selector: 'app-device-state',
   templateUrl: './device-state.component.html',
   styleUrls: ['./device-state.component.scss'],
-  imports: [ ]
+  imports: [AsyncPipe, CommonModule, MatCard, MatCardContent, MatCardFooter, MatCardHeader]
 })
 export class DeviceStateComponent implements OnInit, OnDestroy {
 

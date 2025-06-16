@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
 
-import { AuthSession } from 'aws-amplify/auth';
+import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
+
 import mqtt from 'mqtt';
+import { v4 as uuidv4 } from "uuid";
 
 import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
@@ -89,14 +91,7 @@ export class MqttService {
 
     this.authService.sessionData.subscribe((sessionData: Nullable<AuthSession>) => {
 
-      // TO DO: check if hasPolicy is true here, otherwise
-      // the connection will not be established
-
-      const shouldConnect = sessionData && 
-                            sessionData.tokens?.idToken?.payload['custom:hasPolicy'] === '1' &&
-                            !this.isConnected;
-
-      if (shouldConnect) {
+      if (sessionData && !this.isConnected) {
         this.connect(sessionData);
       } else {
         this.disconnect();

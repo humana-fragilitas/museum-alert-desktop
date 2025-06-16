@@ -23,9 +23,13 @@ function createWindow() {
         },
     });
     if (serve) {
-        const debug = require('electron-debug');
-        debug();
-        require('electron-reloader')(module);
+        Promise.resolve().then(() => require('electron-debug')).then(debug => {
+            debug.default({ isEnabled: true, showDevTools: true });
+        });
+        Promise.resolve().then(() => require('electron-reloader')).then(reloader => {
+            const reloaderFn = reloader.default || reloader;
+            reloaderFn(module);
+        });
         win.loadURL('http://localhost:4200');
     }
     else {
@@ -35,8 +39,9 @@ function createWindow() {
             // Path when running electron in local folder
             pathIndex = '../dist/index.html';
         }
-        const url = new URL(path.join('file:', __dirname, pathIndex));
-        win.loadURL(url.href);
+        const fullPath = path.join(__dirname, pathIndex);
+        const url = `file://${path.resolve(fullPath).replace(/\\/g, '/')}`;
+        win.loadURL(url);
     }
     // Emitted when the window is closed.
     win.on('closed', () => {

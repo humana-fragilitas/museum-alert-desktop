@@ -5,8 +5,8 @@ import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
 
 import { HmacSHA256, SHA256, enc } from 'crypto-js';
-import * as dayjs from 'dayjs'
-import * as utc from 'dayjs/plugin/utc';
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc';
 
 import WordArray = CryptoJS.lib.WordArray;
 import { AuthSession } from 'aws-amplify/auth';
