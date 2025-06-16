@@ -52,6 +52,9 @@ export class CompanyFormComponent implements OnInit {
         },
         complete: () => {
           this.isBusy = false;
+
+          this.companyService.get().subscribe();
+
         }
       });
 

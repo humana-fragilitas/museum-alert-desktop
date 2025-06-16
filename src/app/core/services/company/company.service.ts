@@ -16,14 +16,7 @@ export class CompanyService {
  
   setName(companyName: string): Observable<any> {
 
-    const companyId =  this.authService
-                           .sessionData
-                           .getValue()
-                           ?.tokens
-                           ?.idToken
-                           ?.payload['custom:Company'];
-
-     const apiUrl = `${APP_CONFIG.aws.apiGateway}/companies/${companyId}/`;
+     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
 
      return this.httpClient.put(apiUrl, { companyName });
 
@@ -31,14 +24,7 @@ export class CompanyService {
 
   get(): Observable<any> {
 
-    const companyId = this.authService
-                          .sessionData
-                          .getValue()
-                          ?.tokens
-                          ?.idToken
-                          ?.payload['custom:Company'];
-
-    const apiUrl = `${APP_CONFIG.aws.apiGateway}/companies/${companyId}/`;
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
 
     return this.httpClient.get(apiUrl);
 
