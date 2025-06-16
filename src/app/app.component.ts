@@ -12,6 +12,7 @@ import { RedirectService } from './core/services/redirect/redirect.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +22,8 @@ import { MatButtonModule } from '@angular/material/button';
     CommonModule,        // This includes AsyncPipe, NgIf, etc.
     RouterOutlet,        // For <router-outlet>
     MatButtonModule,
-    RouterModule      // For mat-raised-button
+    RouterModule,
+    MatSlideToggleModule      // For mat-raised-button
   ],
 })
 export class AppComponent {
