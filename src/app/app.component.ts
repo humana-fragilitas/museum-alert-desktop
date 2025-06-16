@@ -9,6 +9,7 @@ import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { ErrorService } from './core/services/error/error.service';
 import { NotificationService } from './core/services/notification/notification.service';
 import { RedirectService } from './core/services/redirect/redirect.service';
+import { Company, CompanyService } from './core/services/company/company.service';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,7 @@ export class AppComponent {
     private authService: AuthService,
     private policyService: PolicyService,
     private authenticatorService: AuthenticatorService,
+    private companyService: CompanyService,
     private notificationService: NotificationService,
     private redirectService: RedirectService
   ) {

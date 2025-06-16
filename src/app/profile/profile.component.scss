@@ -12,6 +12,24 @@
     margin-left: auto;
 }
 
-app-company-form {
+mat-card {
     margin-top: 20px;
+}
+
+mat-list-item {
+    height: auto !important;
+    padding: 20px 0;
+}
+
+.warning-card {
+
+    background-color: red;
+    color: white;
+    margin: 0 0 20px 0;
+    text-wrap: wrap;
+
+    mat-icon {
+        vertical-align: bottom;
+        margin-right: 10px;
+    }
 }

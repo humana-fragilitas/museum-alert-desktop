@@ -1,5 +1,41 @@
-<a mat-raised-button color="primary" class="back-button" [routerLink]="['/device']">
+
+<a mat-raised-button color="secondary" class="back-button" [routerLink]="['/device']">
     <mat-icon matSuffix>arrow_back</mat-icon>
     Back
 </a>
-<app-company-form></app-company-form>
+
+<mat-card>
+
+  <mat-card-header>
+    <mat-card-title>Your Profile</mat-card-title>
+  </mat-card-header>
+
+   <mat-card-content>
+
+    <mat-list>
+      <mat-list-item>
+        <mat-card class="warning-card" appearance="outlined">
+          <mat-card-content>
+            <div class="warning-content">
+              <mat-icon class="warning-icon">warning</mat-icon>
+              <span class="warning-text">It appears that you have not set up your company profile yet. Please enter a company name.</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        <app-company-form></app-company-form>
+      </mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>Item 2</mat-list-item>
+      <mat-divider></mat-divider>
+      <mat-list-item>Item 3</mat-list-item>
+    </mat-list>
+    
+   </mat-card-content>
+
+  <mat-card-actions>
+    <button mat-button>Learn More</button>
+  </mat-card-actions>
+
+</mat-card>
+
+

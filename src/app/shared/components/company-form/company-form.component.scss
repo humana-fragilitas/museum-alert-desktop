@@ -6,9 +6,9 @@ form {
     margin: auto;
 }
 
-button[type="submit"] {
+button {
     width: fit-content;
-    margin: 0 auto;
+    margin-left: auto;
 }
 
 .button-content {
@@ -16,3 +16,11 @@ button[type="submit"] {
     align-items: center;
     gap: 8px;
 }
+
+.button-cta {
+    display: flex;
+    flex-direction: row;
+    align-self: flex-end;
+    gap: 10px;
+}
+

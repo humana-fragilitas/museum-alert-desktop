@@ -24,6 +24,8 @@ import {MatDialogModule} from '@angular/material/dialog'
 import { MatRadioModule } from '@angular/material/radio';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
 import {MatExpansionModule} from '@angular/material/expansion';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatListModule} from '@angular/material/list';
 import { DeviceStateComponent } from './components/device-state/device-state.component';
 import { ProvisioningComponent } from './components/provisioning/provisioning.component';
 import { DeviceControlComponent } from './components/device-control/device-control.component';
@@ -70,7 +72,9 @@ import { RouterModule } from '@angular/router';
     MatSliderModule,
     MatDialogModule,
     MatExpansionModule,
-    MatRadioModule    
+    MatRadioModule,
+    MatDividerModule,
+    MatListModule   
   ],
   exports: [
     TranslateModule,
@@ -92,6 +96,8 @@ import { RouterModule } from '@angular/router';
     MatSliderModule,
     MatExpansionModule,
     MatRadioModule,
+    MatDividerModule,
+    MatListModule,
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent,
