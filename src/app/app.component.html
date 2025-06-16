@@ -2,7 +2,7 @@
 
     <nav class="auth-user-nav">
         <p class="auth-user-email">
-            {{ authenticatorService.user?.signInDetails?.loginId }}
+            <a [routerLink]="['/profile']">{{ authenticatorService.user?.signInDetails?.loginId }}</a>
         </p>
         <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
     </nav>

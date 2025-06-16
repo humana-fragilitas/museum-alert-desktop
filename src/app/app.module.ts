@@ -18,6 +18,7 @@ import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {MatIconModule} from '@angular/material/icon';
+import { ProfileModule } from './profile/profile.module';
 
 
 
@@ -33,6 +34,7 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>  new Transl
     CoreModule,
     SharedModule,
     HomeModule,
+    ProfileModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     MatIconModule,

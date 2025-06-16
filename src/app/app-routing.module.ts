@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 // import { PageNotFoundComponent } from './shared/components';
 import { HomeComponent } from './home/home.component';
 import { DeviceComponent } from './device/device.component';
+import { ProfileComponent } from './profile/profile.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,10 @@ const routes: Routes = [
   {
     path: 'device',
     component: DeviceComponent
+  },
+  {
+    path: 'profile',
+    component: ProfileComponent
   }
 
   // {

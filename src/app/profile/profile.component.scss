@@ -1,0 +1,17 @@
+@use '@angular/material' as mat;
+@use '../../styles.scss' as theme;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;
+    margin: 20px auto 0 auto;
+}
+
+.back-button {
+    margin-left: auto;
+}
+
+app-company-form {
+    margin-top: 20px;
+}

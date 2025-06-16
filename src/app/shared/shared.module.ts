@@ -32,6 +32,7 @@ import { DeviceDiagnosticsComponent } from './components/device-diagnostics/devi
 import { FormatDistancePipe } from './pipes/format-distance.pipe';
 import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
 import { CompanyFormComponent } from './components/company-form/company-form.component';
+import { RouterModule } from '@angular/router';
 
 
 
@@ -56,6 +57,7 @@ import { CompanyFormComponent } from './components/company-form/company-form.com
     TranslateModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterModule,
     MatInputModule,
     MatFormFieldModule,
     MatStepperModule,
@@ -76,6 +78,7 @@ import { CompanyFormComponent } from './components/company-form/company-form.com
     WebviewDirective,
     FormsModule,
     ReactiveFormsModule,
+    RouterModule,
     MatInputModule,
     MatFormFieldModule,
     MatStepperModule,
