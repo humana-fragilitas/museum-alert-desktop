@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceErrorType, WiFiNetwork } from '@shared/models';
+import { DeviceErrorType, WiFiNetwork } from '../../../../../shared/models';
 import { Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';

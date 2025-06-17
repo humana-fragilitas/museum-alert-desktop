@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
-import { DeviceAppState } from '@shared/models';
+import { DeviceAppState } from '../../../../../shared/models';
 import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';

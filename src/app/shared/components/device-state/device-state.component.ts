@@ -3,7 +3,7 @@ import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.c
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { Subscription } from 'rxjs';
-import { DeviceAppState } from '@shared/models';
+import { DeviceAppState } from '../../../../../shared/models';
 import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
