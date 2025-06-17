@@ -26,6 +26,33 @@ https://m3.material.io/theme-builder
 
 */
 
+@use '@angular/material' as mat;
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+:root {
+  @include mat.slider-overrides((
+    active-track-color: orange,
+    active-track-shape: red,
+    value-indicator-width: 64px,
+    value-indicator-height: 40px,
+    value-indicator-padding: 5px,
+    value-indicator-opacity: 1,
+    value-indicator-caret-display: block,
+    value-indicator-text-transform: none,
+    value-indicator-container-transform: translate(-50%, 0)
+  ));
+}
+
+mat-slider {
+  .mdc-slider__value-indicator {
+    border-radius: 6px !important;
+    
+    &::before {
+      border-radius: 6px !important;
+    }
+  }
+}
+
 body {
     min-height: auto !important;
 }
@@ -36,4 +63,14 @@ body {
   'wght' 400,
   'GRAD' 0,
   'opsz' 24
+}
+
+:root {
+  --amplify-colors-primary-10: var(--mat-sys-primary-container);
+  --amplify-colors-primary-20: color-mix(in srgb, var(--mat-sys-primary) 20%, var(--mat-sys-primary-container));
+  --amplify-colors-primary-40: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-primary-container));
+  --amplify-colors-primary-60: color-mix(in srgb, var(--mat-sys-primary) 60%, var(--mat-sys-primary-container));
+  --amplify-colors-primary-80: var(--mat-sys-primary);
+  --amplify-colors-primary-90: color-mix(in srgb, var(--mat-sys-primary) 90%, #000);
+  --amplify-colors-primary-100: color-mix(in srgb, var(--mat-sys-primary) 80%, #000);
 }

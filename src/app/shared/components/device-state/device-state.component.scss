@@ -9,6 +9,11 @@ mat-card-footer {
     padding: 16px;
 }
 
+mat-chip {
+    pointer-events: none;
+    user-select: none; /* optional: prevents text selection */  
+}
+
 h3 {
     text-align: center;
     margin: 0 auto;
@@ -37,6 +42,14 @@ h3 {
 
 }
 
+.device-specs tr td {
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.device-specs tr:last-child td {
+    border-bottom: none;
+}
+
 .device-spec-label {
 
 }
@@ -46,12 +59,3 @@ h3 {
     font-family: 'Courier New', Courier, monospace;
     
 }
-
-.device-specs tr td {
-    //border-bottom: 1px mat.get-color-from-palette(mat.$grey-palette, 200) solid;
-}
-
-.device-specs tr:last-child td {
-    border-bottom: none;
-}
-  
