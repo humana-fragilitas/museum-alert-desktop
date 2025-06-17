@@ -1,17 +1,31 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { distinctUntilChanged, map, Observable, Subscription } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { CommonModule } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-company-form',
   templateUrl: './company-form.component.html',
   styleUrls: ['./company-form.component.scss'],
-  imports: [ ]
+  imports: [
+             MatButtonModule,
+             CommonModule,
+             MatFormFieldModule,
+             MatInputModule,
+             MatIconModule,
+             ReactiveFormsModule,
+             MatProgressSpinnerModule
+           ]
 })
-export class CompanyFormComponent implements OnInit {
+export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('companyName', { static: false }) companyNameInput!: ElementRef;
 
@@ -30,32 +44,37 @@ export class CompanyFormComponent implements OnInit {
   constructor(
     private companyService: CompanyService,
     private authService: AuthService
-  ) {
-
-    this.subscription = this.companyService.company$.subscribe((company) => {
-
-      this.isCompanyNameSet = !!company?.companyName;
-
-      this.companyNameForm.get('companyName')?.disable();
-
-      if (company) {
-        this.companyNameForm.get('companyName')?.setValue(company.companyName || '');
-      } else {
-        this.companyNameForm.get('companyName')?.setValue('');
-      }
-
-    });
-
-  }
+  ) { }
 
   ngOnInit(): void {
 
     console.log('CompanyForm INIT');
+
+    this.subscription = this.companyService.company$.subscribe((company: any) => {
+
+      this.isCompanyNameSet = !!company?.companyName;
+      this.companyNameForm.get('companyName')?.setValue(company?.companyName || '');
+
+      if (this.isCompanyNameSet) {
+        this.cancel();
+      } else {
+        this.edit();
+      }
+
+    });
     
   }
 
   ngOnDestroy(): void {
 
+    this.subscription.unsubscribe();
+
+  }
+
+  ngAfterViewInit(): void {
+
+ 
+    
   }
 
   async onSubmit() {
@@ -67,7 +86,7 @@ export class CompanyFormComponent implements OnInit {
     this.companyService.setName(this.companyNameForm.value.companyName || '')
       .subscribe({
         next: () => {
-          console.log('Data sent successfully');
+          console.log('Data sxent successfully');
         },
         error: (error) => {
           console.error('Error sending data:', error);
@@ -85,17 +104,18 @@ export class CompanyFormComponent implements OnInit {
   edit() {
     this.isEditable = true;
     this.companyNameForm.get('companyName')?.enable();
-    this.companyNameInput.nativeElement.focus();
-    this.companyNameInput.nativeElement.select();
+    setTimeout(()=>{
+      this.companyNameInput.nativeElement.focus();
+      this.companyNameInput.nativeElement.select();
+    });
   }
 
   cancel() {
     this.isEditable = false;
     this.companyNameForm.get('companyName')?.disable();
     this.companyNameForm.get('companyName')?.setValue(this.companyService.currentCompany?.companyName || '');
-    this.companyNameInput.nativeElement.blur();
     setTimeout(() => {
-      this.companyNameInput.nativeElement.focus();
+      this.companyNameInput.nativeElement.blur();
     }, 0);
   }
 

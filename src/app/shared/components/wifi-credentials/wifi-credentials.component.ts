@@ -1,13 +1,36 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
 import { DeviceErrorType, WiFiNetwork } from '@shared/models';
 import { Subscription } from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ProvisioningComponent } from '../provisioning/provisioning.component';
+import { DeviceControlComponent } from '../device-control/device-control.component';
+import { DeviceDiagnosticsComponent } from '../device-diagnostics/device-diagnostics.component';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-wifi-credentials',
   templateUrl: './wifi-credentials.component.html',
   styleUrls: ['./wifi-credentials.component.scss'],
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatButtonModule,
+    ReactiveFormsModule,
+    MatProgressSpinnerModule,
+    CommonModule,
+    ProvisioningComponent,
+    DeviceControlComponent,
+    DeviceDiagnosticsComponent,
+    MatSelectModule
+  ]
 })
 export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   

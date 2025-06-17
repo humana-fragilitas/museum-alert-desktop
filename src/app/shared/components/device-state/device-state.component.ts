@@ -7,13 +7,21 @@ import { DeviceAppState } from '@shared/models';
 import { MatStepper } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { MatCard, MatCardContent, MatCardFooter, MatCardHeader } from '@angular/material/card';
+import { MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-device-state',
   templateUrl: './device-state.component.html',
   styleUrls: ['./device-state.component.scss'],
-  imports: [AsyncPipe, CommonModule, MatCard, MatCardContent, MatCardFooter, MatCardHeader]
+  imports: [ 
+    AsyncPipe,
+    CommonModule,
+    MatCardModule,
+    MatChipsModule,
+    MatProgressSpinnerModule
+  ]
 })
 export class DeviceStateComponent implements OnInit, OnDestroy {
 

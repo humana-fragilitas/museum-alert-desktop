@@ -2,7 +2,7 @@ import { Injectable, Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
     name: 'formatDistance',
-    standalone: false
+    standalone: true
 })
 @Injectable({ providedIn: 'root' })
 export class FormatDistancePipe implements PipeTransform {

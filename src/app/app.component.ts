@@ -13,6 +13,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 
 @Component({
   selector: 'app-root',
@@ -23,7 +25,8 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     RouterOutlet,        // For <router-outlet>
     MatButtonModule,
     RouterModule,
-    MatSlideToggleModule      // For mat-raised-button
+    MatChipsModule,
+    MatIconModule
   ],
 })
 export class AppComponent {
@@ -40,6 +43,7 @@ export class AppComponent {
     private notificationService: NotificationService,
     private redirectService: RedirectService
   ) {
+
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);
 

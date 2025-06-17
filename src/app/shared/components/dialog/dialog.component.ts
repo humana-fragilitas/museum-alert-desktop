@@ -1,5 +1,8 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 
 export enum DialogType {
   ERROR = 'error',
@@ -30,7 +33,13 @@ export interface DialogResult {
 @Component({
   selector: 'app-dialog',
   templateUrl: './dialog.component.html',
-  styleUrls: ['./dialog.component.scss']
+  styleUrls: ['./dialog.component.scss'],
+  imports: [
+    MatIconModule,
+    MatDialogModule,
+    CommonModule,
+    MatButtonModule
+  ]
 })
 export class DialogComponent {
 

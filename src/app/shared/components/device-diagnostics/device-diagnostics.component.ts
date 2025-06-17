@@ -2,12 +2,19 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { Subscription } from 'rxjs';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-device-diagnostics',
   templateUrl: './device-diagnostics.component.html',
   styleUrls: ['./device-diagnostics.component.scss'],
-  imports: [ ]
+  imports: [
+    AsyncPipe,
+    MatCardModule,
+    CommonModule,
+    FormatDistancePipe
+  ]
 })
 export class DeviceDiagnosticsComponent implements OnInit, OnDestroy {
 

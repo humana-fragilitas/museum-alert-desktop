@@ -68,19 +68,7 @@ export interface UpdateCompanyResponse {
 /**
  * Standard API error response
  */
-export interface ApiErrorResponse {
-  error: string;
-  message: string;
-  details?: any;
-}
 
-/**
- * API response wrapper
- */
-export interface ApiResponse<T = any> {
-  statusCode: number;
-  body: T | ApiErrorResponse;
-}
 
 // ===== PARTIAL/UTILITY INTERFACES =====
 
@@ -156,7 +144,7 @@ export class CompanyService {
         if (currentCompany) {
           const updatedCompany: CompanyWithUserContext = {
             ...currentCompany,
-            ...response.company,
+            ...response.data,
             userRole: currentCompany.userRole, // Preserve user context
             userJoinedAt: currentCompany.userJoinedAt
           };

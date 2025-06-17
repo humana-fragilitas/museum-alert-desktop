@@ -1,6 +1,3 @@
-@use '@angular/material' as mat;
-@use '../styles.scss' as theme;
-
 .container {
     margin-top: 60px;
 }
@@ -9,13 +6,13 @@
     position: fixed;
     display: flex;
     flex-direction: row;
-    align-items: baseline;
+    align-items: anchor-center;
     top: 0;
     left: 0;
     right: 0;
     z-index: 2;
-    //background-color: mat.get-color-from-palette(theme.$angular-electron-primary, 50);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: var(--mat-sys-primary-container);
+    box-shadow: var(--mdc-elevated-card-container-elevation, var(--mat-sys-level3));
 }
 
 .auth-user-email {

@@ -28,14 +28,13 @@ import { ProvisioningComponent } from './components/provisioning/provisioning.co
 import { DeviceControlComponent } from './components/device-control/device-control.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
-import { FormatDistancePipe } from './pipes/format-distance.pipe';
 import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
 
 
 
 @NgModule({
   declarations: [
-    FormatDistancePipe
+
   ],
   imports: [
         WiFiCredentialsComponent,
@@ -91,7 +90,6 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     ProvisioningComponent,
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
-    FormatDistancePipe,
     ConnectionStatusComponent,
     DialogComponent
   ],
