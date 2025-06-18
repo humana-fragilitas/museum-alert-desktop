@@ -100,20 +100,16 @@ export interface PendingRequest<T> {
   timeout: NodeJS.Timeout;
 }
 
-export interface SuccessApiResponse<T> {
-    data: T;
-    timestamp: string;
+export interface ApiErrorResponse {
+  error: string;
+  message: string;
+  details?: any;
 }
 
-export interface ApiError {
-    code: number;
-    message: string;
-    timestamp: string;
-    details?: any;
+/**
+ * API response wrapper
+ */
+export interface ApiResponse<T = any> {
+  statusCode: number;
+  data: T | ApiErrorResponse;
 }
-
-export interface ErrorApiResponse {
-  error: ApiError
-}
-
-export type ApiResponse<T> = SuccessApiResponse<T> | ErrorApiResponse;

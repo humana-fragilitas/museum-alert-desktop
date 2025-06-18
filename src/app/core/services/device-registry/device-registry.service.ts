@@ -4,7 +4,6 @@ import { APP_CONFIG } from '../../../../environments/environment';
 import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { DeviceService } from '../device/device.service';
-import { ApiResponse, ErrorApiResponse, SuccessApiResponse } from '@shared/models';
 
 export interface Sensor {
   thingName: string;
@@ -43,36 +42,26 @@ export class DeviceRegistryService {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
     
-    return this.httpClient.get<ApiResponse<Sensor>>(apiUrl, {
+    return this.httpClient.get<Sensor>(apiUrl, {
       observe: 'response'
     }).pipe(
-      map((response: HttpResponse<ApiResponse<Sensor>>) => {
-
+      map((response: HttpResponse<Sensor>) => {
         if (response.status === 200) {
-
-          const body = response.body as SuccessApiResponse<Sensor>;
-          console.log(`[DeviceRegistryService]: found device with name ${body.data.thingName}: ${JSON.stringify(response.body)}`);
+          console.log(`[DeviceRegistryService]: found device with name ${response.body?.thingName}: ${JSON.stringify(response.body)}`);
           console.log(`[DeviceRegistryService]: device associated company ` +
-                      `${ company === body.data.company ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
-          return body.data as Sensor;
-          
+                      `${ company === response.body?.company ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
+          return response.body;
         }
-
         return null;
-
       }),
-      catchError((response: HttpErrorResponse) => {
-        
-        const errorBody = response.error as ErrorApiResponse;
-
-        if (response.status === 404) {
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
           console.log(`[DeviceRegistryService]: device with name ${thingName} not found (404)`);
-          return of(null);
+          return of(null); // Device doesn't exist
         } else {
-          console.error(`[DeviceRegistryService]: error checking device existence:`, errorBody);
-          throw response;
+          console.error(`[DeviceRegistryService]: error checking device existence:`, error);
+          throw error; // Re-throw other errors
         }
-
       })
     );
   }

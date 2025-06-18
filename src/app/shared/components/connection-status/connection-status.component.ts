@@ -1,12 +1,17 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { distinctUntilChanged, map, Observable, Subscription } from 'rxjs';
+import { MatChipsModule } from '@angular/material/chips';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-connection-status',
   templateUrl: './connection-status.component.html',
   styleUrls: ['./connection-status.component.scss'],
-  imports: [ ]
+  imports: [
+    MatChipsModule,
+    AsyncPipe
+  ]
 })
 export class ConnectionStatusComponent implements OnInit {
 

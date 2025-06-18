@@ -1,16 +1,31 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
-import { DeviceAppState } from '@shared/models';
+import { DeviceAppState } from '../../../../../shared/models';
 import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
+import { MatCardModule } from '@angular/material/card';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { ConnectionStatusComponent } from '../connection-status/connection-status.component';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-device-control',
   templateUrl: './device-control.component.html',
   styleUrls: ['./device-control.component.scss'],
   providers: [FormatDistancePipe],
-  imports: [ ]
+  imports: [
+    FormsModule,
+    MatCardModule,
+    AsyncPipe,
+    ConnectionStatusComponent,
+    MatSliderModule,
+    FormatDistancePipe,
+    CommonModule,
+    MatProgressSpinnerModule
+  ]
 })
 export class DeviceControlComponent implements OnInit, OnDestroy {
 

@@ -9,12 +9,25 @@ import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { ErrorService } from './core/services/error/error.service';
 import { NotificationService } from './core/services/notification/notification.service';
 import { RedirectService } from './core/services/redirect/redirect.service';
-import { Company, CompanyService } from './core/services/company/company.service';
+import { CommonModule } from '@angular/common';
+import { RouterModule, RouterOutlet } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  imports: [
+    CommonModule,        // This includes AsyncPipe, NgIf, etc.
+    RouterOutlet,        // For <router-outlet>
+    MatButtonModule,
+    RouterModule,
+    MatChipsModule,
+    MatIconModule
+  ],
 })
 export class AppComponent {
 
@@ -27,10 +40,10 @@ export class AppComponent {
     private authService: AuthService,
     private policyService: PolicyService,
     private authenticatorService: AuthenticatorService,
-    private companyService: CompanyService,
     private notificationService: NotificationService,
     private redirectService: RedirectService
   ) {
+
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);
 

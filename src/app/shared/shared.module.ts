@@ -21,27 +21,23 @@ import { MatSelectModule } from '@angular/material/select';
 import {MatCardModule} from '@angular/material/card';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatDialogModule} from '@angular/material/dialog'
-import { MatRadioModule } from '@angular/material/radio';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'
 import {MatExpansionModule} from '@angular/material/expansion';
-import {MatDividerModule} from '@angular/material/divider';
-import {MatListModule} from '@angular/material/list';
 import { DeviceStateComponent } from './components/device-state/device-state.component';
 import { ProvisioningComponent } from './components/provisioning/provisioning.component';
 import { DeviceControlComponent } from './components/device-control/device-control.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
-import { FormatDistancePipe } from './pipes/format-distance.pipe';
 import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
-import { CompanyFormComponent } from './components/company-form/company-form.component';
-import { RouterModule } from '@angular/router';
 
 
 
 @NgModule({
   declarations: [
-    WebviewDirective,
-    WiFiCredentialsComponent,
+
+  ],
+  imports: [
+        WiFiCredentialsComponent,
     DeviceComponent,
     WizardComponent,
     DeviceStateComponent,
@@ -49,17 +45,13 @@ import { RouterModule } from '@angular/router';
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
     ConnectionStatusComponent,
-    CompanyFormComponent,
     DialogComponent,
-    FormatDistancePipe
-  ],
-  imports: [
+    WebviewDirective,
     CommonModule,
     CoreModule,
     TranslateModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule,
     MatInputModule,
     MatFormFieldModule,
     MatStepperModule,
@@ -71,10 +63,8 @@ import { RouterModule } from '@angular/router';
     MatProgressSpinnerModule,
     MatSliderModule,
     MatDialogModule,
-    MatExpansionModule,
-    MatRadioModule,
-    MatDividerModule,
-    MatListModule   
+    MatExpansionModule
+    
   ],
   exports: [
     TranslateModule,
@@ -82,7 +72,6 @@ import { RouterModule } from '@angular/router';
     WebviewDirective,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule,
     MatInputModule,
     MatFormFieldModule,
     MatStepperModule,
@@ -95,19 +84,14 @@ import { RouterModule } from '@angular/router';
     MatProgressSpinnerModule,
     MatSliderModule,
     MatExpansionModule,
-    MatRadioModule,
-    MatDividerModule,
-    MatListModule,
     WebviewDirective,
     WiFiCredentialsComponent,
     DeviceComponent,
     ProvisioningComponent,
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
-    FormatDistancePipe,
     ConnectionStatusComponent,
-    DialogComponent,
-    CompanyFormComponent
+    DialogComponent
   ],
   providers: [DeviceService],
 })

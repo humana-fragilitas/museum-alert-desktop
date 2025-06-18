@@ -3,15 +3,26 @@ import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.c
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
-import { DeviceAppState, USBCommandType } from '@shared/models';
-import { MatStepper } from '@angular/material/stepper';
+import { DeviceAppState, USBCommandType } from '../../../../../shared/models';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { CommonModule } from '@angular/common';
+import { ProvisioningComponent } from '../provisioning/provisioning.component';
+import { DeviceControlComponent } from '../device-control/device-control.component';
+import { DeviceDiagnosticsComponent } from '../device-diagnostics/device-diagnostics.component';
 
 @Component({
   selector: 'app-wizard',
   templateUrl: './wizard.component.html',
   styleUrls: ['./wizard.component.scss'],
-  imports: [WiFiCredentialsComponent],
+  imports: [
+    WiFiCredentialsComponent,
+    CommonModule,
+    MatStepperModule,
+    ProvisioningComponent,
+    DeviceControlComponent,
+    DeviceDiagnosticsComponent
+  ],
   encapsulation: ViewEncapsulation.None
 })
 export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {

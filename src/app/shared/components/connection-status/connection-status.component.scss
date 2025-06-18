@@ -1,9 +1,10 @@
 @use '@angular/material' as mat;
 
+mat-chip {
+    pointer-events: none;
+    user-select: none; /* optional: prevents text selection */
+}
 
-// .device-specs tr td {
-//     border-bottom: 1px mat.get-color-from-palette(mat.$grey-palette, 200) solid;
-// }
 
 .device-status__indicator {
     display: inline-block;

@@ -1,7 +1,8 @@
 <mat-card *ngIf="deviceService.usbConnectionStatus$ | async">
   <mat-card-header class="device-status">
     <h4>Device found</h4>
-    <mat-chip [ngSwitch]="(deviceService.deviceAppStatus$ | async)" class="device-status-label" [disabled]="true">
+    <mat-chip [ngSwitch]="(deviceService.deviceAppStatus$ | async)"
+              class="device-status-label">
       <span>Status: </span>
       <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">ciphering initialization</span>
       <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">waiting for WiFi configuration</span>

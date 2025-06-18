@@ -1,9 +1,14 @@
 @if (authService.sessionData | async) {
 
     <nav class="auth-user-nav">
-        <p class="auth-user-email">
-            <a [routerLink]="['/profile']">{{ authenticatorService.user?.signInDetails?.loginId }}</a>
-        </p>
+        <button mat-stroked-button class="auth-user-email" [routerLink]="['/profile']">
+            <mat-icon matChipAvatar>account_circle_outline</mat-icon>
+            <span>{{ authenticatorService.user?.signInDetails?.loginId }}</span>
+        </button>
+        <!-- <mat-chip class="auth-user-email" appearance="filled">
+            <mat-icon matChipAvatar>account_circle_outline</mat-icon>
+            <span>{{ authenticatorService.user?.signInDetails?.loginId }}</span>
+        </mat-chip> -->
         <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
     </nav>
 
@@ -12,7 +17,6 @@
 <div class="container">
 
     <img src="/assets/images/museum_alert_logo.svg" class="logo">
-
     <router-outlet></router-outlet>
 
 </div>
