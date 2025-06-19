@@ -57,10 +57,14 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
     this.disabled = true;
 
+    // TO DO: remove statically assigned broadcastUrl
+    // after successful testing
     this.mqttService
         .sendCommand(
           MqttCommandType.SET_CONFIGURATION,
-          { distance }
+          { distance,
+            broadcastUrl: 'https://example.com'
+          }
         )
         .then((configuration) => {
           console.log('Configuration updated:', configuration); })
