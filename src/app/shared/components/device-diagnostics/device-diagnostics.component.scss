@@ -1,5 +1,11 @@
 :host {
     padding-bottom: 2px;
+        mat-card-content {
+        height: 100%;
+        display: flex !important;
+        //flex-direction: column-reverse;
+        flex-direction: column;
+    }
 }
 
 mat-card {
@@ -25,6 +31,12 @@ h3 {
     h4 {
         margin: 0;
     }
+
+    &--info {
+        font-size: 14px;
+        font-style: italic;
+        color: dimgrey;
+    }
 }
 
 .device-status-label {
@@ -43,6 +55,10 @@ h3 {
 
     font-family: 'Courier New', Courier, monospace;
     
+}
+
+.device-diagnostics-table {
+    margin-top: auto;
 }
 
 .device-diagnostics-table tr td {
