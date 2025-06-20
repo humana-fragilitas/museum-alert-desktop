@@ -1,6 +1,5 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MqttService } from '../../../core/services/mqtt/mqtt.service';
-import { distinctUntilChanged, map, Observable, Subscription } from 'rxjs';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
@@ -11,6 +10,8 @@ import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { beaconUrlValidator } from '../../validators/beacon-url.validator';
+import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
  
 @Component({
   selector: 'app-beacon-url-form',
@@ -30,9 +31,9 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
 
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
-  public isBusy = false;
+  public isBusy$ = this.deviceConfigurationService.isBusy$;
   public isEditable = false;
-  public isCompanyNameSet = true;
+  public isBeaconUrlSet = false;
   private subscription: Subscription = new Subscription();
 
   beaconUrlForm = new FormGroup({
@@ -47,25 +48,32 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private companyService: CompanyService,
-    private authService: AuthService
-  ) { }
+    private authService: AuthService,
+    private deviceConfigurationService: DeviceConfigurationService
+  ) {
+
+    setTimeout(() => { this.deviceConfigurationService.loadSettings().finally(); }, 2000);
+
+    this.deviceConfigurationService
+        .settings$
+        .pipe(takeUntilDestroyed())
+        .subscribe((configuration) => {
+      if (configuration) {
+        this.isBeaconUrlSet = !!configuration.beaconUrl;
+        this.beaconUrlForm.get('beaconUrl')?.setValue(configuration.beaconUrl || '');
+        if (this.isBeaconUrlSet) {
+          this.cancel();
+        } else {
+          this.edit();
+        }
+      }
+    });
+
+  }
 
   ngOnInit(): void {
 
     console.log('CompanyForm INIT');
-
-    this.subscription = this.companyService.company$.subscribe((company: any) => {
-
-      this.isCompanyNameSet = !!company?.companyName;
-      this.beaconUrlForm.get('beaconUrl')?.setValue(company?.beaconUrl || '');
-
-      if (this.isCompanyNameSet) {
-        this.cancel();
-      } else {
-        this.edit();
-      }
-
-    });
     
   }
 
@@ -77,25 +85,19 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
 
   async onSubmit() {
 
-    this.isBusy = true;
-    this.beaconUrlForm.get('companyName')?.disable();
+    this.beaconUrlForm.get('beaconUrl')?.disable();
 
-    console.log('Company form submitted:', this.beaconUrlForm.value);
-    this.companyService.setName(this.beaconUrlForm.value.beaconUrl || '')
-      .subscribe({
-        next: () => {
-          console.log('Data sxent successfully');
-        },
-        error: (error) => {
-          console.error('Error sending data:', error);
-        },
-        complete: () => {
-          this.isBusy = false;
-          this.isEditable = false;
-          this.companyService.get().subscribe();
+    console.log('Beacon url form submitted:', this.beaconUrlForm.value);
 
-        }
-      });
+    const beaconUrl = this.beaconUrlForm.value.beaconUrl || '';
+
+    this.deviceConfigurationService.saveSettings({
+      beaconUrl
+    }).then(() => {
+      console.log('Beacon url saved successfully');
+    }).catch(() => {
+      console.log('Error while saving beacon url');
+    });
 
   }
 
@@ -111,7 +113,11 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
   cancel() {
     this.isEditable = false;
     this.beaconUrlForm.get('beaconUrl')?.disable();
-    this.beaconUrlForm.get('beaconUrl')?.setValue(this.companyService.currentCompany?.companyName || '');
+    this.beaconUrlForm.get('beaconUrl')?.setValue(
+      this.deviceConfigurationService
+          .settings
+          ?.beaconUrl || ''
+    );
     setTimeout(() => {
       this.beaconUrlInput.nativeElement.blur();
     }, 0);

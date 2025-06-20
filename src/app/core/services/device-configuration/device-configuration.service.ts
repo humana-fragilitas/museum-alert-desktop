@@ -27,8 +27,10 @@ export class DeviceConfigurationService {
 
     return this.mqttService
       .sendCommand(MqttCommandType.GET_CONFIGURATION)
-      .then((configuration: DeviceConfiguration) => {
-        this._settings$.next(configuration);
+      // TO DO: wrap DeviceConfiguration in the mqtt base message
+      //.then((configuration: DeviceConfiguration) => {
+      .then((configuration: any) => {
+        this._settings$.next(configuration.data);
         console.log('Received device configuration:', configuration);
       })
       .catch((error) => {  
@@ -49,6 +51,7 @@ export class DeviceConfigurationService {
           ...configuration
         })
       .then((configuration) => {
+        this._settings$.next(configuration.data);
         console.log('Configuration updated:', configuration);
       })
       .catch(() => {
@@ -56,6 +59,10 @@ export class DeviceConfigurationService {
       })
       .finally(() => this._isBusy$.next(false));
 
+  }
+
+  get settings(): DeviceConfiguration | null {
+    return this._settings$.value;
   }
 
 }
