@@ -259,7 +259,7 @@ export class MqttService {
       
       const company = this.authService.sessionData.getValue()?.tokens?.idToken?.payload['custom:Company'];
       const deviceSN = this.deviceService.serialNumber$.getValue();
-      const topic = `companies/${company}/devices/MAS-EC357A188534/commands`;
+      const topic = `companies/${company}/devices/${deviceSN}/commands`;
       const cid = this.deviceService.generateCid();
 
       console.log('Sending command via MQTT:', type, payload, topic);
