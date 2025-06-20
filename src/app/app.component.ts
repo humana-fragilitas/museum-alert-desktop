@@ -15,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
+import { BeaconUrlFormComponent } from './shared/components/beacon-url-form/beacon-url-form.component';
 
 @Component({
   selector: 'app-root',
@@ -26,7 +27,8 @@ import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
     MatButtonModule,
     RouterModule,
     MatChipsModule,
-    MatIconModule
+    MatIconModule,
+    BeaconUrlFormComponent
   ],
 })
 export class AppComponent {

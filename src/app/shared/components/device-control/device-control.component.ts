@@ -10,6 +10,8 @@ import { ConnectionStatusComponent } from '../connection-status/connection-statu
 import { MatSliderModule } from '@angular/material/slider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
+import { CompanyFormComponent } from '../company-form/company-form.component';
+import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 
 @Component({
   selector: 'app-device-control',
@@ -21,6 +23,7 @@ import { FormsModule } from '@angular/forms';
     MatCardModule,
     AsyncPipe,
     ConnectionStatusComponent,
+    CompanyFormComponent,
     MatSliderModule,
     FormatDistancePipe,
     CommonModule,
@@ -30,6 +33,7 @@ import { FormsModule } from '@angular/forms';
 export class DeviceControlComponent implements OnInit, OnDestroy {
 
   public readonly deviceAppState = DeviceAppState;
+  public readonly isBusy$ = this.deviceConfigurationService.isBusy$;
   public readonly minValue = 5;
   public readonly maxValue = 500;
   public disabled = true;
@@ -38,7 +42,8 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
   constructor(
     public readonly deviceService: DeviceService,
     public readonly mqttService: MqttService,
-    private formatDistancePipe: FormatDistancePipe
+    private formatDistancePipe: FormatDistancePipe,
+    private deviceConfigurationService: DeviceConfigurationService
   ) {};
 
   toReadableDistance(value: number): string {
@@ -49,7 +54,7 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
   onSliderChange(event: Event) {
 
-    const distance = (event.target as HTMLInputElement).value;
+    const distance = Number((event.target as HTMLInputElement).value);
 
     this.sliderValue = Number(distance);
 
@@ -59,20 +64,27 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
     // TO DO: remove statically assigned broadcastUrl
     // after successful testing
-    this.mqttService
-        .sendCommand(
-          MqttCommandType.SET_CONFIGURATION,
-          { distance,
-            broadcastUrl: 'https://example.com'
-          }
-        )
-        .then((configuration) => {
-          console.log('Configuration updated:', configuration); })
-        .catch(() => {
-          console.error('Error updating configuration'); })
-        .finally(() => {
-          this.disabled = false;
-        });
+    this.deviceConfigurationService.saveSettings(
+      {
+        distance,
+        beaconUrl: 'https://google.com'
+      }
+    ).finally();
+
+    // this.mqttService
+    //     .sendCommand(
+    //       MqttCommandType.SET_CONFIGURATION,
+    //       { distance,
+    //         beaconUrl: 'https://google.com'
+    //       }
+    //     )
+    //     .then((configuration) => {
+    //       console.log('Configuration updated:', configuration); })
+    //     .catch(() => {
+    //       console.error('Error updating configuration'); })
+    //     .finally(() => {
+    //       this.disabled = false;
+    //     });
 
   }
 
@@ -80,26 +92,17 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
     console.log('DeviceControlComponent INIT');
 
-    this.disabled = true;
+    // this.disabled = true;
 
-    this.mqttService
-        .sendCommand(MqttCommandType.GET_CONFIGURATION)
-        .then((configuration) => {
-          console.log('Configuration:', configuration);
-        })
-        .catch((error) => {  
-          console.error('Error getting configuration:', error);
-        })
-        .finally(() => {
-          this.disabled = false;
-        });
+    this.deviceConfigurationService
+        .loadSettings()
+        .finally();
 
-    this.deviceService.configuration$
-        .subscribe((configuration) => {
-          if (configuration) {
-           this.sliderValue = Number(configuration.distance);
-          }
-        });
+    this.deviceConfigurationService.settings$.subscribe((configuration) => {
+      if (configuration) {
+        this.sliderValue = Number(configuration.distance);
+      }
+    });
 
   }
 
