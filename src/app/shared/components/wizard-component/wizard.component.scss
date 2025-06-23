@@ -68,11 +68,3 @@ app-device-control, app-device-diagnostics {
     }
 }
 
-app-device-diagnostics {
-    mat-card-content {
-        height: 100%;
-        display: flex !important;
-        flex-direction: column-reverse;
-    }
-}
-

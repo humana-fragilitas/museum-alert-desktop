@@ -1,15 +1,18 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DeviceService } from '../../../core/services/device/device.service';
+import { Component, OnInit } from '@angular/core';
 import { DeviceAppState } from '../../../../../shared/models';
-import { MqttCommandType, MqttService } from '../../../core/services/mqtt/mqtt.service';
+import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
-import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
 import { MatCardModule } from '@angular/material/card';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { ConnectionStatusComponent } from '../connection-status/connection-status.component';
 import { MatSliderModule } from '@angular/material/slider';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormsModule } from '@angular/forms';
+import { CompanyFormComponent } from '../company-form/company-form.component';
+import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
+import { BeaconUrlFormComponent } from '../beacon-url-form/beacon-url-form.component';
+import { DeviceService } from '../../../core/services/device/device.service';
 
 @Component({
   selector: 'app-device-control',
@@ -21,25 +24,46 @@ import { FormsModule } from '@angular/forms';
     MatCardModule,
     AsyncPipe,
     ConnectionStatusComponent,
+    BeaconUrlFormComponent,
     MatSliderModule,
     FormatDistancePipe,
     CommonModule,
     MatProgressSpinnerModule
   ]
 })
-export class DeviceControlComponent implements OnInit, OnDestroy {
+export class DeviceControlComponent implements OnInit {
 
   public readonly deviceAppState = DeviceAppState;
+  public readonly isBusy$ = this.deviceConfigurationService.isBusy$;
+  public readonly settings$ = this.deviceConfigurationService.settings$;
+  public readonly serialNumber$ = this.deviceService.serialNumber$;
   public readonly minValue = 5;
   public readonly maxValue = 500;
   public disabled = true;
   public sliderValue = this.minValue
 
   constructor(
-    public readonly deviceService: DeviceService,
     public readonly mqttService: MqttService,
-    private formatDistancePipe: FormatDistancePipe
-  ) {};
+    private formatDistancePipe: FormatDistancePipe,
+    private deviceService: DeviceService,
+    private deviceConfigurationService: DeviceConfigurationService
+  ) {
+
+        this.deviceConfigurationService
+        .loadSettings()
+        .finally();
+
+    this.deviceConfigurationService
+        .settings$
+        .pipe(takeUntilDestroyed())
+        .subscribe((configuration) => {
+      if (configuration) {
+        this.sliderValue = Number(configuration.distance);
+      }
+    });
+
+
+  };
 
   toReadableDistance(value: number): string {
 
@@ -49,7 +73,7 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
   onSliderChange(event: Event) {
 
-    const distance = (event.target as HTMLInputElement).value;
+    const distance = Number((event.target as HTMLInputElement).value);
 
     this.sliderValue = Number(distance);
 
@@ -57,53 +81,17 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
 
     this.disabled = true;
 
-    // TO DO: remove statically assigned broadcastUrl
-    // after successful testing
-    this.mqttService
-        .sendCommand(
-          MqttCommandType.SET_CONFIGURATION,
-          { distance,
-            broadcastUrl: 'https://example.com'
-          }
-        )
-        .then((configuration) => {
-          console.log('Configuration updated:', configuration); })
-        .catch(() => {
-          console.error('Error updating configuration'); })
-        .finally(() => {
-          this.disabled = false;
-        });
+    this.deviceConfigurationService.saveSettings(
+      {
+        distance
+      }
+    ).finally();
 
   }
 
   ngOnInit(): void {
 
     console.log('DeviceControlComponent INIT');
-
-    this.disabled = true;
-
-    this.mqttService
-        .sendCommand(MqttCommandType.GET_CONFIGURATION)
-        .then((configuration) => {
-          console.log('Configuration:', configuration);
-        })
-        .catch((error) => {  
-          console.error('Error getting configuration:', error);
-        })
-        .finally(() => {
-          this.disabled = false;
-        });
-
-    this.deviceService.configuration$
-        .subscribe((configuration) => {
-          if (configuration) {
-           this.sliderValue = Number(configuration.distance);
-          }
-        });
-
-  }
-
-  ngOnDestroy(): void {
 
   }
 

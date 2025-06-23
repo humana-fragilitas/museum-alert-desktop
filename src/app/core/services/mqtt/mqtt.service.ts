@@ -38,10 +38,17 @@ export interface ConnectionStatus {
   connected: boolean;
 }
 
-export interface DeviceConfiguration {
-  distance: number,
-  firmware: string
+export interface BaseDeviceConfiguration {
+  distance?: number;
+  beaconUrl?: string;
+  firmware?: string;
 }
+
+export type DeviceConfiguration = BaseDeviceConfiguration & (
+  | { distance: number }
+  | { beaconUrl: string }
+  | { firmware: string }
+);
 
 // Base message interface with common properties
 export interface BaseMqttMessage<T> {

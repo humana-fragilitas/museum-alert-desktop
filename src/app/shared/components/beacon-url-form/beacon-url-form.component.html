@@ -1,0 +1,44 @@
+<form [formGroup]="beaconUrlForm" (ngSubmit)="onSubmit()">
+
+  <mat-form-field appearance="fill">
+    <mat-label>Broadcasted beacon URL</mat-label>
+    <input matInput type="text" formControlName="beaconUrl" #beaconUrl>
+    @if (getErrorMessage() && beaconUrlForm.get('beaconUrl')?.touched) {
+      <mat-error><strong>{{getErrorMessage()}}</strong></mat-error>
+    }
+  </mat-form-field>
+
+    <div class="button-cta">
+
+      <button *ngIf="!isBeaconUrlSet || isEditable"
+              mat-raised-button color="primary"
+              type="submit"
+              [disabled]="beaconUrlForm.invalid || (isBusy$ | async)">
+        <span class="button-content">
+          Submit
+          <mat-progress-spinner *ngIf="isBusy$ | async" mode="indeterminate" diameter="16"></mat-progress-spinner>
+        </span>
+      </button>
+
+      <button *ngIf="isEditable"
+        mat-raised-button color="secondary"
+        [disabled]="isBusy$ | async"
+        (click)="cancel()">
+        <span class="button-content">
+          Cancel
+        </span>
+      </button>
+
+
+  </div>
+
+  <button *ngIf="isBeaconUrlSet && !isEditable"
+          mat-raised-button color="primary"
+          [disabled]="isBusy$ | async"
+          (click)="edit()">
+    <span class="button-content">
+      Edit
+    </span>
+  </button>
+
+</form>

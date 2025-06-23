@@ -1,9 +1,9 @@
 <mat-card>
   <mat-card-header class="device-status">
     <h4>Device control
-      <mat-spinner diameter="20" *ngIf="!(deviceService.configuration$ | async) || disabled"></mat-spinner>
+      <mat-spinner diameter="20" *ngIf="!(settings$ | async) || (isBusy$ | async)"></mat-spinner>
     </h4>
-    <app-connection-status [deviceSN]="deviceService.serialNumber$ | async"></app-connection-status>
+    <app-connection-status [deviceSN]="serialNumber$ | async"></app-connection-status>
   </mat-card-header>
   <mat-card-content>
 
@@ -16,21 +16,25 @@
         showTickMarks 
         discrete 
         [displayWith]="toReadableDistance.bind(this)" 
-        [disabled]="disabled"
+        [disabled]="isBusy$ | async"
         (change)="onSliderChange($event)">
         <input matSliderThumb [(ngModel)]="sliderValue">
       </mat-slider>
       <span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>
     </div>
-      <table [style.visibility]="(deviceService.configuration$ | async) ? 'visible' : 'hidden'" class="device-specs">
-        <tr>
-          <td class="device-spec-label">Firmware</td>
-          <td class="device-spec-value">{{ (deviceService.configuration$ | async)?.firmware }}</td>
-        </tr>
-        <tr>
-          <td class="device-spec-label">Minimum alarm distance</td>
-          <td class="device-spec-value">{{ ((deviceService.configuration$ | async)?.distance) | formatDistance }}</td>
-        </tr>
-      </table>
+
+    <app-beacon-url-form></app-beacon-url-form>
+
+    <table [style.visibility]="(settings$ | async) ? 'visible' : 'hidden'" class="device-specs">
+      <tr>
+        <td class="device-spec-label">Firmware</td>
+        <td class="device-spec-value">{{ (settings$ | async)?.firmware }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">Minimum alarm distance</td>
+        <td class="device-spec-value">{{ ((settings$ | async)?.distance) | formatDistance }}</td>
+      </tr>
+    </table>
+
   </mat-card-content>
 </mat-card>
