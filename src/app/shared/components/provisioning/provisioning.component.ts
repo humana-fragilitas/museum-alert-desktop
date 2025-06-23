@@ -94,8 +94,8 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
     
     this.provisioningService.createClaim().subscribe((claim: any) => {
       const testBluetoothPayload = {
-        tempCertPem: claim.certificatePem,
-        tempPrivateKey: claim.keyPair.PrivateKey
+        tempCertPem: claim.data.certificatePem,
+        tempPrivateKey: claim.data.keyPair.PrivateKey
       };
 
       console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
