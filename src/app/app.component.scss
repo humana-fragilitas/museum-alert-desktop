@@ -29,6 +29,16 @@ button {
     margin: 0 auto 25px auto;
 }
 
+.auth-user-email.active-profile-button {
+    background-color: var(--mat-sys-primary) !important;
+    color: var(--mat-sys-on-primary) !important;
+    border: none !important;
+    
+    .mat-icon {
+        color: var(--mat-sys-on-primary) !important;
+    }
+    pointer-events: none;
+}
 
 
 

@@ -7,8 +7,14 @@ import { DeviceService } from '../core/services/device/device.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import {MatListModule} from '@angular/material/list';
+import {MatTableModule} from '@angular/material/table'
 import { CompanyFormComponent } from '../shared/components/company-form/company-form.component';
 import { MatButtonModule } from '@angular/material/button';
+import { CompanyService } from '../core/services/company/company.service';
+import { map } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../core/services/auth/auth.service';
+import { MatChip, MatChipsModule } from '@angular/material/chips';
 
 /**
  * humana.fragilitas@gmail.com
@@ -23,12 +29,20 @@ import { MatButtonModule } from '@angular/material/button';
              MatIconModule,
              MatCardModule,
              MatListModule,
+             MatChipsModule,
              MatButtonModule,
+             MatTableModule,
+             CommonModule,
              CompanyFormComponent]
 })
 export class ProfileComponent implements OnInit {
 
+  public readonly displayedColumns: string[] = ['username', 'role', 'joined'];
+  public readonly company$ = this.companyService.company$;
+
   constructor(
+    private companyService: CompanyService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {

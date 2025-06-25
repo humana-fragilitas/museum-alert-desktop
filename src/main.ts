@@ -15,6 +15,7 @@ import { HomeComponent } from './app/home/home.component';
 import { DeviceComponent } from './app/device/device.component';
 import { ProfileComponent } from './app/profile/profile.component';
 import { authTokenInterceptor } from './app/core/interceptors/auth-token.interceptor';
+import { CompanyResolver } from './app/core/resolvers/company.resolver';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => 
@@ -43,7 +44,8 @@ bootstrapApplication(AppComponent, {
       },
       {
         path: 'profile',
-        component: ProfileComponent
+        component: ProfileComponent,
+        resolve: [CompanyResolver]
       }
       // Uncomment when you have PageNotFoundComponent
       // {

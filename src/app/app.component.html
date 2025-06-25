@@ -1,7 +1,12 @@
 @if (authService.sessionData | async) {
 
     <nav class="auth-user-nav">
-        <button mat-stroked-button class="auth-user-email" [routerLink]="['/profile']">
+        <button
+            mat-stroked-button
+            class="auth-user-email" 
+            [routerLink]="['/profile']"
+            routerLinkActive="active-profile-button"
+            [routerLinkActiveOptions]="{exact: true}">
             <mat-icon matChipAvatar>account_circle_outline</mat-icon>
             <span>{{ authenticatorService.user?.signInDetails?.loginId }}</span>
         </button>

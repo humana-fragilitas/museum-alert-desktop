@@ -4,8 +4,13 @@
 :host {
     display: flex;
     flex-direction: column;
-    max-width: 500px;
+    max-width: 800px;
     margin: 20px auto 0 auto;
+}
+
+app-company-form {
+    display: block;
+    margin-top: 20px;
 }
 
 .back-button {
@@ -17,19 +22,46 @@ mat-card {
 }
 
 mat-list-item {
+
+    padding: 0 0 10px 0;
     height: auto !important;
-    padding: 20px 0;
+    overflow: visible;
+
 }
 
 .warning-card {
 
-    background-color: red;
-    color: white;
-    margin: 0 0 20px 0;
+    border: 1px solid var(--mat-sys-on-error-container);
+    background-color: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+    margin: 20px 0;
     text-wrap: wrap;
 
     mat-icon {
         vertical-align: bottom;
         margin-right: 10px;
     }
+}
+
+table {
+
+    margin-top: 20px;
+
+}
+
+.mat-column-username {
+    white-space: nowrap;
+}
+
+.same-user-indicator {
+
+    display: inline-block;
+    border-radius: 10px;
+    line-height: 20px;
+    padding: 0 8px;
+    font-size: 12px;
+    background-color: var(--mat-sys-primary) !important;
+    color: var(--mat-sys-on-primary) !important;
+    pointer-events: none;
+
 }
