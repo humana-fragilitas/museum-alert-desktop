@@ -1,3 +1,7 @@
+body .mdc-text-field--filled.mdc-text-field--disabled {
+    background-color: white !important;
+}
+
 
 form {
     display: flex;
@@ -24,3 +28,12 @@ button {
     gap: 10px;
 }
 
+.company-name {
+
+    .mat-mdc-text-field-wrapper.mdc-text-field.mdc-text-field--filled.mdc-text-field--disabled {
+         background-color: transparent !important;
+         color: var(--mdc-filled-text-field-input-text-color, var(--mat-sys-on-surface)) !important;
+
+    }
+   
+}

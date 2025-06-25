@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { distinctUntilChanged, map, Observable, Subscription } from 'rxjs';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,14 +16,15 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './company-form.component.html',
   styleUrls: ['./company-form.component.scss'],
   imports: [
-             MatButtonModule,
-             CommonModule,
-             MatFormFieldModule,
-             MatInputModule,
-             MatIconModule,
-             ReactiveFormsModule,
-             MatProgressSpinnerModule
-           ]
+    MatButtonModule,
+    CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    ReactiveFormsModule,
+    MatProgressSpinnerModule
+  ],
+  encapsulation: ViewEncapsulation.None,
 })
 export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
 

@@ -1,6 +1,6 @@
 <form [formGroup]="companyNameForm" (ngSubmit)="onSubmit()">
 
-  <mat-form-field appearance="fill">
+  <mat-form-field appearance="fill" class="company-name">
     <mat-label>Company name</mat-label>
     <input matInput id="company-name" type="text" formControlName="companyName" #companyName>
     @if (companyNameForm.get('companyName')?.hasError('required') && companyNameForm.get('companyName')?.touched) {
