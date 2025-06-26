@@ -48,6 +48,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   constructor(private deviceService: DeviceService) {}
 
   ngOnInit(): void {
+
     console.log('WiFiCredentials INIT');
 
     this.wiFiNetworksSubscription = this.deviceService.wiFiNetworks$.subscribe((networks) => {
@@ -96,5 +97,22 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
       });
 
   }
+
+  refreshWiFiNetworks() {
+
+    this.isBusy = true;
+    this.credentialsForm.reset();
+    console.log('Sending empty payload to refresh WiFi networks...');
+    this.deviceService.asyncSendData(this.credentialsForm.value)
+      .then(() => {
+        console.log('WiFi networks request sent successfully');
+      })
+      .catch((error) => {
+        this.isBusy = false;
+      });
+
+
+  }
+  
 
 }
