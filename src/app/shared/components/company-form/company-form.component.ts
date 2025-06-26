@@ -110,8 +110,6 @@ export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
         complete: () => {
           this.isBusy = false;
           this.isEditable = false;
-          this.companyService.get().subscribe();
-
         }
       });
 

@@ -139,20 +139,10 @@ export class CompanyService {
 
      return this.httpClient.put(apiUrl, { companyName }).pipe(
       tap((response: any) => {
-        // Update the stored company data with new information
-        const currentCompany = this.currentCompany;
-        if (currentCompany) {
-          const updatedCompany: CompanyWithUserContext = {
-            ...currentCompany,
-            ...response.data,
-            userRole: currentCompany.userRole, // Preserve user context
-            userJoinedAt: currentCompany.userJoinedAt
-          };
-
-          console.log('Company updated:', updatedCompany);
-          this.companySubject.next(updatedCompany);
+          console.log('Company updated:', response.data.company);
+          this.companySubject.next(response.data.company);
         }
-      }),
+      ),
       catchError((error) => {
         console.error('Error updating company name:', error);
         throw error; // Re-throw for component handling
