@@ -29,11 +29,23 @@ button {
 }
 
 .company-name {
-
-    .mat-mdc-text-field-wrapper.mdc-text-field.mdc-text-field--filled.mdc-text-field--disabled {
-         background-color: transparent !important;
-         color: var(--mdc-filled-text-field-input-text-color, var(--mat-sys-on-surface)) !important;
-
+  margin-bottom: 6px;
+  
+  .mat-mdc-text-field-wrapper {
+    &.mdc-text-field {
+      &.mdc-text-field--filled {
+        &.mdc-text-field--disabled {
+          background-color: transparent !important;
+          
+          mat-label {
+            color: var(--mat-sys-on-surface) !important;
+          }
+          
+          input {
+            color: var(--mat-sys-on-surface) !important;
+          }
+        }
+      }
     }
-   
+  }
 }

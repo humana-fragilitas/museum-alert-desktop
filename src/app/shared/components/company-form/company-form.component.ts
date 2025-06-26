@@ -1,9 +1,20 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { MqttService } from '../../../core/services/mqtt/mqtt.service';
-import { distinctUntilChanged, map, Observable, Subscription } from 'rxjs';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { 
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
+import { Subscription } from 'rxjs';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { AuthService } from '../../../core/services/auth/auth.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,13 +49,17 @@ export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
   companyNameForm = new FormGroup({
     companyName: new FormControl(
       { value: '', disabled: false },
-      [Validators.required]
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern(/^[a-zA-Z0-9\s\-\u00C0-\u017F\u0100-\u024F'&.,()]+$/)
+      ]
     )
   });
 
   constructor(
-    private companyService: CompanyService,
-    private authService: AuthService
+    private companyService: CompanyService
   ) { }
 
   ngOnInit(): void {
