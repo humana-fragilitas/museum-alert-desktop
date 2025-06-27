@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceErrorType, WiFiNetwork } from '../../../../../shared/models';
+import { DeviceErrorType, USBCommandType, WiFiNetwork } from '../../../../../shared/models';
 import { Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -88,7 +88,10 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
     this.isBusy = true;
     console.log('Form submitted:', this.credentialsForm.value);
-    this.deviceService.asyncSendData(this.credentialsForm.value)
+    this.deviceService.asyncSendData(
+      USBCommandType.SET_WIFI_CREDENTIALS,
+      this.credentialsForm.value
+    )
       .then(() => {
         console.log('Data sent successfully');
       })
@@ -103,14 +106,16 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
     this.isBusy = true;
     this.credentialsForm.reset();
     console.log('Sending empty payload to refresh WiFi networks...');
-    this.deviceService.asyncSendData(this.credentialsForm.value)
-      .then(() => {
+    this.deviceService.asyncSendData(
+      USBCommandType.REFRESH_WIFI_CREDENTIALS,
+      this.credentialsForm.value
+    ).then(() => {
         console.log('WiFi networks request sent successfully');
+        this.isBusy = false;
       })
       .catch((error) => {
         this.isBusy = false;
       });
-
 
   }
   

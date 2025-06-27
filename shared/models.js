@@ -37,11 +37,20 @@ var DeviceErrorType;
     DeviceErrorType[DeviceErrorType["FAILED_SENSOR_DETECTION_REPORT"] = 10] = "FAILED_SENSOR_DETECTION_REPORT";
 })(DeviceErrorType || (exports.DeviceErrorType = DeviceErrorType = {}));
 ;
+// export enum USBCommandType {
+//     HARD_RESET,
+//     // Add more commands here
+//     USB_COMMAND_TYPE_COUNT,
+//     USB_COMMAND_INVALID = -1
+// };
 var USBCommandType;
 (function (USBCommandType) {
-    USBCommandType[USBCommandType["HARD_RESET"] = 0] = "HARD_RESET";
+    USBCommandType[USBCommandType["SET_PROVISIONING_CERTIFICATES"] = 0] = "SET_PROVISIONING_CERTIFICATES";
+    USBCommandType[USBCommandType["REFRESH_WIFI_CREDENTIALS"] = 1] = "REFRESH_WIFI_CREDENTIALS";
+    USBCommandType[USBCommandType["SET_WIFI_CREDENTIALS"] = 2] = "SET_WIFI_CREDENTIALS";
+    USBCommandType[USBCommandType["HARD_RESET"] = 3] = "HARD_RESET";
     // Add more commands here
-    USBCommandType[USBCommandType["USB_COMMAND_TYPE_COUNT"] = 1] = "USB_COMMAND_TYPE_COUNT";
+    USBCommandType[USBCommandType["USB_COMMAND_TYPE_COUNT"] = 4] = "USB_COMMAND_TYPE_COUNT";
     USBCommandType[USBCommandType["USB_COMMAND_INVALID"] = -1] = "USB_COMMAND_INVALID";
 })(USBCommandType || (exports.USBCommandType = USBCommandType = {}));
 ;

@@ -11,6 +11,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { CompanyService } from '../../../core/services/company/company.service';
+import { USBCommandType } from '../../../../../shared/models';
 
 @Component({
   selector: 'app-provisioning',
@@ -103,7 +104,7 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
       const idToken = this.authService.sessionData.value?.tokens?.idToken?.toString();
 
-      this.deviceService.asyncSendData({ ...testBluetoothPayload, idToken }).finally(() => {
+      this.deviceService.asyncSendData(USBCommandType.SET_PROVISIONING_CERTIFICATES, { ...testBluetoothPayload, idToken }).finally(() => {
         this.isBusy = false; // TO DO: check if this is the right place to set isBusy to false
       });
 

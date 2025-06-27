@@ -12,6 +12,7 @@ import { DeviceIncomingData,
 import { AlarmPayload } from '../mqtt/mqtt.service';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
+import { USBCommandType } from '../../../../../shared/models';
 
 @Injectable({
   providedIn: 'root'
@@ -137,7 +138,7 @@ export class DeviceService {
 
   }
 
-  public async asyncSendData(payload: any): Promise<any> {
+  public async asyncSendData(type: USBCommandType, payload: any): Promise<any> {
 
     return new Promise<any>((resolve, reject) => {
 
@@ -155,7 +156,8 @@ export class DeviceService {
 
       this.sendData({
         cid,
-        ...payload
+        commandType: type,
+        payload
       });
 
       console.log(this.pendingRequests);

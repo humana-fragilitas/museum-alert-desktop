@@ -39,11 +39,21 @@ export enum DeviceErrorType {
     FAILED_SENSOR_DETECTION_REPORT
 };
 
+// export enum USBCommandType {
+//     HARD_RESET,
+//     // Add more commands here
+//     USB_COMMAND_TYPE_COUNT,
+//     USB_COMMAND_INVALID = -1
+// };
+
 export enum USBCommandType {
-    HARD_RESET,
-    // Add more commands here
-    USB_COMMAND_TYPE_COUNT,
-    USB_COMMAND_INVALID = -1
+  SET_PROVISIONING_CERTIFICATES,
+  REFRESH_WIFI_CREDENTIALS,
+  SET_WIFI_CREDENTIALS,
+  HARD_RESET,
+  // Add more commands here
+  USB_COMMAND_TYPE_COUNT,
+  USB_COMMAND_INVALID = -1
 };
 
 export enum AppErrorType {
