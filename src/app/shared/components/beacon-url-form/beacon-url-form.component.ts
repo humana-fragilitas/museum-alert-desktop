@@ -32,6 +32,7 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
   public isBusy$ = this.deviceConfigurationService.isBusy$;
+  public isSubmitting = false;
   public isEditable = false;
   public isBeaconUrlSet = false;
   private subscription: Subscription = new Subscription();
@@ -51,8 +52,6 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private deviceConfigurationService: DeviceConfigurationService
   ) {
-
-    setTimeout(() => { this.deviceConfigurationService.loadSettings().finally(); }, 2000);
 
     this.deviceConfigurationService
         .settings$
@@ -85,6 +84,8 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
 
   async onSubmit() {
 
+    this.isSubmitting = true;
+
     this.beaconUrlForm.get('beaconUrl')?.disable();
 
     console.log('Beacon url form submitted:', this.beaconUrlForm.value);
@@ -97,6 +98,8 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
       console.log('Beacon url saved successfully');
     }).catch(() => {
       console.log('Error while saving beacon url');
+    }).finally(() => {
+      this.isSubmitting = false;
     });
 
   }

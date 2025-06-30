@@ -49,10 +49,6 @@ export class DeviceControlComponent implements OnInit {
     private deviceConfigurationService: DeviceConfigurationService
   ) {
 
-        this.deviceConfigurationService
-        .loadSettings()
-        .finally();
-
     this.deviceConfigurationService
         .settings$
         .pipe(takeUntilDestroyed())
@@ -90,6 +86,10 @@ export class DeviceControlComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
+  this.deviceConfigurationService
+      .loadSettings()
+      .finally();
 
     console.log('DeviceControlComponent INIT');
 

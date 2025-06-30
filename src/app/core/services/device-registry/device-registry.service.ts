@@ -45,11 +45,11 @@ export class DeviceRegistryService {
     return this.httpClient.get<Sensor>(apiUrl, {
       observe: 'response'
     }).pipe(
-      map((response: HttpResponse<Sensor>) => {
+      map((response: any) => {
         if (response.status === 200) {
-          console.log(`[DeviceRegistryService]: found device with name ${response.body?.thingName}: ${JSON.stringify(response.body)}`);
+          console.log(`[DeviceRegistryService]: found device with name ${response.body.data?.thingName}: ${JSON.stringify(response.body)}`);
           console.log(`[DeviceRegistryService]: device associated company ` +
-                      `${ company === response.body?.company ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
+                      `${ (company === response.body.data?.company) ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
           return response.body;
         }
         return null;

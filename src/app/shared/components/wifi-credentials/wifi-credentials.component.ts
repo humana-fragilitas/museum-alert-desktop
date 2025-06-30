@@ -34,7 +34,8 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   
-  public isBusy = false;
+  public isSendingCredentials = false;
+  public isRefreshingWiFiNetworks = false;
   public wiFiNetworks: WiFiNetwork[] = [];
 
   credentialsForm = new FormGroup({
@@ -72,7 +73,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
     this.errorSubscription = this.deviceService.error$.subscribe(
       (error: Nullable<DeviceErrorType>) => {
         if (error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
-          this.isBusy = false;
+          this.isSendingCredentials = false;
         }
       }
     );
@@ -86,7 +87,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
   async onSubmit() {
 
-    this.isBusy = true;
+    this.isSendingCredentials = true;
 
     console.log('Form submitted:', this.credentialsForm.value);
 
@@ -99,7 +100,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
     })
     .catch((error) => {
 
-      this.isBusy = false;
+      this.isSendingCredentials = false;
 
       
 
@@ -109,7 +110,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
   refreshWiFiNetworks() {
 
-    this.isBusy = true;
+    this.isRefreshingWiFiNetworks = true;
     this.credentialsForm.reset();
     console.log('Sending empty payload to refresh WiFi networks...');
     this.deviceService.asyncSendData(
@@ -117,12 +118,16 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
       this.credentialsForm.value
     ).then(() => {
         console.log('WiFi networks request sent successfully');
-        this.isBusy = false;
+        this.isRefreshingWiFiNetworks = false;
       })
       .catch((error) => {
-        this.isBusy = false;
+        this.isRefreshingWiFiNetworks = false;
       });
 
+  }
+
+  get isBusy(): boolean {
+    return this.isSendingCredentials || this.isRefreshingWiFiNetworks;    
   }
   
 

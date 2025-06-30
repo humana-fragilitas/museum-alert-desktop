@@ -16,7 +16,7 @@
               [disabled]="beaconUrlForm.invalid || (isBusy$ | async)">
         <span class="button-content">
           Submit
-          <mat-progress-spinner *ngIf="isBusy$ | async" mode="indeterminate" diameter="16"></mat-progress-spinner>
+          <mat-progress-spinner *ngIf="(isBusy$ | async) && isSubmitting" mode="indeterminate" diameter="16"></mat-progress-spinner>
         </span>
       </button>
 
