@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceErrorType, USBCommandType, WiFiNetwork } from '../../../../../shared/models';
+import { DeviceAppState, DeviceErrorType, USBCommandType, WiFiNetwork } from '../../../../../shared/models';
 import { Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -127,7 +127,9 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   }
 
   get isBusy(): boolean {
-    return this.isSendingCredentials || this.isRefreshingWiFiNetworks;    
+    return this.isSendingCredentials ||
+           this.isRefreshingWiFiNetworks ||
+           this.deviceService.deviceAppStatus$.getValue() !== DeviceAppState.CONFIGURE_WIFI;
   }
   
 

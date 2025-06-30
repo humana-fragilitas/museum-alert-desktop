@@ -21,23 +21,42 @@ export class DeviceConfigurationService {
 
   }
 
-  async loadSettings(): Promise<DeviceConfiguration | void> {
-    
+  async loadSettings(maxRetries: number = 3, baseDelay: number = 1000): Promise<DeviceConfiguration | void> {
     this._isBusy$.next(true);
-
-    return this.mqttService
-      .sendCommand(MqttCommandType.GET_CONFIGURATION)
-      // TO DO: wrap DeviceConfiguration in the mqtt base message
-      //.then((configuration: DeviceConfiguration) => {
-      .then((configuration: any) => {
+    
+    let attempt = 0;
+    
+    const attemptLoad = async (): Promise<DeviceConfiguration | void> => {
+      try {
+        const configuration: any = await this.mqttService.sendCommand(MqttCommandType.GET_CONFIGURATION);
         this._settings$.next(configuration.data);
         console.log('Received device configuration:', configuration);
-      })
-      .catch((error) => {  
-        console.error('Error getting device configuration:', error);
-      })
-      .finally(() => this._isBusy$.next(false) );
-
+        return configuration.data;
+      } catch (error) {
+        attempt++;
+        console.error(`Error getting device configuration (attempt ${attempt}/${maxRetries}):`, error);
+        
+        if (attempt >= maxRetries) {
+          throw error; // Re-throw after max retries
+        }
+        
+        // Exponential backoff: wait longer between each retry
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`Retrying in ${delay}ms...`);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return attemptLoad(); // Recursive retry
+      }
+    };
+    
+    try {
+      return await attemptLoad();
+    } catch (error) {
+      console.error('Failed to load settings after all retries:', error);
+      throw error;
+    } finally {
+      this._isBusy$.next(false);
+    }
   }
 
   async saveSettings(configuration: DeviceConfiguration): Promise<DeviceConfiguration | void> {
