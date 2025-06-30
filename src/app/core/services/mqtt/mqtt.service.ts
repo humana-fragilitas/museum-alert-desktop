@@ -15,18 +15,18 @@ import { PendingRequest } from '@shared/models';
 // Outgoing messages:
 // from device to app
 export enum MqttMessageType {
-  ALARM = 100,
-  CONNECTION_STATUS = 101,
-  CONFIGURATION = 102,
-  ACK = 103
+  ALARM,
+  CONNECTION_STATUS,
+  CONFIGURATION,
+  ACK
 }
 
 // Incoming messages:
 // from app to device
 export enum MqttCommandType {
-  RESET = 200,
-  GET_CONFIGURATION = 201,
-  SET_CONFIGURATION = 202
+  RESET,
+  GET_CONFIGURATION,
+  SET_CONFIGURATION
 }
 
 export interface AlarmPayload {

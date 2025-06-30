@@ -69,13 +69,13 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
     });
 
-    this.errorSubscription = this.deviceService.error$.subscribe((error: DeviceErrorType) => {
-    
-      if (error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
-        this.isBusy = false;
+    this.errorSubscription = this.deviceService.error$.subscribe(
+      (error: Nullable<DeviceErrorType>) => {
+        if (error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
+          this.isBusy = false;
+        }
       }
-
-    });
+    );
     
   }
 
@@ -87,17 +87,23 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   async onSubmit() {
 
     this.isBusy = true;
+
     console.log('Form submitted:', this.credentialsForm.value);
+
     this.deviceService.asyncSendData(
       USBCommandType.SET_WIFI_CREDENTIALS,
       this.credentialsForm.value
     )
-      .then(() => {
-        console.log('Data sent successfully');
-      })
-      .catch((error) => {
-        this.isBusy = false;
-      });
+    .then(() => {
+      console.log('Data sent successfully');
+    })
+    .catch((error) => {
+
+      this.isBusy = false;
+
+      
+
+    });
 
   }
 

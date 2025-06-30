@@ -35,8 +35,8 @@ export class DeviceService {
       new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
   public readonly alarm$: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
       new BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>>(null);
-  public readonly error$: BehaviorSubject<DeviceErrorType> =
-      new BehaviorSubject<DeviceErrorType>(DeviceErrorType.NONE);
+  public readonly error$: BehaviorSubject<Nullable<DeviceErrorType>> =
+      new BehaviorSubject<Nullable<DeviceErrorType>>(null);
 
   constructor(@Inject(WINDOW) private win: Window,
                               private ngZone: NgZone) {
@@ -172,7 +172,7 @@ export class DeviceService {
     this.portInfo$.next(null);
     this.deviceAppStatus$.next(DeviceAppState.STARTED);
     this.wiFiNetworks$.next([]);
-    this.error$.next(DeviceErrorType.NONE);
+    this.error$.next(null);
     this.alarm$.next(null);
     this.configuration$.next(null);
 

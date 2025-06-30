@@ -26,7 +26,6 @@ export enum DeviceMessageType {
 };
 
 export enum DeviceErrorType {
-    NONE,
     CIPHERING_INITIALIZATION_ERROR,
     INVALID_WIFI_CREDENTIALS,
     FAILED_WIFI_CONNECTION_ATTEMPT,
@@ -75,12 +74,6 @@ export interface WiFiNetwork {
     rssi: number;
     ssid: string;
 }
-
-// TO DO: remove this
-// export interface AlarmPayload {
-//     hasAlarm: boolean;
-//     distance: number;
-// }
 
 export interface Error {
     type: DeviceErrorType;

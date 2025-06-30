@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import { DeviceService } from '../device/device.service';
 import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../shared/models';
 
 interface ErrorsMap {
@@ -22,7 +20,6 @@ export class ErrorService {
       [AppErrorType.GENERIC_ERROR]: "An error occurred, please try again later",
     },
     [ErrorType.DEVICE_ERROR]: {
-      [DeviceErrorType.NONE]: "",
       [DeviceErrorType.CIPHERING_INITIALIZATION_ERROR]: "Device errored while initializing ciphering",
       [DeviceErrorType.INVALID_WIFI_CREDENTIALS]: "Cannot connect to WiFi with the provided credentials",
       [DeviceErrorType.FAILED_WIFI_CONNECTION_ATTEMPT]: "Cannot connect to WiFi network",
