@@ -3,6 +3,9 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import { DeviceService } from '../device/device.service';
 import { DeviceErrorType, ErrorType } from '@shared/models';
 import { ErrorService } from '../error/error.service';
+import { AppErrorType } from '../../../../../shared/models';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
 
 @Injectable({
   providedIn: 'root'
@@ -15,14 +18,40 @@ export class NotificationService {
     private errorService: ErrorService
   ) {
 
-    deviceService.error$.subscribe((error: Nullable<DeviceErrorType>) => {
-
-      if (error != null) {
-        console.log("NotificationService: received error: ", error);
-        snackBar.open(errorService.translate(ErrorType.DEVICE_ERROR, error), "Dismiss")
+    deviceService.error$.subscribe(
+      (error: Nullable<DeviceErrorType>) => {
+        this.onError(ErrorType.DEVICE_ERROR, error);
       }
+    );
 
-    });
+  }
+
+  onError(
+    type: ErrorType,
+    target: Nullable<DeviceErrorType | AppErrorType>,
+    error: HttpErrorResponse | null = null
+  ) {
+
+    if (target == null || error instanceof AuthenticationExpiredError) {
+      return;
+    }
+
+    const typeName = (type == ErrorType.DEVICE_ERROR) ?
+      'device' : (type == ErrorType.APP_ERROR) ? 'application'
+        : 'unknown';
+
+    console.log(
+      `NotificationService: received ` +
+      `${typeName} ` +
+      `error: `,
+      target
+    );
+
+    this.snackBar.open(
+      this.errorService.translate(
+        type, target
+      ), 'Dismiss'
+    );
 
   }
   

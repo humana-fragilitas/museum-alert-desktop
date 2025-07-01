@@ -27,7 +27,7 @@
 
     <mat-card-subtitle>Members</mat-card-subtitle>
 
-    <table mat-table [dataSource]="(company$ | async).members" class="mat-elevation-z8">
+    <table mat-table [dataSource]="(company$ | async)?.members" class="mat-elevation-z8">
 
       <ng-container matColumnDef="username">
         <th mat-header-cell *matHeaderCellDef> Username </th>

@@ -79,7 +79,6 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
         error: (error: any) => {
           
           this.isBusy = false;
-          // TO DO: pass error to dialog service to check if it is an AuthenticationExpiredError?
           if (error instanceof AuthenticationExpiredError) return;
           this.dialogService.showError('An Error Occurred', 'Cannot provision device. Please try again later.');
 

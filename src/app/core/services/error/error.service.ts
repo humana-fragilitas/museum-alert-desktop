@@ -18,6 +18,8 @@ export class ErrorService {
       [AppErrorType.THING_ALREADY_EXISTS]: "The device you are trying to provision already exists in your inventory",
       [AppErrorType.THING_ALREADY_EXISTS_IN_OTHER_ORGANIZATION]: "The device you are trying to provision already exists in another organization", 
       [AppErrorType.GENERIC_ERROR]: "An error occurred, please try again later",
+      [AppErrorType.FAILED_COMPANY_UPDATE]: "An error occurred while updating company information",
+      [AppErrorType.FAILED_COMPANY_RETRIEVAL]: "An error occurred while retrieving company information"
     },
     [ErrorType.DEVICE_ERROR]: {
       [DeviceErrorType.CIPHERING_INITIALIZATION_ERROR]: "Device errored while initializing ciphering",

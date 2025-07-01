@@ -1,5 +1,4 @@
 import { 
-  AfterViewInit,
   Component,
   ElementRef,
   OnDestroy,
@@ -7,20 +6,24 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { CompanyService } from '../../../core/services/company/company.service';
+import { CompanyService, UpdateCompanyRequest } from '../../../core/services/company/company.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { NotificationService } from '../../../core/services/notification/notification.service';
+import { ApiErrorResponse, AppErrorType, ErrorType } from '../../../../../shared/models';
+import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-company-form',
@@ -37,7 +40,7 @@ import { MatButtonModule } from '@angular/material/button';
   ],
   encapsulation: ViewEncapsulation.None,
 })
-export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
+export class CompanyFormComponent implements OnInit, OnDestroy {
 
   @ViewChild('companyName', { static: false }) companyNameInput!: ElementRef;
 
@@ -59,12 +62,13 @@ export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
   });
 
   constructor(
-    private companyService: CompanyService
+    private companyService: CompanyService,
+    private notificationService: NotificationService
   ) { }
 
   ngOnInit(): void {
 
-    console.log('CompanyForm INIT');
+    console.log('CompanyFormComponent INIT');
 
     this.subscription = this.companyService.company$.subscribe((company: any) => {
 
@@ -87,31 +91,32 @@ export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
 
   }
 
-  ngAfterViewInit(): void {
-
- 
-    
-  }
-
   async onSubmit() {
 
     this.isBusy = true;
     this.companyNameForm.get('companyName')?.disable();
 
     console.log('Company form submitted:', this.companyNameForm.value);
-    this.companyService.setName(this.companyNameForm.value.companyName || '')
-      .subscribe({
-        next: () => {
-          console.log('Data sxent successfully');
-        },
-        error: (error) => {
-          console.error('Error sending data:', error);
-        },
-        complete: () => {
-          this.isBusy = false;
-          this.isEditable = false;
-        }
-      });
+
+    this.companyService.setName(
+      (this.companyNameForm.value as UpdateCompanyRequest) 
+    )
+    .pipe(
+      finalize(() => {
+        this.isBusy = false;
+        this.isEditable = false;
+      })
+    )
+    .subscribe({
+      error: (error: HttpErrorResponse) => {
+        this.cancel();
+        this.notificationService.onError(
+          ErrorType.APP_ERROR,
+          AppErrorType.FAILED_COMPANY_UPDATE,
+          error
+        );
+      }
+    });
 
   }
 
@@ -121,7 +126,7 @@ export class CompanyFormComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(()=>{
       this.companyNameInput.nativeElement.focus();
       this.companyNameInput.nativeElement.select();
-    });
+    }, 0);
   }
 
   cancel() {

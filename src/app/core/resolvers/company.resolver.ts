@@ -1,46 +1,38 @@
 // src/app/core/resolvers/company.resolver.ts
 import { Injectable } from '@angular/core';
-import { Resolve, Router } from '@angular/router';
-import { Observable, of, catchError } from 'rxjs';
+import { Resolve } from '@angular/router';
+import { Observable, of, catchError, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CompanyService, GetCompanyResponse } from '../services/company/company.service';
+import { CompanyService, CompanyWithUserContext } from '../services/company/company.service';
+import { NotificationService } from '../services/notification/notification.service';
+import { AppErrorType, ErrorType } from '../../../../shared/models';
+import { AuthenticationExpiredError } from '../interceptors/auth-token.interceptor';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CompanyResolver implements Resolve<GetCompanyResponse | null> {
+export class CompanyResolver implements Resolve<CompanyWithUserContext | null> {
 
   constructor(
     private companyService: CompanyService,
-    private router: Router
+    private notificationService: NotificationService
   ) {}
 
-  resolve(): Observable<GetCompanyResponse | null> {
+  resolve(): Observable<CompanyWithUserContext | null> {
     return this.companyService.get().pipe(
-      map((response: GetCompanyResponse) => {
+      map((response: CompanyWithUserContext | null) => {
         console.log('Company data resolved:', response);
         return response;
       }),
-      catchError((error) => {
+      catchError((error: HttpErrorResponse) => {
         console.error('Failed to resolve company data:', error);
-        
-        // Handle different error scenarios
-        if (error.status === 404) {
-          console.log('No company found for user');
-          // You might want to redirect to a company setup page
-          // this.router.navigate(['/setup-company']);
-          return of(null);
-        }
-        
-        if (error.status === 401) {
-          console.log('User not authenticated');
-          this.router.navigate(['/login']);
-          return of(null);
-        }
-        
-        // For other errors, you might want to show an error page
-        // or allow the route to load with null data
-        return of(null);
+          this.notificationService.onError(
+            ErrorType.APP_ERROR,
+            AppErrorType.FAILED_COMPANY_RETRIEVAL,
+            error
+          );
+        return throwError(() => error);
       })
     );
   }

@@ -16,6 +16,7 @@ import { DeviceComponent } from './app/device/device.component';
 import { ProfileComponent } from './app/profile/profile.component';
 import { authTokenInterceptor } from './app/core/interceptors/auth-token.interceptor';
 import { CompanyResolver } from './app/core/resolvers/company.resolver';
+import { initializeConditionalConsole } from './app/shared/helpers/console.helper';
 
 // AoT requires an exported function for factories
 const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader => 
@@ -24,6 +25,8 @@ const httpLoaderFactory = (http: HttpClient): TranslateHttpLoader =>
 if (APP_CONFIG.production) {
   enableProdMode();
 }
+
+initializeConditionalConsole();
 
 bootstrapApplication(AppComponent, {
   providers: [

@@ -1,14 +1,18 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, Observable, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { APP_CONFIG } from '../../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
+import { ErrorApiResponse, HttpStatusCode, SuccessApiResponse } from '../shared/interfaces';
+import { NotificationService } from '../notification/notification.service';
+import { ErrorType } from '../../../../../shared/models';
+import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
 
 
 export interface CompanyMember {
   email: string;
   username: string;
-  role: 'owner' | 'member' | 'admin';
+  role: CompanyRole;
   joinedAt: string; // ISO 8601 timestamp
 }
 
@@ -44,14 +48,8 @@ export interface CompanyWithUserContext extends Company {
  */
 export interface UpdateCompanyRequest {
   companyName?: string;
+  // TO DO: this should not be possible!
   status?: 'active' | 'inactive' | 'suspended';
-}
-
-/**
- * Response from GET /company endpoint
- */
-export interface GetCompanyResponse {
-  company: CompanyWithUserContext;
 }
 
 /**
@@ -61,25 +59,6 @@ export interface UpdateCompanyResponse {
   message: string;
   company: Company;
   updatedFields: string[];
-}
-
-// ===== ERROR RESPONSE INTERFACES =====
-
-/**
- * Standard API error response
- */
-
-
-// ===== PARTIAL/UTILITY INTERFACES =====
-
-/**
- * Company creation data (for post-confirmation Lambda)
- */
-export interface CreateCompanyData {
-  companyId: string;
-  companyName: string;
-  ownerEmail: string;
-  ownerUsername: string;
 }
 
 /**
@@ -92,7 +71,6 @@ export type PartialCompanyUpdate = Pick<Company, 'companyName' | 'status'>;
  */
 export enum CompanyRole {
   OWNER = 'owner',
-  ADMIN = 'admin',
   MEMBER = 'member'
 }
 
@@ -110,97 +88,106 @@ export enum CompanyStatus {
 })
 export class CompanyService {
 
-  // Private BehaviorSubject to store company data
-  private companySubject = new BehaviorSubject<CompanyWithUserContext | null>(null);
-  
-  // Public observable for components to subscribe to
-  public company$ = this.companySubject.asObservable();
+  private readonly company = new BehaviorSubject<
+    Nullable<CompanyWithUserContext>
+  >(null);
+
+  public readonly company$ = this.company.asObservable();
   
 
   constructor(
     private httpClient: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService
   ) {
 
     this.authService.sessionData.subscribe((session) => {
       if (session) {
         this.get().subscribe();
       } else {
-        this.clearCompanyData();
+        this.clear();
       }
     });
 
   }
-  
-  // TO DO: use ApiRespnse<T> and CompanyWithUserContext
-  setName(companyName: string): Observable<any> {
 
-     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
+  setName(company: UpdateCompanyRequest): Observable<
+    SuccessApiResponse<UpdateCompanyResponse>
+  > {
 
-     return this.httpClient.put(apiUrl, { companyName }).pipe(
-      tap((response: any) => {
-          console.log('Company updated:', response.data.company);
-          this.companySubject.next(response.data.company);
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
+    
+    return this.httpClient.put<
+      SuccessApiResponse<UpdateCompanyResponse>
+    >(apiUrl, { companyName: company.companyName }).pipe(
+      tap((response: SuccessApiResponse<UpdateCompanyResponse>) => {
+
+        // Preserve user context from current company data
+        const currentCompany = this.company.value;
+
+        if (currentCompany) {
+          const updatedCompanyWithContext: CompanyWithUserContext = {
+            ...response.data.company,
+            userRole: currentCompany.userRole,
+            userJoinedAt: currentCompany.userJoinedAt
+          };
+          this.company.next(updatedCompanyWithContext);
         }
-      ),
-      catchError((error) => {
-        console.error('Error updating company name:', error);
-        throw error; // Re-throw for component handling
+
+      }),
+      catchError((exception: HttpErrorResponse) => {
+        console.error('Error updating company name:', exception);
+        return throwError(() => exception);
       })
-    )
+
+    );
 
   }
 
   /**
    * Get company data (loads fresh from API)
    */
-  get(): Observable<GetCompanyResponse> {
+  get(): Observable<Nullable<CompanyWithUserContext>> {
+
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
-  
+    
+    return this.httpClient.get<
+      SuccessApiResponse<CompanyWithUserContext>
+    >(apiUrl).pipe(
 
-    return this.httpClient.get<any>(apiUrl).pipe(
-      tap((response) => {
-        // Store the company data in BehaviorSubject
-        this.companySubject.next(response.data.company);
-
-      }),
-      catchError((error) => {
-        console.error('Error fetching company:', error);
-        // Handle specific error cases
-        if (error.status === 404) {
-          this.companySubject.next(null);
+      tap(
+        (response: SuccessApiResponse<CompanyWithUserContext>) => {
+          this.company.next(response.data);
         }
-        
-        throw error;
+      ),
+
+      map(
+        (response: SuccessApiResponse<CompanyWithUserContext>) => 
+          response.data
+      ),
+
+      catchError((exception: HttpErrorResponse) => {
+        console.error('Error fetching company:', exception);
+        return throwError(() => exception);
       })
+
     );
+
   }
 
-    /**
-   * Get current company value (synchronous)
-   */
-  get currentCompany(): CompanyWithUserContext | null {
-    return this.companySubject.value;
+  get currentCompany(): Nullable<CompanyWithUserContext> {
+    return this.company.value;
   }
 
-  /**
-   * Check if user is company owner
-   */
   get isOwner(): boolean {
     const company = this.currentCompany;
     return company?.userRole === CompanyRole.OWNER;
   }
 
-    /**
-   * Clear company data (useful for logout)
-   */
-  clearCompanyData(): void {
-    this.companySubject.next(null);
+  clear(): void {
+    this.company.next(null);
   }
 
-  /**
-   * Check if company data is loaded
-   */
   get hasCompanyData(): boolean {
     return this.currentCompany !== null;
   }

@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { fetchAuthSession, FetchAuthSessionOptions, AuthSession } from 'aws-amplify/auth';
-import { Hub } from '@aws-amplify/core';
-import { HubCapsule } from 'aws-amplify/utils';
 import { Amplify } from 'aws-amplify';
 import { APP_CONFIG } from '../../../../environments/environment';
-import { AuthHubEventData, HubCallback } from '@aws-amplify/core/dist/esm/Hub/types';
+import { Hub, HubCapsule } from '@aws-amplify/core';
+import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
+import { titleStyle } from '../../../shared/helpers/console.helper';
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({
@@ -14,9 +13,9 @@ import { AuthHubEventData, HubCallback } from '@aws-amplify/core/dist/esm/Hub/ty
 })
 export class AuthService {
 
-  private timeOutID: number = 0;
+  private timeOutId: number = 0;
 
-  readonly sessionData = new BehaviorSubject<AuthSession | null>(
+  readonly sessionData = new BehaviorSubject<Nullable<AuthSession>>(
     null
   );
 
@@ -26,46 +25,53 @@ export class AuthService {
 
     this.fetchSession();
 
-    // https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
-    // Use Hub channel 'auth' to get notified on changes
-    Hub.listen('auth', (data) => {
+    // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
+    Hub.listen('auth', (data: HubCapsule<string, AuthHubEventData>) => {
       const { payload } = data;
-      if (payload.event == 'signedIn' || payload.event == 'signedOut') {
+
+      if (payload.event == 'signedIn' ||
+          payload.event == 'signedOut') {
         this.fetchSession();
       }
+
     });
 
   }
  
-  fetchSession(options: FetchAuthSessionOptions = { forceRefresh: false }): void {
+  fetchSession(
+    options: FetchAuthSessionOptions = { forceRefresh: false }
+  ): void {
 
     fetchAuthSession(options).then(
       (session: AuthSession) => {
+
+        /**
+         * Note: oddly, the fetchAuthSession() function returns the AuthSession
+         * object with all properties set to undefined when a session does
+         *  not exist.
+         */
 
         const hasSession = session.credentials &&
                            session.identityId &&
                            session.tokens &&
                            session.userSub;
 
-        /**
-         * Note: oddly, the fetchAuthSession() function returns the AuthSession object
-         * with all properties set to undefined when a session does not exist.
-         */
+
 
         this.sessionData.next(hasSession ? session : null);
+
+        
 
         console.log('[AuthService]: session data:');
         console.log(session);
         
-        console.log('ACCESS TOKEN -----------------------');
+        console.log('%cAccess token:', titleStyle);
         console.log(session.tokens?.accessToken.toString());
-        console.log('ACCESS TOKEN -----------------------');
 
-        console.log('ID TOKEN -----------------------');
+        console.log('%cId token:', titleStyle);
         console.log(session.tokens?.idToken?.toString());
-        console.log('ID TOKEN -----------------------');
 
-        if (this.timeOutID) { clearTimeout(this.timeOutID); }
+        if (this.timeOutId) { clearTimeout(this.timeOutId); }
 
         if (!hasSession) return;
 
@@ -81,7 +87,7 @@ export class AuthService {
         console.log(`User session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
 
         // Note: typings point to NodeJS.Timeout
-        this.timeOutID = Number(setTimeout(
+        this.timeOutId = Number(setTimeout(
           () => this.fetchSession({ forceRefresh: true }),
           sessionRefreshInterval
         ));
