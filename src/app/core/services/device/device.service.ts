@@ -13,6 +13,7 @@ import { AlarmPayload } from '../mqtt/mqtt.service';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
 import { USBCommandType } from '../../../../../shared/models';
+import { titleStyle } from '../../../shared/helpers/console.helper';
 
 @Injectable({
   providedIn: 'root'
@@ -160,6 +161,9 @@ export class DeviceService {
         payload
       });
 
+      console.log('%USB request sent:', titleStyle);
+      console.log(`Request sent with correlation id: ${cid}`);
+      console.log('Pending requests:', Object.keys(this.pendingRequests).length);
       console.log(this.pendingRequests);
 
     });

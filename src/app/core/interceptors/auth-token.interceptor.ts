@@ -15,7 +15,7 @@ export class AuthenticationExpiredError extends Error {
 }
 
 export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
-  // Inject services using the inject() function
+
   const authService = inject(AuthService);
   const authenticatorService = inject(AuthenticatorService);
   const dialogService = inject(DialogService);
@@ -34,12 +34,12 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 };
 
 function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequest<any> {
-  const idToken = authService
-    .sessionData
-    .value
-    ?.tokens
-    ?.idToken
-    ?.toString();
+
+  const idToken = authService.sessionData
+                             .value
+                             ?.tokens
+                             ?.idToken
+                             ?.toString();
 
   const allowedBasePath = APP_CONFIG.aws.apiGateway;
 
@@ -51,9 +51,11 @@ function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequ
   }
 
   return req;
+
 }
 
-function handle401Error(dialogService: DialogService, authenticatorService: AuthenticatorService): void {
+function handle401Error(dialogService: DialogService, authenticatorService: AuthenticatorService) {
+  
   dialogService.showError(
     'Authentication expired',
     'Please log in again to continue.',
@@ -62,4 +64,5 @@ function handle401Error(dialogService: DialogService, authenticatorService: Auth
   ).subscribe(() => {
     authenticatorService.signOut();
   });
+
 }

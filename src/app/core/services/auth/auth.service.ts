@@ -56,11 +56,7 @@ export class AuthService {
                            session.tokens &&
                            session.userSub;
 
-
-
         this.sessionData.next(hasSession ? session : null);
-
-        
 
         console.log('[AuthService]: session data:');
         console.log(session);
