@@ -16,6 +16,8 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { BeaconUrlFormComponent } from './shared/components/beacon-url-form/beacon-url-form.component';
+import { Company, CompanyService } from './core/services/company/company.service';
+import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-root',
@@ -27,12 +29,14 @@ import { BeaconUrlFormComponent } from './shared/components/beacon-url-form/beac
     MatButtonModule,
     RouterModule,
     MatChipsModule,
+    MatProgressSpinnerModule,
     MatIconModule,
     BeaconUrlFormComponent
   ],
 })
 export class AppComponent {
 
+  public readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
   detectedPorts: string[] = [];
 
   constructor(
@@ -43,7 +47,8 @@ export class AppComponent {
     private policyService: PolicyService,
     private authenticatorService: AuthenticatorService,
     private notificationService: NotificationService,
-    private redirectService: RedirectService
+    private redirectService: RedirectService,
+    private companyService: CompanyService,
   ) {
 
     this.translate.setDefaultLang('en');

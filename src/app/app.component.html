@@ -3,17 +3,19 @@
     <nav class="auth-user-nav">
         <button
             mat-stroked-button
-            class="auth-user-email" 
+            class="auth-user-email"
+            [disabled]="isFetchingCompany$ | async"
             [routerLink]="['/profile']"
             routerLinkActive="active-profile-button"
             [routerLinkActiveOptions]="{exact: true}">
-            <mat-icon matChipAvatar>account_circle_outline</mat-icon>
+            @if (isFetchingCompany$ | async) {
+                <mat-progress-spinner class="auth-user-email--spinner" mode="indeterminate" diameter="16"></mat-progress-spinner>
+            }
+            @else {
+                <mat-icon matChipAvatar>account_circle_outline</mat-icon>
+            }
             <span>{{ authenticatorService.user?.signInDetails?.loginId }}</span>
         </button>
-        <!-- <mat-chip class="auth-user-email" appearance="filled">
-            <mat-icon matChipAvatar>account_circle_outline</mat-icon>
-            <span>{{ authenticatorService.user?.signInDetails?.loginId }}</span>
-        </mat-chip> -->
         <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
     </nav>
 

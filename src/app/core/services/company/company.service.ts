@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, map, Observable, of, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, finalize, map, Observable, of, tap, throwError } from 'rxjs';
 import { APP_CONFIG } from '../../../../environments/environment';
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
@@ -91,9 +91,12 @@ export class CompanyService {
   private readonly company = new BehaviorSubject<
     Nullable<CompanyWithUserContext>
   >(null);
+  private readonly isFetchingCompany = new BehaviorSubject<
+    boolean
+  >(false);
 
   public readonly company$ = this.company.asObservable();
-  
+  public readonly isFetchingCompany$ = this.isFetchingCompany.asObservable();
 
   constructor(
     private httpClient: HttpClient,
@@ -151,6 +154,8 @@ export class CompanyService {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
     
+    this.isFetchingCompany.next(true);
+
     return this.httpClient.get<
       SuccessApiResponse<CompanyWithUserContext>
     >(apiUrl).pipe(
@@ -169,6 +174,10 @@ export class CompanyService {
       catchError((exception: HttpErrorResponse) => {
         console.error('Error fetching company:', exception);
         return throwError(() => exception);
+      }),
+
+      finalize(() => {
+        this.isFetchingCompany.next(false);
       })
 
     );

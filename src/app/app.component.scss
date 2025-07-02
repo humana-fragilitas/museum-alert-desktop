@@ -17,6 +17,12 @@
 
 .auth-user-email {
     margin: 20px;
+    &:disabled {
+        color: var(--mat-sys-on-surface-variant);
+    }
+    &--spinner {
+        --mdc-circular-progress-active-indicator-color: var(--mat-sys-on-surface-variant);
+    }
 }
 
 button {
@@ -38,6 +44,15 @@ button {
         color: var(--mat-sys-on-primary) !important;
     }
     pointer-events: none;
+}
+
+mat-progress-spinner {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    margin-right: 8px;
+    margin-left: -6px;
+    margin-top: -3px;
 }
 
 
