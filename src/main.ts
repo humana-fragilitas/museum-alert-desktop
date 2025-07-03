@@ -42,10 +42,12 @@ bootstrapApplication(AppComponent, {
         component: HomeComponent
       },
       {
+        // TO DO: add user in session guard
         path: 'device',
         component: DeviceComponent
       },
       {
+        // TO DO: add user in session guard
         path: 'profile',
         component: ProfileComponent,
         resolve: [CompanyResolver]

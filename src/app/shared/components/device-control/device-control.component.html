@@ -3,7 +3,7 @@
     <h4>Device control
       <mat-spinner diameter="20" *ngIf="!(settings$ | async) || (isBusy$ | async)"></mat-spinner>
     </h4>
-    <app-connection-status [deviceSN]="serialNumber$ | async"></app-connection-status>
+    <app-connection-status [deviceSN]="(serialNumber$ | async)!"></app-connection-status>
   </mat-card-header>
   <mat-card-content>
 
@@ -32,7 +32,7 @@
       </tr>
       <tr>
         <td class="device-spec-label">Minimum alarm distance</td>
-        <td class="device-spec-value">{{ ((settings$ | async)?.distance) | formatDistance }}</td>
+        <td class="device-spec-value">{{ ((settings$ | async)?.distance ?? 0) | formatDistance }}</td>
       </tr>
     </table>
 

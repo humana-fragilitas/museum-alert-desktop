@@ -8,8 +8,8 @@ import { CoreModule } from '../core/core.module';
 import { ProfileComponent } from './profile.component';
 
 @NgModule({
-  declarations: [ProfileComponent],
-  imports: [CommonModule, SharedModule, CoreModule],
+  declarations: [],
+  imports: [CommonModule, SharedModule, CoreModule, ProfileComponent],
   exports: [] 
 })
 export class ProfileModule {}

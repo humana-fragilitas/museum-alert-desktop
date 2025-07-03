@@ -1,4 +1,4 @@
-@if (authService.sessionData | async) {
+@if (sessionData$ | async) {
 
     <nav class="auth-user-nav">
         <button
@@ -8,13 +8,12 @@
             [routerLink]="['/profile']"
             routerLinkActive="active-profile-button"
             [routerLinkActiveOptions]="{exact: true}">
-            @if (isFetchingCompany$ | async) {
-                <mat-progress-spinner class="auth-user-email--spinner" mode="indeterminate" diameter="16"></mat-progress-spinner>
-            }
-            @else {
-                <mat-icon matChipAvatar>account_circle_outline</mat-icon>
-            }
-            <span>{{ authenticatorService.user?.signInDetails?.loginId }}</span>
+
+            <mat-progress-spinner *ngIf="isFetchingCompany$ | async" class="auth-user-email--spinner" mode="indeterminate" diameter="16"></mat-progress-spinner>
+
+            <mat-icon *ngIf="!(isFetchingCompany$ | async)" matChipAvatar>account_circle_outline</mat-icon>
+
+            <span>{{ (userAttributes$ | async)?.email }}</span>
         </button>
         <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
     </nav>
@@ -23,9 +22,7 @@
 
 <div class="container">
 
-    <!-- <app-beacon-url-form></app-beacon-url-form> -->
-
-    <img src="/assets/images/museum_alert_logo.svg" class="logo">
+    <img src="assets/images/museum_alert_logo.svg" class="logo">
     <router-outlet></router-outlet>
 
 </div>

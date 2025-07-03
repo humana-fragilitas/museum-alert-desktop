@@ -15,7 +15,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
-import { BeaconUrlFormComponent } from './shared/components/beacon-url-form/beacon-url-form.component';
 import { Company, CompanyService } from './core/services/company/company.service';
 import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -30,14 +29,14 @@ import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/
     RouterModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatIconModule,
-    BeaconUrlFormComponent
+    MatIconModule
   ],
 })
 export class AppComponent {
 
   public readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
-  detectedPorts: string[] = [];
+  public readonly sessionData$ = this.authService.sessionData;
+  public readonly userAttributes$ = this.authService.userAttributes$;
 
   constructor(
     private electronService: ElectronService,

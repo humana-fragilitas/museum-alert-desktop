@@ -5,7 +5,7 @@ const electron_1 = require("electron");
 const serialport_1 = require("serialport");
 const parser_regex_1 = require("@serialport/parser-regex");
 const parser_delimiter_1 = require("@serialport/parser-delimiter");
-const models_1 = require("../../shared/models");
+const models_1 = require("../shared/models");
 Object.defineProperty(exports, "DeviceAppState", { enumerable: true, get: function () { return models_1.DeviceAppState; } });
 Object.defineProperty(exports, "DeviceMessageType", { enumerable: true, get: function () { return models_1.DeviceMessageType; } });
 const rxjs_1 = require("rxjs");

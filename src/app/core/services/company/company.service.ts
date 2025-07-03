@@ -5,7 +5,7 @@ import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/htt
 import { AuthService } from '../auth/auth.service';
 import { ErrorApiResponse, HttpStatusCode, SuccessApiResponse } from '../shared/interfaces';
 import { NotificationService } from '../notification/notification.service';
-import { ErrorType } from '../../../../../shared/models';
+import { ErrorType } from '../../../../../app/shared/models';
 import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
 
 

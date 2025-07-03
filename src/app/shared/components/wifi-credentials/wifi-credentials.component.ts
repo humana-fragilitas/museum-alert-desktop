@@ -1,16 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceAppState, DeviceErrorType, USBCommandType, WiFiNetwork } from '../../../../../shared/models';
+import { DeviceAppState, DeviceErrorType, USBCommandType, WiFiNetwork } from '../../../../../app/shared/models';
 import { Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ProvisioningComponent } from '../provisioning/provisioning.component';
-import { DeviceControlComponent } from '../device-control/device-control.component';
-import { DeviceDiagnosticsComponent } from '../device-diagnostics/device-diagnostics.component';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -26,9 +23,6 @@ import { MatButtonModule } from '@angular/material/button';
     ReactiveFormsModule,
     MatProgressSpinnerModule,
     CommonModule,
-    ProvisioningComponent,
-    DeviceControlComponent,
-    DeviceDiagnosticsComponent,
     MatSelectModule
   ]
 })
@@ -129,8 +123,14 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   get isBusy(): boolean {
     return this.isSendingCredentials ||
            this.isRefreshingWiFiNetworks ||
-           this.deviceService.deviceAppStatus$.getValue() !== DeviceAppState.CONFIGURE_WIFI;
+           this.deviceService.getAppStatus() !== DeviceAppState.CONFIGURE_WIFI;
   }
   
+  hasError(field: string, error: string): boolean {
 
-}
+    return !!this.credentialsForm.get(field)?.hasError(error) &&
+           !!this.credentialsForm.get(field)?.touched
+
+  }
+
+} 

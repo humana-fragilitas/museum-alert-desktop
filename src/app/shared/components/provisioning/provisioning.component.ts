@@ -11,7 +11,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { USBCommandType } from '../../../../../shared/models';
+import { USBCommandType } from '../../../../../app/shared/models';
 
 @Component({
   selector: 'app-provisioning',
@@ -54,7 +54,7 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
     this.isBusy = true;
     
-    const thingName = this.deviceService.serialNumber$.getValue();
+    const thingName = this.deviceService.getSerialNumber();
     this.deviceRegistryService.checkSensorExists(thingName)
       .subscribe({
 

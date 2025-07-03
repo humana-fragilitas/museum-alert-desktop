@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DeviceAppState } from '../../../../../shared/models';
+import { DeviceAppState } from '../../../../../app/shared/models';
 import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { MatCardModule } from '@angular/material/card';

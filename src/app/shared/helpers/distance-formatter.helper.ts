@@ -1,6 +1,8 @@
 // TO DO: either default export or multiple named exports
 
-export function formatDistance(value: number): string {
+export function formatDistance(value: number | undefined): string {
+
+    if (value == undefined) return '';
 
     if (value < 100) {
       return `${value} cm`;

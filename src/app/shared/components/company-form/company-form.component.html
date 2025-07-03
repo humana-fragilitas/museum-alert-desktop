@@ -3,21 +3,10 @@
   <mat-form-field appearance="fill" class="company-name">
     <mat-label>Company name</mat-label>
     <input matInput id="company-name" type="text" formControlName="companyName" #companyName>
-      @if (companyNameForm.get('companyName')?.hasError('required') && companyNameForm.get('companyName')?.touched) {
-        <mat-error>Company name is <strong>required</strong></mat-error>
-      }
-      
-      @if (companyNameForm.get('companyName')?.hasError('minlength') && companyNameForm.get('companyName')?.touched) {
-        <mat-error>Company name must be at least <strong>3 characters</strong> long</mat-error>
-      }
-      
-      @if (companyNameForm.get('companyName')?.hasError('maxlength') && companyNameForm.get('companyName')?.touched) {
-        <mat-error>Company name cannot exceed <strong>50 characters</strong></mat-error>
-      }
-      
-      @if (companyNameForm.get('companyName')?.hasError('pattern') && companyNameForm.get('companyName')?.touched) {
-        <mat-error>Company name can only contain <strong>letters, numbers, spaces, hyphens, apostrophes and common business punctuation</strong></mat-error>
-      }
+      <mat-error *ngIf="hasError('required')">Company name is <strong>required</strong></mat-error>
+      <mat-error *ngIf="hasError('minlength')">Company name must be at least <strong>3 characters</strong> long</mat-error>
+      <mat-error *ngIf="hasError('maxlength')">Company name cannot exceed <strong>50 characters</strong></mat-error>
+      <mat-error *ngIf="hasError('pattern')">Company name can only contain <strong>letters, numbers, spaces, hyphens, apostrophes and common business punctuation</strong></mat-error>
   </mat-form-field>
 
     <div class="button-cta">

@@ -1,11 +1,11 @@
 {
-  "name": "angular-electron",
-  "version": "15.0.0",
-  "description": "Angular 19 with Electron 36 (Typescript + SASS + Hot Reload)",
-  "homepage": "https://github.com/maximegris/angular-electron",
+  "name": "museum-alert-desktop",
+  "version": "1.0.0",
+  "description": "Desktop application suitable for configuring Museum Alert Sensors",
+  "homepage": "https://github.com/humana-fragilitas/museum-alert",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "Andrea Blasio",
+    "email": "andrea@humanafragilitas.com"
   },
   "keywords": [
     "angular",

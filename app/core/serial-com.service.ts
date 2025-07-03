@@ -3,7 +3,7 @@ import { SerialPort } from 'serialport';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { RegexParser } from '@serialport/parser-regex';
 import { DelimiterParser } from '@serialport/parser-delimiter';
-import { DeviceIncomingData, DeviceAppState, DeviceMessageType, DeviceOutgoingData } from '../../shared/models';
+import { DeviceIncomingData, DeviceAppState, DeviceMessageType, DeviceOutgoingData } from '../shared/models';
 import { Subject } from 'rxjs';
 
 // {"path":"/dev/tty.usbmodem3485187A35EC2","manufacturer":"Arduino","serialNumber":"3485187A35EC","locationId":"00100000","vendorId":"2341","productId":"0070"}

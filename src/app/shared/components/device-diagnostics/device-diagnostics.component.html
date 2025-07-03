@@ -17,7 +17,7 @@
       </tr>
       <tr [style.visibility]="(deviceService.alarm$| async) ? 'visible' : 'hidden'">
         <td class="device-spec-label">Detected distance</td>
-        <td class="device-spec-value">{{ ((deviceService.alarm$ | async)?.data?.distance) | formatDistance }}</td>
+        <td class="device-spec-value">{{ ((deviceService.alarm$ | async)?.data?.distance ?? 0) | formatDistance }}</td>
       </tr>
     </table>
   </mat-card-content>

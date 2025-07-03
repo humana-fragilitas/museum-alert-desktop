@@ -8,11 +8,11 @@ import { DeviceIncomingData,
          DeviceMessageType,
          WiFiNetwork,
          DeviceErrorType,
-         PendingRequest} from '@shared/models';
+         PendingRequest } from '../../../../../app/shared/models';
 import { AlarmPayload } from '../mqtt/mqtt.service';
-import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
-import { USBCommandType } from '../../../../../shared/models';
+import { USBCommandType } from '../../../../../app/shared/models';
 import { titleStyle } from '../../../shared/helpers/console.helper';
 
 @Injectable({
@@ -22,22 +22,39 @@ export class DeviceService {
 
   private pendingRequests: Record<string, PendingRequest<any>> = {};
 
-  public readonly serialNumber$: BehaviorSubject<string> =
+  public readonly serialNumber: BehaviorSubject<string> =
       new BehaviorSubject<string>('');
-  public readonly portInfo$: BehaviorSubject<Nullable<PortInfo>> =
+  public readonly portInfo: BehaviorSubject<Nullable<PortInfo>> =
       new BehaviorSubject<Nullable<PortInfo>>(null);
-  public readonly deviceAppStatus$: BehaviorSubject<Nullable<DeviceAppState>> =
+  public readonly deviceAppStatus: BehaviorSubject<Nullable<DeviceAppState>> =
       new BehaviorSubject<Nullable<DeviceAppState>>(DeviceAppState.STARTED);
-  public readonly usbConnectionStatus$: BehaviorSubject<boolean> =
+  public readonly usbConnectionStatus: BehaviorSubject<boolean> =
       new BehaviorSubject<boolean>(false);
-  public readonly wiFiNetworks$: BehaviorSubject<WiFiNetwork[]> =
+  public readonly wiFiNetworks: BehaviorSubject<WiFiNetwork[]> =
       new BehaviorSubject<WiFiNetwork[]>([]);
-  public readonly configuration$: BehaviorSubject<Nullable<DeviceConfiguration>> =
+  public readonly configuration: BehaviorSubject<Nullable<DeviceConfiguration>> =
       new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
-  public readonly alarm$: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
+  public readonly alarm: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
       new BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>>(null);
-  public readonly error$: BehaviorSubject<Nullable<DeviceErrorType>> =
+  public readonly error: BehaviorSubject<Nullable<DeviceErrorType>> =
       new BehaviorSubject<Nullable<DeviceErrorType>>(null);
+
+  public readonly serialNumber$: Observable<string> = 
+      this.serialNumber.asObservable();
+  public readonly portInfo$: Observable<Nullable<PortInfo>> =
+      this.portInfo.asObservable();
+  public readonly deviceAppStatus$: Observable<Nullable<DeviceAppState>> =
+      this.deviceAppStatus.asObservable();
+  public readonly usbConnectionStatus$: Observable<boolean> =
+      this.usbConnectionStatus.asObservable();
+  public readonly wiFiNetworks$: Observable<WiFiNetwork[]> =
+      this.wiFiNetworks.asObservable();
+  public readonly configuration$: Observable<Nullable<DeviceConfiguration>> =
+      this.configuration.asObservable();
+  public readonly alarm$: Observable<Nullable<BaseMqttMessage<AlarmPayload>>> =
+      this.alarm.asObservable();
+  public readonly error$: Observable<Nullable<DeviceErrorType>> =
+      this.error.asObservable();
 
   constructor(@Inject(WINDOW) private win: Window,
                               private ngZone: NgZone) {
@@ -49,14 +66,14 @@ export class DeviceService {
       win.electron.ipcRenderer.on('device-found', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device found:', data);
-          this.portInfo$.next(data as PortInfo);
+          this.portInfo.next(data as PortInfo);
         });
       });
   
       win.electron.ipcRenderer.on('device-connection-status-update', (data) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
-          this.usbConnectionStatus$.next(data as boolean);
+          this.usbConnectionStatus.next(data as boolean);
         }); 
       });
 
@@ -69,7 +86,7 @@ export class DeviceService {
 
     }
 
-    this.usbConnectionStatus$
+    this.usbConnectionStatus
         .pipe(
           distinctUntilChanged()
         )
@@ -85,8 +102,8 @@ export class DeviceService {
 
   public parseIncomingData(payload: DeviceIncomingData) {
 
-    if (!this.serialNumber$.getValue() && payload.sn) {
-      this.serialNumber$.next(payload.sn);
+    if (!this.serialNumber.getValue() && payload.sn) {
+      this.serialNumber.next(payload.sn);
     }
 
     const correlationId = payload.cid;
@@ -100,14 +117,14 @@ export class DeviceService {
 
     switch (payload.type) {
       case DeviceMessageType.APP_STATE:
-        this.deviceAppStatus$.next(payload.data?.appState as DeviceAppState);
+        this.deviceAppStatus.next(payload.data?.appState as DeviceAppState);
         break;
       case DeviceMessageType.WIFI_NETWORKS_LIST:
-        this.wiFiNetworks$.next(payload.data as WiFiNetwork[]);
+        this.wiFiNetworks.next(payload.data as WiFiNetwork[]);
         break;
       case DeviceMessageType.ERROR:
         console.log("INCOMING ERROR:", payload.data);
-        this.error$.next(payload.data?.error as DeviceErrorType);
+        this.error.next(payload.data?.error as DeviceErrorType);
         break;
       case DeviceMessageType.ACKNOWLEDGMENT:
         console.log(`Received response via USB for request with correlation id: ${correlationId}`);
@@ -172,21 +189,37 @@ export class DeviceService {
 
   public reset() {
 
-    this.serialNumber$.next('');
-    this.portInfo$.next(null);
-    this.deviceAppStatus$.next(DeviceAppState.STARTED);
-    this.wiFiNetworks$.next([]);
-    this.error$.next(null);
-    this.alarm$.next(null);
-    this.configuration$.next(null);
+    this.serialNumber.next('');
+    this.portInfo.next(null);
+    this.deviceAppStatus.next(DeviceAppState.STARTED);
+    this.wiFiNetworks.next([]);
+    this.error.next(null);
+    this.alarm.next(null);
+    this.configuration.next(null);
 
   }
 
   public generateCid(): string {
 
-    const deviceSN = this.serialNumber$.getValue();
+    const deviceSN = this.serialNumber.getValue();
     return `${deviceSN}-${uuidv4()}-${Date.now()}`;
 
+  }
+
+  onAlarm(message: Nullable<BaseMqttMessage<AlarmPayload>>) {
+    this.alarm.next(message);
+  }
+
+  onConfiguration(message: Nullable<DeviceConfiguration>) {
+    this.configuration.next(message);
+  }
+
+  getSerialNumber(): string {
+    return this.serialNumber.getValue();
+  }
+
+  getAppStatus(): Nullable<DeviceAppState> {
+    return this.deviceAppStatus.getValue();
   }
 
 } 

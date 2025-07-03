@@ -1,11 +1,12 @@
 {
-  "name": "angular-electron",
-  "description": "Angular Electron sample",
+  "name": "museum-alert-desktop",
+  "version": "1.0.0",
+  "description": "Desktop application suitable for configuring Museum Alert Sensors",
+  "homepage": "https://github.com/humana-fragilitas/museum-alert",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "Andrea Blasio",
+    "email": "andrea@humanafragilitas.com"
   },
-  "version": "15.0.0",
   "main": "main.js",
   "private": true,
   "dependencies": {

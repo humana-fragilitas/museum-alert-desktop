@@ -5,7 +5,7 @@ import { Observable, of, catchError, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CompanyService, CompanyWithUserContext } from '../services/company/company.service';
 import { NotificationService } from '../services/notification/notification.service';
-import { AppErrorType, ErrorType } from '../../../../shared/models';
+import { AppErrorType, ErrorType } from '../../../../app/shared/models';
 import { AuthenticationExpiredError } from '../interceptors/auth-token.interceptor';
 import { HttpErrorResponse } from '@angular/common/http';
 

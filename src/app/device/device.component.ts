@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DeviceService } from '../core/services/device/device.service';
 import { Observable, Subscription } from 'rxjs';
-import { DeviceAppState } from '../../../shared/models';
+import { DeviceAppState } from '../../../app/shared/models';
 import { DeviceStateComponent } from '../shared/components/device-state/device-state.component';
 import { WizardComponent } from '../shared/components/wizard-component/wizard.component';
 @Component({

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { DeviceService } from '../device/device.service';
-import { DeviceErrorType, ErrorType } from '@shared/models';
+import { DeviceErrorType, ErrorType } from '../../../../../app/shared/models';
 import { ErrorService } from '../error/error.service';
-import { AppErrorType } from '../../../../../shared/models';
+import { AppErrorType } from '../../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
 

@@ -38,6 +38,7 @@ import { MatChip, MatChipsModule } from '@angular/material/chips';
 export class ProfileComponent implements OnInit {
 
   public readonly displayedColumns: string[] = ['username', 'role', 'joined'];
+  public readonly loginId = this.authService.sessionData?.getValue()?.tokens?.signInDetails?.loginId
   public readonly company$ = this.companyService.company$;
 
   constructor(

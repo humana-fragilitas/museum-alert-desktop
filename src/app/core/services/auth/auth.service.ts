@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { fetchAuthSession, FetchAuthSessionOptions, AuthSession } from 'aws-amplify/auth';
+import { fetchAuthSession,
+         FetchAuthSessionOptions,
+         AuthSession,
+         getCurrentUser,
+         fetchUserAttributes,
+         GetCurrentUserOutput,
+        FetchUserAttributesOutput } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import { APP_CONFIG } from '../../../../environments/environment';
 import { Hub, HubCapsule } from '@aws-amplify/core';
@@ -15,15 +21,31 @@ export class AuthService {
 
   private timeOutId: number = 0;
 
+  // To be used only to retrieve authentication tokens and AWS credentials
   readonly sessionData = new BehaviorSubject<Nullable<AuthSession>>(
     null
   );
+  // To be used to check if the user is authenticated
+  private readonly user = new BehaviorSubject<Nullable<GetCurrentUserOutput>>(null);
+  // To be used to retrieve user attributes (e.g.: email, company, etc.)
+  private readonly userAttributes = new BehaviorSubject<Nullable<FetchUserAttributesOutput>>(null);
+
+  public readonly sessionData$ = this.sessionData.asObservable();
+  public readonly user$ = this.user.asObservable();
+  public readonly userAttributes$ = this.userAttributes.asObservable();
 
   constructor() {
 
-    Amplify.configure(APP_CONFIG.aws.amplify); 
+    Amplify.configure(APP_CONFIG.aws.amplify);
+    
+    this.user.subscribe((user) => {
 
-    this.fetchSession();
+      if (user) {
+        this.fetchSession();
+        this.getUserAttributes();
+      }
+
+    });
 
     // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
     Hub.listen('auth', (data: HubCapsule<string, AuthHubEventData>) => {
@@ -31,10 +53,14 @@ export class AuthService {
 
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
-        this.fetchSession();
+
+        this.getUser();
+
       }
 
     });
+
+    this.getUser();
 
   }
  
@@ -94,6 +120,38 @@ export class AuthService {
         console.log('[AuthService]: can\'t retrieve session data');
         this.sessionData.next(null);
 
+      }
+    );
+
+  }
+
+  getUser() {
+
+    getCurrentUser().then(
+      (user: GetCurrentUserOutput) => {
+        console.log('[AuthService]: retrieved user data:');
+        console.log(user);
+        this.user.next(user);
+      },
+      () => {
+        console.log('[AuthService]: can\'t retrieve user data');
+        this.user.next(null);
+      }
+    );
+
+  }
+
+  getUserAttributes() {
+
+    return fetchUserAttributes().then(
+      (attributes: FetchUserAttributesOutput) => {
+        console.log('[AuthService]: retrieved user attributes:');
+        console.log(attributes);
+        this.userAttributes.next(attributes);
+      },
+      () => {
+        console.log('[AuthService]: can\'t retrieve user attributes');
+        this.userAttributes.next(null);
       }
     );
 

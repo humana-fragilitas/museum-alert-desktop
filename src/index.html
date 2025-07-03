@@ -2,13 +2,17 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Angular Electron</title>
+  <title>Museum Alert</title>
   <base href="/">
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="assets/icons/favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    if (typeof global === 'undefined') {
+      var global = globalThis || window || this;
+    }
+  </script>
 </head>
 <body class="mat-typography">
   <app-root>Loading...</app-root>

@@ -3,9 +3,7 @@
   <mat-form-field appearance="fill">
     <mat-label>Broadcasted beacon URL</mat-label>
     <input matInput type="text" formControlName="beaconUrl" #beaconUrl>
-    @if (getErrorMessage() && beaconUrlForm.get('beaconUrl')?.touched) {
-      <mat-error><strong>{{getErrorMessage()}}</strong></mat-error>
-    }
+      <mat-error *ngIf="getErrorMessage() && beaconUrlForm.get('beaconUrl')?.touched"><strong>{{getErrorMessage()}}</strong></mat-error>
   </mat-form-field>
 
     <div class="button-cta">

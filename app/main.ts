@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, ipcMain} from 'electron';
+import {app, BrowserWindow, screen, Menu, MenuItemConstructorOptions, ipcMain} from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -6,7 +6,7 @@ import { SerialCom } from './core/serial-com.service';
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
-  serve = args.some(val => val === '--serve');
+      serve = args.some(val => val === '--serve');
 
 let serialCom: SerialCom;
 
@@ -27,6 +27,8 @@ function createWindow(): BrowserWindow {
       preload: path.join(__dirname, 'preload.js')
     },
   });
+
+  setApplicationMenu();
 
   if (serve) {
     import('electron-debug').then(debug => {
@@ -97,4 +99,58 @@ try {
 } catch (e) {
   // Catch Error
   // throw e;
+}
+
+function setApplicationMenu() {
+  const template: MenuItemConstructorOptions[] = [
+    {
+      label: app.getName(),
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'togglefullscreen' },
+        ...(serve ? [
+          { type: 'separator' },
+          { role: 'reload' },
+          { role: 'forceReload' },
+          { role: 'toggleDevTools' }
+        ] : [])
+      ] as MenuItemConstructorOptions[]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' }
+      ]
+    }
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }

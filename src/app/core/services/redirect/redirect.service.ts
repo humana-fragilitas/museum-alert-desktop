@@ -10,13 +10,18 @@ export class RedirectService {
 
   constructor(private authService: AuthService, private router: Router) {
 
-    this.authService.sessionData.subscribe((session) => {
+    this.authService.user$.subscribe((user) => {
 
-      const redirectTarget = session ? ['/device'] : ['/index'];
+      const redirectTarget = user ? ['/device'] : ['/index'];
 
-      console.log(`Session ${session ? 'is valid' : 'expired' }: redirecting to ${redirectTarget[0]}`);
+      console.log(`Session ${user ? 'is valid' : 'expired' }: redirecting to ${redirectTarget[0]}`);
 
-      this.router.navigate(redirectTarget);
+      // TO DO: remove this; it has been necessary to solve an error
+      // in Amplify UI where a quick redirect (see AuthService.getUser())
+      // causes an error in the library's cleanup procedures
+      setTimeout(() => {
+        this.router.navigate(redirectTarget);
+      }, 2000)
 
     });
 

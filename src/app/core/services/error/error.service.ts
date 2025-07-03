@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../shared/models';
+import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../app/shared/models';
 
 interface ErrorsMap {
   [ErrorType.APP_ERROR]: { [key in AppErrorType] : string };

@@ -61,6 +61,8 @@ var AppErrorType;
     AppErrorType[AppErrorType["THING_ALREADY_EXISTS"] = 3] = "THING_ALREADY_EXISTS";
     AppErrorType[AppErrorType["THING_ALREADY_EXISTS_IN_OTHER_ORGANIZATION"] = 4] = "THING_ALREADY_EXISTS_IN_OTHER_ORGANIZATION";
     AppErrorType[AppErrorType["GENERIC_ERROR"] = 5] = "GENERIC_ERROR";
+    AppErrorType[AppErrorType["FAILED_COMPANY_UPDATE"] = 6] = "FAILED_COMPANY_UPDATE";
+    AppErrorType[AppErrorType["FAILED_COMPANY_RETRIEVAL"] = 7] = "FAILED_COMPANY_RETRIEVAL";
 })(AppErrorType || (exports.AppErrorType = AppErrorType = {}));
 ;
 var ErrorType;

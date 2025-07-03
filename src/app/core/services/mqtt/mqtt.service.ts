@@ -10,7 +10,7 @@ import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import { DeviceService } from '../device/device.service';
-import { PendingRequest } from '@shared/models';
+import { PendingRequest } from '../../../../../app/shared/models';
 
 // Outgoing messages:
 // from device to app
@@ -160,13 +160,13 @@ export class MqttService {
 
     this.onMessageOfType(MqttMessageType.ALARM)
       .subscribe((message: BaseMqttMessage<AlarmPayload>) => {
-        this.deviceService.alarm$.next(message);
+        this.deviceService.onAlarm(message);
         console.log("Alarm:", message);
       });
 
     this.onMessageOfType(MqttMessageType.CONFIGURATION)
       .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
-        this.deviceService.configuration$.next(message.data);
+        this.deviceService.onConfiguration(message.data);
         console.log("Device configuration:", message);
       });
 
@@ -367,7 +367,7 @@ export class MqttService {
 
     return new Promise<any>((resolve, reject) => {
       const company = this.currentSession?.tokens?.idToken?.payload['custom:Company'];
-      const deviceSN = this.deviceService.serialNumber$.getValue();
+      const deviceSN = this.deviceService.getSerialNumber();
       
       if (!company || !deviceSN) {
         reject(new Error('Missing company or device serial number'));

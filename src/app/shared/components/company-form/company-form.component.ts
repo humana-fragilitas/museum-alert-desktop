@@ -21,7 +21,7 @@ import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { NotificationService } from '../../../core/services/notification/notification.service';
-import { ApiErrorResponse, AppErrorType, ErrorType } from '../../../../../shared/models';
+import { ApiErrorResponse, AppErrorType, ErrorType } from '../../../../../app/shared/models';
 import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -136,6 +136,13 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.companyNameInput.nativeElement.blur();
     }, 0);
+  }
+
+  hasError(error: string): boolean {
+
+    return !!this.companyNameForm.get('companyName')?.hasError(error) &&
+           !!this.companyNameForm.get('companyName')?.touched;
+
   }
 
 }
