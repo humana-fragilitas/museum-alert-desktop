@@ -1,0 +1,21 @@
+.device-specs {
+
+    border-spacing: 0;
+    width: 100%;
+    margin: 10px 0;
+
+}
+
+.device-spec-value {
+
+    font-family: 'Courier New', Courier, monospace;
+    
+}
+
+.device-specs tr td {
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.device-specs tr:last-child td {
+    border-bottom: none;
+}

@@ -29,6 +29,7 @@ import { DeviceControlComponent } from './components/device-control/device-contr
 import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
 import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
+import { SettingsTableComponent } from './components/settings-table/settings-table.component';
 
 
 
@@ -37,7 +38,7 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
 
   ],
   imports: [
-        WiFiCredentialsComponent,
+    WiFiCredentialsComponent,
     DeviceComponent,
     WizardComponent,
     DeviceStateComponent,
@@ -45,6 +46,7 @@ import { ConnectionStatusComponent } from './components/connection-status/connec
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
     ConnectionStatusComponent,
+    SettingsTableComponent,
     DialogComponent,
     WebviewDirective,
     CommonModule,

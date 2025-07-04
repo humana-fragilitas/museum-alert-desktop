@@ -1,0 +1,10 @@
+<table class="device-specs">
+  <tr>
+    <td class="device-spec-label">Firmware</td>
+    <td class="device-spec-value">{{ (data$ | async)?.firmware }}</td>
+  </tr>
+  <tr>
+    <td class="device-spec-label">Minimum alarm distance</td>
+    <td class="device-spec-value">{{ ((data$ | async)?.distance ?? 0) | formatDistance }}</td>
+  </tr>
+</table>

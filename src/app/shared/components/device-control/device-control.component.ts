@@ -13,6 +13,7 @@ import { CompanyFormComponent } from '../company-form/company-form.component';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 import { BeaconUrlFormComponent } from '../beacon-url-form/beacon-url-form.component';
 import { DeviceService } from '../../../core/services/device/device.service';
+import { SettingsTableComponent } from '../settings-table/settings-table.component';
 
 @Component({
   selector: 'app-device-control',
@@ -25,6 +26,7 @@ import { DeviceService } from '../../../core/services/device/device.service';
     AsyncPipe,
     ConnectionStatusComponent,
     BeaconUrlFormComponent,
+    SettingsTableComponent,
     MatSliderModule,
     FormatDistancePipe,
     CommonModule,

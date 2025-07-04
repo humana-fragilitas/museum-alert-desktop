@@ -25,16 +25,9 @@
 
     <app-beacon-url-form></app-beacon-url-form>
 
-    <table [style.visibility]="(settings$ | async) ? 'visible' : 'hidden'" class="device-specs">
-      <tr>
-        <td class="device-spec-label">Firmware</td>
-        <td class="device-spec-value">{{ (settings$ | async)?.firmware }}</td>
-      </tr>
-      <tr>
-        <td class="device-spec-label">Minimum alarm distance</td>
-        <td class="device-spec-value">{{ ((settings$ | async)?.distance ?? 0) | formatDistance }}</td>
-      </tr>
-    </table>
+    <app-settings-table
+      [data$]="settings$"
+      [style.visibility]="(settings$ | async) ? 'visible' : 'hidden'"></app-settings-table>
 
   </mat-card-content>
 </mat-card>
