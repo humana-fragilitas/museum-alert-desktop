@@ -35,7 +35,7 @@ import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/
 export class AppComponent {
 
   public readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
-  public readonly sessionData$ = this.authService.sessionData;
+  public readonly user$ = this.authService.user$;
   public readonly userAttributes$ = this.authService.userAttributes$;
 
   constructor(
