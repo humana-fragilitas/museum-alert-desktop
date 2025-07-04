@@ -1,5 +1,6 @@
 {
   "name": "museum-alert-desktop",
+  "productName": "Museum Alert",
   "version": "1.0.0",
   "description": "Desktop application suitable for configuring Museum Alert Sensors",
   "homepage": "https://github.com/humana-fragilitas/museum-alert",
