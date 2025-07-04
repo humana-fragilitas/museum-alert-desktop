@@ -30,6 +30,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { DeviceDiagnosticsComponent } from './components/device-diagnostics/device-diagnostics.component';
 import { ConnectionStatusComponent } from './components/connection-status/connection-status.component';
 import { SettingsTableComponent } from './components/settings-table/settings-table.component';
+import { DistanceSliderComponent } from './components/distance-slider/distance-slider.component';
 
 
 
@@ -47,6 +48,7 @@ import { SettingsTableComponent } from './components/settings-table/settings-tab
     DeviceDiagnosticsComponent,
     ConnectionStatusComponent,
     SettingsTableComponent,
+    DistanceSliderComponent,
     DialogComponent,
     WebviewDirective,
     CommonModule,

@@ -1,0 +1,13 @@
+<span>{{ (minValue >= 100) ? minValue/100 : minValue }} {{ minValue >= 100 ? 'mt' : 'cm' }}</span>
+<mat-slider
+  [min]="minValue"
+  [max]="maxValue"
+  step="1"
+  showTickMarks
+  discrete
+  [displayWith]="toReadableDistance.bind(this)"
+  [disabled]="disabled"
+  (change)="onSliderValue($event)">
+  <input matSliderThumb [(ngModel)]="sliderValue">
+</mat-slider>
+<span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>

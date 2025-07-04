@@ -1,27 +1,18 @@
 <mat-card>
+
   <mat-card-header class="device-status">
     <h4>Device control
       <mat-spinner diameter="20" *ngIf="!(settings$ | async) || (isBusy$ | async)"></mat-spinner>
     </h4>
     <app-connection-status [deviceSN]="(serialNumber$ | async)!"></app-connection-status>
   </mat-card-header>
+
   <mat-card-content>
 
-    <div class="distance-slider">
-      <span>{{ (minValue >= 100) ? minValue/100 : minValue }} {{ minValue >= 100 ? 'mt' : 'cm' }}</span>
-      <mat-slider
-        [min]="minValue" 
-        [max]="maxValue" 
-        step="1" 
-        showTickMarks 
-        discrete 
-        [displayWith]="toReadableDistance.bind(this)" 
-        [disabled]="isBusy$ | async"
-        (change)="onSliderChange($event)">
-        <input matSliderThumb [(ngModel)]="sliderValue">
-      </mat-slider>
-      <span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>
-    </div>
+    <app-distance-slider
+      [value]="sliderValue"
+      [disabled]="isBusy$ | async"
+      (onSliderChange)="onSliderChange($event)"></app-distance-slider>
 
     <app-beacon-url-form></app-beacon-url-form>
 
@@ -30,4 +21,5 @@
       [style.visibility]="(settings$ | async) ? 'visible' : 'hidden'"></app-settings-table>
 
   </mat-card-content>
+
 </mat-card>

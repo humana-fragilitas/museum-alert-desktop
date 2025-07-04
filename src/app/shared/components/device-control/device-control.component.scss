@@ -42,65 +42,6 @@ h3 {
     margin-left: auto;
 }
 
-.device-specs {
-
-    border-spacing: 0;
-    width: 100%;
-    margin: 10px 0;
-
-}
-
 app-connection-status {
     margin-left: auto;
-}
-
-.device-spec-value {
-
-    font-family: 'Courier New', Courier, monospace;
-    
-}
-
-.device-specs tr td {
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
-}
-
-.device-specs tr:last-child td {
-    border-bottom: none;
-}
-
-.distance-slider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-
-    span {
-        white-space: nowrap;
-    }
-}
-
-mat-slider {
-  .mat-mdc-slider-thumb {
-    .mat-mdc-slider-thumb-knob {
-      // Remove the circular shape
-      border-radius: 0 !important;
-      // Make it rectangular
-      width: 40px !important;
-      height: 24px !important;
-      // Adjust positioning
-      transform: translate(-50%, -50%) !important;
-    }
-  }
-  
-  // Override the thumb label (if using discrete slider)
-  .mat-mdc-slider-thumb-label {
-    border-radius: 4px 4px 0 0 !important;
-    min-width: 40px !important;
-    height: 28px !important;
-    
-    .mat-mdc-slider-thumb-label-text {
-      font-size: 12px !important;
-      line-height: 28px !important;
-    }
-  }
 }

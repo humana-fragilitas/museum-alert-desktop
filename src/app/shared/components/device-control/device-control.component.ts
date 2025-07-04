@@ -14,6 +14,7 @@ import { DeviceConfigurationService } from '../../../core/services/device-config
 import { BeaconUrlFormComponent } from '../beacon-url-form/beacon-url-form.component';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { SettingsTableComponent } from '../settings-table/settings-table.component';
+import { DistanceSliderComponent } from '../distance-slider/distance-slider.component';
 
 @Component({
   selector: 'app-device-control',
@@ -27,6 +28,7 @@ import { SettingsTableComponent } from '../settings-table/settings-table.compone
     ConnectionStatusComponent,
     BeaconUrlFormComponent,
     SettingsTableComponent,
+    DistanceSliderComponent,
     MatSliderModule,
     FormatDistancePipe,
     CommonModule,
@@ -39,10 +41,7 @@ export class DeviceControlComponent implements OnInit {
   public readonly isBusy$ = this.deviceConfigurationService.isBusy$;
   public readonly settings$ = this.deviceConfigurationService.settings$;
   public readonly serialNumber$ = this.deviceService.serialNumber$;
-  public readonly minValue = 5;
-  public readonly maxValue = 500;
-  public disabled = true;
-  public sliderValue = this.minValue
+  public sliderValue: number = 0;
 
   constructor(
     public readonly mqttService: MqttService,
@@ -63,21 +62,11 @@ export class DeviceControlComponent implements OnInit {
 
   };
 
-  toReadableDistance(value: number): string {
-
-    return this.formatDistancePipe.transform(value);
-
-  }
-
-  onSliderChange(event: Event) {
-
-    const distance = Number((event.target as HTMLInputElement).value);
+  onSliderChange(distance: number) {
 
     this.sliderValue = Number(distance);
 
     console.log(`Setting minimum alarm distance to: ${distance} cm`);
-
-    this.disabled = true;
 
     this.deviceConfigurationService.saveSettings(
       {
