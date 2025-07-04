@@ -27,7 +27,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
       MatProgressSpinnerModule
     ]
 })
-export class BeaconUrlFormComponent implements OnInit, OnDestroy {
+export class BeaconUrlFormComponent implements OnInit {
 
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
@@ -35,7 +35,6 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
   public isSubmitting = false;
   public isEditable = false;
   public isBeaconUrlSet = false;
-  private subscription: Subscription = new Subscription();
 
   beaconUrlForm = new FormGroup({
     beaconUrl: new FormControl(
@@ -74,12 +73,6 @@ export class BeaconUrlFormComponent implements OnInit, OnDestroy {
 
     console.log('CompanyForm INIT');
     
-  }
-
-  ngOnDestroy(): void {
-
-    this.subscription.unsubscribe();
-
   }
 
   async onSubmit() {

@@ -59,22 +59,7 @@ export class DeviceControlComponent implements OnInit {
       }
     });
 
-
   };
-
-  onSliderChange(distance: number) {
-
-    this.sliderValue = Number(distance);
-
-    console.log(`Setting minimum alarm distance to: ${distance} cm`);
-
-    this.deviceConfigurationService.saveSettings(
-      {
-        distance
-      }
-    ).finally();
-
-  }
 
   ngOnInit(): void {
 

@@ -5,6 +5,8 @@ import { DeviceConfiguration } from '../../../core/services/mqtt/mqtt.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
+import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-distance-slider',
@@ -18,13 +20,17 @@ import { FormsModule } from '@angular/forms';
   ]
 })
 export class DistanceSliderComponent implements OnInit {
-  private minDefaultValue = 0;
+
+  private minDefaultValue = 5;
   private maxDefaultValue = 500;
+  public sliderValue: number = this.minDefaultValue;
   
   // Backing fields to store the actual values
   private _minValue: number = this.minDefaultValue;
   private _maxValue: number = this.maxDefaultValue;
   private _value: number = this.minDefaultValue; // Backing field for current value
+
+  public readonly isBusy$ = this.deviceConfigurationService.isBusy$;
 
   @Input()
   set minValue(value: number) {
@@ -77,33 +83,47 @@ export class DistanceSliderComponent implements OnInit {
     return this._value;
   }
 
-  // This getter is used by ngModel in the template
-  get sliderValue(): number {
-    return this._value;
-  }
-
-  set sliderValue(val: number) {
-    this._value = val;
-  }
-
-  @Input() disabled: boolean = true;
-  @Output() onSliderChange = new EventEmitter<number>();
-
   constructor(
-    private formatDistancePipe: FormatDistancePipe
-  ) {}
+    private formatDistancePipe: FormatDistancePipe,
+    private deviceConfigurationService: DeviceConfigurationService
+  ) {
+
+    this.deviceConfigurationService
+        .settings$
+        .pipe(takeUntilDestroyed())
+        .subscribe((configuration) => {
+
+      if (configuration) this.sliderValue = configuration.distance!;
+
+    });
+
+  }
 
   ngOnInit(): void {
+    
     console.log('DistanceSliderComponent INIT');
+
   }
 
-  onSliderValue(event: Event) {
+  onSliderChange(event: Event) {
+
     const distance = Number((event.target as HTMLInputElement).value);
     this._value = distance; // Update internal value
-    this.onSliderChange.emit(distance);
+
+    this.sliderValue = Number(distance);
+
+    console.log(`Setting minimum alarm distance to: ${distance} cm`);
+
+    this.deviceConfigurationService.saveSettings(
+      {
+        distance
+      }
+    ).finally();
+
   }
 
   toReadableDistance(value: number): string {
     return this.formatDistancePipe.transform(value);
   }
+
 }

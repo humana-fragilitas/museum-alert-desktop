@@ -22,7 +22,7 @@ export class RedirectService {
       console.log(`Session ${user ? 'is valid' : 'expired' }: redirecting to ${redirectTarget[0]}`);
       
       /**
-       * Redirecting to another page without waiting for next tick
+       * Redirecting without waiting for next tick
        * causes an error in Amplify UI AuthenticatorComponent
        * ngOnDestroy lifecycle method
        */

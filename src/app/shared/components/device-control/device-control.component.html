@@ -9,10 +9,7 @@
 
   <mat-card-content>
 
-    <app-distance-slider
-      [value]="sliderValue"
-      [disabled]="isBusy$ | async"
-      (onSliderChange)="onSliderChange($event)"></app-distance-slider>
+    <app-distance-slider></app-distance-slider>
 
     <app-beacon-url-form></app-beacon-url-form>
 

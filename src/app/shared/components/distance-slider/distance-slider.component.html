@@ -6,8 +6,8 @@
   showTickMarks
   discrete
   [displayWith]="toReadableDistance.bind(this)"
-  [disabled]="disabled"
-  (change)="onSliderValue($event)">
+  [disabled]="isBusy$ | async"
+  (change)="onSliderChange($event)">
   <input matSliderThumb [(ngModel)]="sliderValue">
 </mat-slider>
 <span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>
