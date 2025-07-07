@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../app/shared/models';
 
+// TO DO: leave the map here? Probably yes since it is specific of this class
 interface ErrorsMap {
   [ErrorType.APP_ERROR]: { [key in AppErrorType] : string };
   [ErrorType.DEVICE_ERROR]: { [key in DeviceErrorType] : string };

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { MqttCommandType, MqttService } from '../mqtt/mqtt.service';
+import { MqttService } from '../mqtt/mqtt.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { DeviceConfiguration } from '../mqtt/mqtt.service';
+import { MqttCommandType, DeviceConfiguration } from '../../models';
 
 
 @Injectable({

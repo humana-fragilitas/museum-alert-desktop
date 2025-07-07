@@ -1,13 +1,8 @@
-import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
-import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
-import { Subscription } from 'rxjs';
 import { DeviceAppState } from '../../../../../app/shared/models';
-import { MatStepper } from '@angular/material/stepper';
-import { AuthService } from '../../../core/services/auth/auth.service';
 import { AsyncPipe, CommonModule } from '@angular/common';
-import { MatCard, MatCardContent, MatCardFooter, MatCardHeader, MatCardModule } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 

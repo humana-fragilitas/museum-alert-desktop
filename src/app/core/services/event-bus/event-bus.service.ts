@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, filter, map } from 'rxjs';
 
+// TO DO: keep the event bus?
+
 /**
  * Possible improvements:
  *

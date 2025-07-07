@@ -2,9 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
-import { HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { DeviceRegistryService, Sensor } from '../../../core/services/device-registry/device-registry.service';
+import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
 import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -31,7 +29,7 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly authService: AuthService,
-    private provisioningService: ProvisioningService,
+    private readonly provisioningService: ProvisioningService,
     public readonly deviceService: DeviceService,
     private readonly dialogService: DialogService,
     private readonly deviceRegistryService: DeviceRegistryService,

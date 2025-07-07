@@ -3,10 +3,10 @@ import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
 import { Observable, of, catchError, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CompanyService, CompanyWithUserContext } from '../services/company/company.service';
+import { CompanyService } from '../services/company/company.service';
+import { CompanyWithUserContext } from '../models';
 import { NotificationService } from '../services/notification/notification.service';
 import { AppErrorType, ErrorType } from '../../../../app/shared/models';
-import { AuthenticationExpiredError } from '../interceptors/auth-token.interceptor';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({

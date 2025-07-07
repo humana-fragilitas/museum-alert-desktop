@@ -13,7 +13,8 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { CompanyService, UpdateCompanyRequest } from '../../../core/services/company/company.service';
+import { CompanyService } from '../../../core/services/company/company.service';
+import { UpdateCompanyRequest } from '../../../core/models';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,8 +22,7 @@ import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { NotificationService } from '../../../core/services/notification/notification.service';
-import { ApiErrorResponse, AppErrorType, ErrorType } from '../../../../../app/shared/models';
-import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
+import { AppErrorType, ErrorType } from '../../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({

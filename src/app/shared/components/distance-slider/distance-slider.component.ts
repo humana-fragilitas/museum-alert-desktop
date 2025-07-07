@@ -1,7 +1,5 @@
-import { Component, Input, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DeviceConfiguration } from '../../../core/services/mqtt/mqtt.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';

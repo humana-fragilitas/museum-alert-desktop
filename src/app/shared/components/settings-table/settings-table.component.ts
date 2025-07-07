@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { DeviceConfiguration } from '../../../core/services/mqtt/mqtt.service';
+import { DeviceConfiguration } from '../../../core/models';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
  
 @Component({

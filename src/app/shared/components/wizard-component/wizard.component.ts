@@ -1,11 +1,9 @@
 import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, AfterViewInit } from '@angular/core';
 import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
-import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { DeviceAppState, USBCommandType } from '../../../../../app/shared/models';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
-import { AuthService } from '../../../core/services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { ProvisioningComponent } from '../provisioning/provisioning.component';
 import { DeviceControlComponent } from '../device-control/device-control.component';
@@ -41,9 +39,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   private latestAppStatus: Nullable<DeviceAppState> = null;
 
   constructor(
-    public deviceService: DeviceService,
-    private provisioningService: ProvisioningService,
-    private authService: AuthService
+    public deviceService: DeviceService
   ) {}
 
   ngOnInit(): void {

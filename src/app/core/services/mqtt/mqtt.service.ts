@@ -4,77 +4,21 @@ import { APP_CONFIG } from '../../../../environments/environment';
 import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
 
 import mqtt from 'mqtt';
-import { v4 as uuidv4 } from "uuid";
 
 import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import { DeviceService } from '../device/device.service';
 import { PendingRequest } from '../../../../../app/shared/models';
+import { BaseMqttMessage,
+         MqttMessage,
+         MqttCommandType,
+         ConnectionStatus,
+         MqttMessageType,
+         DeviceConfiguration,
+         AlarmPayload
+       } from '../../models';
 
-// Outgoing messages:
-// from device to app
-export enum MqttMessageType {
-  ALARM,
-  CONNECTION_STATUS,
-  CONFIGURATION,
-  ACK
-}
-
-// Incoming messages:
-// from app to device
-export enum MqttCommandType {
-  RESET,
-  GET_CONFIGURATION,
-  SET_CONFIGURATION
-}
-
-export interface AlarmPayload {
-  timestamp: number;
-  distance: number;
-}
-
-export interface ConnectionStatus {
-  connected: boolean;
-}
-
-export interface BaseDeviceConfiguration {
-  distance?: number;
-  beaconUrl?: string;
-  firmware?: string;
-}
-
-export type DeviceConfiguration = BaseDeviceConfiguration & (
-  | { distance: number }
-  | { beaconUrl: string }
-  | { firmware: string }
-);
-
-// Base message interface with common properties
-export interface BaseMqttMessage<T> {
-  type: MqttMessageType;
-  cid?: string
-  sn: string;
-  timestamp: number;
-  data: T;
-}
-
-// TO DO: is it needed?
-interface ResetCommand {
-  type: MqttMessageType
-}
-
-// Type mapping for each message type
-type MessageDataMap = {
-  [MqttMessageType.ALARM]: AlarmPayload;
-  [MqttMessageType.CONNECTION_STATUS]: ConnectionStatus;
-  [MqttMessageType.CONFIGURATION]: DeviceConfiguration;
-}
-
-// Final discriminated union type
-export type MqttMessage = {
-  [K in keyof MessageDataMap]: BaseMqttMessage<MessageDataMap[K]> & { type: K }
-}[keyof MessageDataMap];
 
 @Injectable({
   providedIn: 'root'

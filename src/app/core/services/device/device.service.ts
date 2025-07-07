@@ -1,7 +1,7 @@
 import { Injectable, Inject, NgZone } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
 import { v4 as uuidv4 } from "uuid";
-import { WINDOW } from '../shared/window';
+import { WINDOW } from '../../tokens/window';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,
          DeviceAppState,
@@ -9,9 +9,8 @@ import { DeviceIncomingData,
          WiFiNetwork,
          DeviceErrorType,
          PendingRequest } from '../../../../../app/shared/models';
-import { AlarmPayload } from '../mqtt/mqtt.service';
+import { AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '../../models';
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
-import { DeviceConfiguration, BaseMqttMessage } from '../mqtt/mqtt.service';
 import { USBCommandType } from '../../../../../app/shared/models';
 import { titleStyle } from '../../../shared/helpers/console.helper';
 

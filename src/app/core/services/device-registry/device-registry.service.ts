@@ -4,19 +4,9 @@ import { APP_CONFIG } from '../../../../environments/environment';
 import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { DeviceService } from '../device/device.service';
+import { Sensor, ListThingsResponse } from '../../models';
 
-export interface Sensor {
-  thingName: string;
-  company: string;
-}
-
-export interface ListThingsResponse {
-  company: string;
-  things: Sensor[];
-  totalCount: number;
-  nextToken?: string;
-  hasMore: boolean;
-}
+// TO DO: wrap api responses into proper models
 
 @Injectable({
   providedIn: 'root'
@@ -87,3 +77,4 @@ export class DeviceRegistryService {
   }
 
 }
+import { format } from 'path';
