@@ -14,6 +14,10 @@
 
 # Introduction
 
+## References
+
+- https://skeleton-loader.web.app
+
 Bootstrap and package your project with Angular 19 and Electron 36 (Typescript + SASS + Hot Reload) for creating Desktop applications.
 
 Currently runs with:

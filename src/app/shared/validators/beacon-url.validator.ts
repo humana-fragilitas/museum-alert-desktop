@@ -32,6 +32,6 @@ export function beaconUrlValidator(): ValidatorFn {
       return eddystoneValidation;
     }
 
-    return null; // Both validations passed
+    return null; // All validations passed
   };
 }

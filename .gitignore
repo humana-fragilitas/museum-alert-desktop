@@ -5,3 +5,4 @@ release
 .nx
 *.js
 *.js.map
+.DS_Store
