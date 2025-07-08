@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { fetchAuthSession,
          FetchAuthSessionOptions,
          AuthSession,
@@ -36,12 +36,17 @@ export class AuthService {
 
   constructor() {
 
+    console.log('AuthService instance created');
+
     Amplify.configure(APP_CONFIG.aws.amplify);
-    
-    this.user.subscribe((user) => {
+
+    this.user.pipe(
+      distinctUntilChanged()
+    ).subscribe((user) => {
+
+      this.fetchSession();
 
       if (user) {
-        this.fetchSession();
         this.getUserAttributes();
       }
 

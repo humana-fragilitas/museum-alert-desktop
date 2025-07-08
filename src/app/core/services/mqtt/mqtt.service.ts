@@ -47,7 +47,7 @@ export class MqttService {
   }
 
   private initializeAuthSubscription(): void {
-    this.authSubscription = this.authService.sessionData.subscribe((sessionData: Nullable<AuthSession>) => {
+    this.authSubscription = this.authService.sessionData$.subscribe((sessionData: Nullable<AuthSession>) => {
       this.handleSessionChange(sessionData);
     });
   }
@@ -121,6 +121,11 @@ export class MqttService {
   }
 
   async connect(sessionData: AuthSession): Promise<void> {
+
+    if (sessionData && sessionData.tokens?.idToken?.payload['custom:hasPolicy'] !== '1') {
+      console.log('User does not have an iot policy attached yet; skipping...');
+    }
+
     if (this.isConnecting) {
       console.log('Connection already in progress, skipping...');
       return;

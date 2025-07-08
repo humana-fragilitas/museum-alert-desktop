@@ -16,7 +16,7 @@ export class RedirectService {
   ) {
 
     this.authService.user$.subscribe((user) => {
-
+      
       const redirectTarget = user ? ['/device'] : ['/index'];
 
       console.log(`Session ${user ? 'is valid' : 'expired' }: redirecting to ${redirectTarget[0]}`);
