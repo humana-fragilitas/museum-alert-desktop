@@ -15,28 +15,21 @@ import {
 } from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
 import { UpdateCompanyRequest } from '../../../core/models';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatButtonModule } from '@angular/material/button';
 import { NotificationService } from '../../../core/services/notification/notification.service';
 import { AppErrorType, ErrorType } from '../../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
+import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 @Component({
   selector: 'app-company-form',
   templateUrl: './company-form.component.html',
   styleUrls: ['./company-form.component.scss'],
   imports: [
-    MatButtonModule,
     CommonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
     ReactiveFormsModule,
-    MatProgressSpinnerModule
+    ...COMMON_MATERIAL_IMPORTS,
+    ...FORM_MATERIAL_IMPORTS
   ],
   encapsulation: ViewEncapsulation.None,
 })

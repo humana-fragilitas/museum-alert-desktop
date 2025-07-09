@@ -3,12 +3,12 @@ import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.c
 import { DeviceService } from '../../../core/services/device/device.service';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { DeviceAppState, USBCommandType } from '../../../../../app/shared/models';
-import { MatStepper, MatStepperModule } from '@angular/material/stepper';
+import { MatStepper } from '@angular/material/stepper';
 import { CommonModule } from '@angular/common';
 import { ProvisioningComponent } from '../provisioning/provisioning.component';
 import { DeviceControlComponent } from '../device-control/device-control.component';
 import { DeviceDiagnosticsComponent } from '../device-diagnostics/device-diagnostics.component';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 @Component({
   selector: 'app-wizard',
@@ -17,11 +17,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   imports: [
     WiFiCredentialsComponent,
     CommonModule,
-    MatStepperModule,
     ProvisioningComponent,
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
-    MatProgressSpinnerModule
+    ...COMMON_MATERIAL_IMPORTS
   ],
   encapsulation: ViewEncapsulation.None
 })

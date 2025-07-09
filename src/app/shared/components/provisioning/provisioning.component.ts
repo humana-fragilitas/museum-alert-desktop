@@ -5,21 +5,18 @@ import { AuthService } from '../../../core/services/auth/auth.service';
 import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
 import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 import { CompanyService } from '../../../core/services/company/company.service';
 import { USBCommandType } from '../../../../../app/shared/models';
+import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 @Component({
   selector: 'app-provisioning',
   templateUrl: './provisioning.component.html',
   styleUrls: ['./provisioning.component.scss'],
   imports: [
-    AsyncPipe,
     CommonModule,
-    MatProgressSpinnerModule,
-    MatButtonModule
+    ...COMMON_MATERIAL_IMPORTS
   ]
 })
 export class ProvisioningComponent implements OnInit, OnDestroy {

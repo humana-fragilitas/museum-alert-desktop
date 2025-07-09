@@ -1,31 +1,23 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatButtonModule } from '@angular/material/button';
 import { beaconUrlValidator } from '../../validators/beacon-url.validator';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
  
 @Component({
   selector: 'app-beacon-url-form',
   templateUrl: './beacon-url-form.component.html',
   styleUrls: ['./beacon-url-form.component.scss'],
   imports: [
-      MatButtonModule,
-      CommonModule,
-      MatFormFieldModule,
-      MatInputModule,
-      MatIconModule,
-      ReactiveFormsModule,
-      MatProgressSpinnerModule
-    ]
+    CommonModule,
+    ReactiveFormsModule,
+    ...COMMON_MATERIAL_IMPORTS,
+    ...FORM_MATERIAL_IMPORTS,
+  ]
 })
 export class BeaconUrlFormComponent implements OnInit {
 

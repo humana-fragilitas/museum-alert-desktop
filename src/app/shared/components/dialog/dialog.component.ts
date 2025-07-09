@@ -1,10 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DialogData, DialogType } from '../../../core/models';
+import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 
 @Component({
@@ -12,11 +10,8 @@ import { DialogData, DialogType } from '../../../core/models';
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.scss'],
   imports: [
-    MatIconModule,
-    MatDialogModule,
     CommonModule,
-    MatButtonModule,
-    MatExpansionModule
+    ...COMMON_MATERIAL_IMPORTS
   ]
 })
 export class DialogComponent {
@@ -31,6 +26,7 @@ constructor(
   }
 
   getIcon(): string {
+
     if (this.data.icon) return this.data.icon;
     
     switch (this.data.type) {
@@ -41,13 +37,17 @@ constructor(
       case DialogType.CONFIRM: return 'help';
       default: return 'info';
     }
+
   }
 
   getIconClass(): string {
+
     return `icon-${this.data.type}`;
+
   }
 
   getButtonColor(): string {
+
     switch (this.data.type) {
       // case DialogType.ERROR: return 'warn'; USEFUL FOR ERROR DIALOGS
       case DialogType.ERROR: return 'primary';
@@ -56,21 +56,28 @@ constructor(
       case DialogType.CONFIRM: return 'primary';
       default: return 'primary';
     }
+
   }
 
   getDefaultConfirmText(): string {
+
     switch (this.data.type) {
       case DialogType.CONFIRM: return 'Yes';
       default: return 'OK';
     }
+
   }
 
   onConfirm(): void {
+
     this.dialogRef.close({ confirmed: true });
+
   }
 
   onCancel(): void {
+
     this.dialogRef.close({ confirmed: false });
+    
   }
 
 }

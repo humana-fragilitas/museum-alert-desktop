@@ -1,10 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
-import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 @Component({
   selector: 'app-distance-slider',
@@ -13,8 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [
     CommonModule,
     FormsModule,
-    FormatDistancePipe,
-    MatSliderModule
+    ...FORM_MATERIAL_IMPORTS
   ]
 })
 export class DistanceSliderComponent implements OnInit {

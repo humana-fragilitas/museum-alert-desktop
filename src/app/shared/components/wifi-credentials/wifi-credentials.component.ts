@@ -10,20 +10,17 @@ import { CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 @Component({
   selector: 'app-wifi-credentials',
   templateUrl: './wifi-credentials.component.html',
   styleUrls: ['./wifi-credentials.component.scss'],
   imports: [
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
-    MatButtonModule,
     ReactiveFormsModule,
-    MatProgressSpinnerModule,
     CommonModule,
-    MatSelectModule
+    ...COMMON_MATERIAL_IMPORTS,
+    ...FORM_MATERIAL_IMPORTS
   ]
 })
 export class WiFiCredentialsComponent implements OnInit, OnDestroy {

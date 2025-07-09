@@ -1,34 +1,28 @@
 import { Component, OnInit } from '@angular/core';
 import { DeviceAppState } from '../../../../../app/shared/models';
 import { MqttService } from '../../../core/services/mqtt/mqtt.service';
-import { MatCardModule } from '@angular/material/card';
-import { AsyncPipe, CommonModule } from '@angular/common';
 import { ConnectionStatusComponent } from '../connection-status/connection-status.component';
-import { MatSliderModule } from '@angular/material/slider';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { FormsModule } from '@angular/forms';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 import { BeaconUrlFormComponent } from '../beacon-url-form/beacon-url-form.component';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { SettingsTableComponent } from '../settings-table/settings-table.component';
 import { DistanceSliderComponent } from '../distance-slider/distance-slider.component';
+import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { AsyncPipe, CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-device-control',
   templateUrl: './device-control.component.html',
   styleUrls: ['./device-control.component.scss'],
   imports: [
-    FormsModule,
-    MatCardModule,
+    CommonModule,
     AsyncPipe,
     ConnectionStatusComponent,
     BeaconUrlFormComponent,
     SettingsTableComponent,
     DistanceSliderComponent,
-    MatSliderModule,
-    CommonModule,
-    MatProgressSpinnerModule
+    ...COMMON_MATERIAL_IMPORTS
   ]
 })
 export class DeviceControlComponent implements OnInit {

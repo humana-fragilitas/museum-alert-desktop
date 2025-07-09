@@ -1,36 +1,27 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { DeviceAppState } from '../../../../../app/shared/models';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CommonModule } from '@angular/common';
+import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 
 @Component({
   selector: 'app-device-state',
   templateUrl: './device-state.component.html',
   styleUrls: ['./device-state.component.scss'],
   imports: [ 
-    AsyncPipe,
     CommonModule,
-    MatCardModule,
-    MatChipsModule,
-    MatProgressSpinnerModule
+    ...COMMON_MATERIAL_IMPORTS
   ]
 })
-export class DeviceStateComponent implements OnInit, OnDestroy {
+export class DeviceStateComponent implements OnInit {
 
   public readonly deviceAppState = DeviceAppState;
 
-  constructor(public readonly deviceService: DeviceService) {};
+  constructor(public readonly deviceService: DeviceService) {}
 
   ngOnInit(): void {
 
     console.log('DeviceStateComponent INIT');
-
-  }
-
-  ngOnDestroy(): void {
 
   }
 

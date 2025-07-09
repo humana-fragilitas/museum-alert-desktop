@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DeviceConfiguration } from '../../../core/models';
@@ -13,7 +13,7 @@ import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
     FormatDistancePipe
   ]
 })
-export class SettingsTableComponent implements OnInit, OnDestroy {
+export class SettingsTableComponent implements OnInit {
 
   @Input() data$!: Observable<DeviceConfiguration | null>;
 
@@ -21,11 +21,6 @@ export class SettingsTableComponent implements OnInit, OnDestroy {
 
     console.log('SettingsTableComponent INIT');
     
-  }
-
-  ngOnDestroy(): void {
-
-
   }
   
 }

@@ -22,7 +22,8 @@ import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../shared/uti
     RouterModule,
     ...COMMON_MATERIAL_IMPORTS,
     ...FORM_MATERIAL_IMPORTS,
-    CompanyFormComponent]
+    CompanyFormComponent
+  ]
 })
 export class ProfileComponent implements OnInit {
 
