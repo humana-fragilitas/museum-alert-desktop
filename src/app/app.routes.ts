@@ -4,6 +4,8 @@ import { HomeComponent } from './features/home/home.component';
 import { DeviceComponent } from './features/device/device.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { CompanyResolver } from './core/resolvers/company.resolver';
+import { userSessionGuard } from './core/guards/user-session.guard';
+import { publicOnlyGuard } from './core/guards/public-only.guard';
 
 export const routes: Routes = [
   {
@@ -13,22 +15,23 @@ export const routes: Routes = [
   },
   {
     path: 'index',
+    canActivate: [publicOnlyGuard],
     component: HomeComponent
   },
   {
-    // TODO: add user in session guard
     path: 'device',
+    canActivate: [userSessionGuard],
     component: DeviceComponent
   },
   {
-    // TODO: add user in session guard
     path: 'profile',
+    canActivate: [userSessionGuard],
     component: ProfileComponent,
     resolve: [CompanyResolver]
+  },
+  {
+    // Redirect any unmatched paths to index
+    path: '**',
+    redirectTo: 'index'
   }
-  // TODO: Uncomment when you have PageNotFoundComponent
-  // {
-  //   path: '**',
-  //   component: PageNotFoundComponent
-  // }
 ];
