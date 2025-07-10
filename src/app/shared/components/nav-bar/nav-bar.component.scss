@@ -1,0 +1,46 @@
+.auth-user-nav {
+    position: fixed;
+    display: flex;
+    flex-direction: row;
+    align-items: anchor-center;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background-color: var(--mat-sys-primary-container);
+    box-shadow: var(--mdc-elevated-card-container-elevation, var(--mat-sys-level3));
+}
+
+.auth-user-email {
+    margin: 20px;
+    &:disabled {
+        color: var(--mat-sys-on-surface-variant);
+    }
+    &--spinner {
+        --mdc-circular-progress-active-indicator-color: var(--mat-sys-on-surface-variant);
+    }
+}
+
+button {
+    margin: 2px 20px 2px auto;
+}
+
+.auth-user-email.active-profile-button {
+    background-color: var(--mat-sys-primary) !important;
+    color: var(--mat-sys-on-primary) !important;
+    border: none !important;
+    
+    .mat-icon {
+        color: var(--mat-sys-on-primary) !important;
+    }
+    pointer-events: none;
+}
+
+mat-progress-spinner {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    margin-right: 8px;
+    margin-left: -6px;
+    margin-top: -3px;
+}

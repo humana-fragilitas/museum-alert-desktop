@@ -3,11 +3,10 @@ import { ElectronService } from './core/services/electron/electron.service';
 import { AuthService } from './core/services/auth/auth.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet } from '@angular/router';
-import { CompanyService } from './core/services/company/company.service';
 import { COMMON_MATERIAL_IMPORTS } from './shared/utils/material-imports';
+import { NavBarComponent } from './shared/components/nav-bar/nav-bar.component';
 
 @Component({
   selector: 'app-root',
@@ -16,22 +15,18 @@ import { COMMON_MATERIAL_IMPORTS } from './shared/utils/material-imports';
   imports: [
     CommonModule,
     RouterOutlet,
-    RouterModule,
+    NavBarComponent,
     ...COMMON_MATERIAL_IMPORTS
   ],
 })
 export class AppComponent {
 
-  public readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
   public readonly user$ = this.authService.user$;
-  public readonly userAttributes$ = this.authService.userAttributes$;
 
   constructor(
     private electronService: ElectronService,
     private translate: TranslateService,
-    private authService: AuthService,
-    private authenticatorService: AuthenticatorService,
-    private companyService: CompanyService
+    private authService: AuthService
   ) {
 
     this.translate.setDefaultLang('en');
@@ -46,10 +41,6 @@ export class AppComponent {
       console.log('Run in browser');
     }
   
-  }
-
-  signOut() {
-    this.authenticatorService.signOut();
   }
 
 }
