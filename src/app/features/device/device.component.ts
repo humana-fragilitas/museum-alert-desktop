@@ -4,7 +4,6 @@ import { DeviceStateComponent } from '../../shared/components/device-state/devic
 import { WizardComponent } from '../../shared/components/wizard-component/wizard.component';
 import { COMMON_MATERIAL_IMPORTS } from '../../shared/utils/material-imports';
 
-
 @Component({
   selector: 'app-device',
   templateUrl: './device.component.html',

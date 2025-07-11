@@ -23,6 +23,7 @@ import { RedirectService } from './core/services/redirect/redirect.service';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { MqttService } from './core/services/mqtt/mqtt.service';
 import { PolicyService } from './core/services/policy/policy.service';
+import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 
 // AoT requires an exported function for factories
 export function httpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -64,6 +65,10 @@ export const appConfig: ApplicationConfig = {
     ),
     
     // App initializer for early services
-    provideAppInitializer(instantiateEarlyServices)
+    provideAppInitializer(instantiateEarlyServices),
+    {
+      provide: STEPPER_GLOBAL_OPTIONS,
+      useValue: { displayDefaultIndicatorType: false }
+    }
   ]
 };

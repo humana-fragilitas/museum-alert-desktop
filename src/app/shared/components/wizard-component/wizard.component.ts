@@ -104,13 +104,19 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
-  onStep(index: number) {
+ onStep(index: number) {
 
-    Array.from(this.stepper.steps).forEach((step, i, arr) => {
-      step.completed = i < index;
+  const stepsArray = Array.from(this.stepper.steps);
+  const stepsArrayLength = stepsArray.length;
+
+    stepsArray.forEach((step, i, arr) => {
+
+      const isDone = (i < index) || (index == (stepsArrayLength - 1));
+      step.completed = isDone;
       step.editable = false;
-      step.state = 'done';
+      step.state = isDone ? 'done' : 'number';
       this.stepper.selectedIndex = i;
+      
     });
 
   }
