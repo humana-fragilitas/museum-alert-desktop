@@ -3,6 +3,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 /**
  * Custom validator that checks if a URL has an allowed first-level domain
  * Allowed domains: .com, .org, .edu, .net, .info, .biz, .gov, .ly, .co, .sh
+ * Only accepts HTTP/HTTPS URLs or domain names without protocol
  */
 export function firstLevelDomainValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -16,6 +17,26 @@ export function firstLevelDomainValidator(): ValidatorFn {
     ];
 
     const value = control.value.toString().toLowerCase();
+    
+    // Check for non-HTTP/HTTPS protocols
+    if (value.startsWith('ftp:') || 
+        value.startsWith('mailto:') || 
+        value.startsWith('file:') || 
+        value.startsWith('ssh:') || 
+        value.startsWith('telnet:') || 
+        value.startsWith('ldap:') || 
+        value.startsWith('news:') || 
+        value.startsWith('gopher:') || 
+        value.startsWith('wais:') ||
+        (value.includes('://') && !value.startsWith('http://') && !value.startsWith('https://'))) {
+      return { 
+        firstLevelDomain: { 
+          value: control.value, 
+          error: 'Only HTTP and HTTPS URLs are allowed',
+          allowedDomains 
+        } 
+      };
+    }
     
     try {
       // Extract domain from URL
