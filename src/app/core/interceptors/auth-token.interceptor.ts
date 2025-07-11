@@ -34,24 +34,21 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 };
 
 function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequest<any> {
-
   const idToken = authService.sessionData
-                             .value
-                             ?.tokens
-                             ?.idToken
-                             ?.toString();
-
+    .value
+    ?.tokens
+    ?.idToken
+    ?.toString();
+  
   const allowedBasePath = APP_CONFIG.aws.apiGateway;
-
-  if (req.url.startsWith(allowedBasePath)) {
+  
+  if (req.url.startsWith(allowedBasePath) && idToken) {
     const reqWithHeader = req.clone({
-      headers: req.headers.set('Authorization', idToken!),
+      headers: req.headers.set('Authorization', idToken),
     });
     return reqWithHeader;
   }
-
   return req;
-
 }
 
 function handle401Error(dialogService: DialogService, authenticatorService: AuthenticatorService) {
