@@ -4,7 +4,7 @@ import { AuthService } from './core/services/auth/auth.service';
 import { TranslateService } from '@ngx-translate/core';
 import { APP_CONFIG } from '../environments/environment';
 import { CommonModule } from '@angular/common';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { COMMON_MATERIAL_IMPORTS } from './shared/utils/material-imports';
 import { NavBarComponent } from './shared/components/nav-bar/nav-bar.component';
 
