@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { DeviceConfiguration } from '../../../core/models';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
+import { TranslatePipe } from '@ngx-translate/core';
  
 @Component({
   selector: 'app-settings-table',
@@ -10,7 +11,8 @@ import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
   styleUrls: ['./settings-table.component.scss'],
   imports: [
     CommonModule,
-    FormatDistancePipe
+    FormatDistancePipe,
+    TranslatePipe
   ]
 })
 export class SettingsTableComponent implements OnInit {

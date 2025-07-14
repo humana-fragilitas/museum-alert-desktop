@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-wifi-credentials',
@@ -19,6 +20,7 @@ import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/mate
   imports: [
     ReactiveFormsModule,
     CommonModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS,
     ...FORM_MATERIAL_IMPORTS
   ]

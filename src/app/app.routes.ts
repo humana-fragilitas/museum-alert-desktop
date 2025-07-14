@@ -1,8 +1,8 @@
 // app/app.routes.ts
 import { Routes } from '@angular/router';
-import { HomeComponent } from './features/home/home.component';
-import { DeviceComponent } from './features/device/device.component';
-import { ProfileComponent } from './features/profile/profile.component';
+import { HomeComponent } from './pages/home/home.component';
+import { DeviceComponent } from './pages/device/device.component';
+import { ProfileComponent } from './pages/profile/profile.component';
 import { CompanyResolver } from './core/resolvers/company.resolver';
 import { userSessionGuard } from './core/guards/user-session.guard';
 import { publicOnlyGuard } from './core/guards/public-only.guard';

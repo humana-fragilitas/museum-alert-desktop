@@ -194,28 +194,22 @@ export function encodeUrl(url: string, debug: boolean = false): UrlEncodingResul
  * This is the same validator logic used in your Arduino code
  */
 export function validateEddystoneUrl(url: string): { valid: boolean; encodedLength: number; error?: string } {
-  try {
-    const result = encodeUrl(url, false);
-    
-    if (result.length > 18) {
-      return {
-        valid: false,
-        encodedLength: result.length,
-        error: `URL too long after encoding: ${result.length} bytes (max 18)`
-      };
-    }
-
-    return {
-      valid: true,
-      encodedLength: result.length
-    };
-  } catch (error) {
+  
+  const result = encodeUrl(url, false);
+  
+  if (result.length > 18) {
     return {
       valid: false,
-      encodedLength: 0,
-      error: `Encoding error: ${error}`
+      encodedLength: result.length,
+      error: `URL too long after encoding: ${result.length} bytes (max 18)`
     };
   }
+
+  return {
+    valid: true,
+    encodedLength: result.length
+  };
+
 }
 
 /**

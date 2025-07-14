@@ -13,5 +13,7 @@
 
         <span>{{ (userAttributes$ | async)?.email }}</span>
     </button>
-    <button mat-raised-button color="primary" (click)="signOut()" >Sign out</button>
+    <button mat-raised-button color="primary" (click)="signOut()" >
+        {{ 'COMMON.ACTIONS.SIGN_OUT' | translate }}
+    </button>
 </nav>

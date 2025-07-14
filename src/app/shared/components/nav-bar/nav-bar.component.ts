@@ -5,6 +5,7 @@ import { CompanyService } from '../../../core/services/company/company.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-nav-bar',
@@ -13,6 +14,7 @@ import { RouterModule } from '@angular/router';
   imports: [ 
     CommonModule,
     RouterModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })

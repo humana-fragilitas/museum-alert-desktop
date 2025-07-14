@@ -1,7 +1,7 @@
 <mat-card>
 
   <mat-card-header class="device-status">
-    <h4>Device control
+    <h4>{{ 'COMPONENTS.DEVICE_CONTROL.LABEL' | translate }}
       <mat-spinner diameter="20" *ngIf="!(settings$ | async) || (isBusy$ | async)"></mat-spinner>
     </h4>
     <app-connection-status [deviceSN]="(serialNumber$ | async)!"></app-connection-status>

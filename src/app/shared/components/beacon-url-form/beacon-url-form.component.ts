@@ -1,12 +1,13 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CompanyService } from '../../../core/services/company/company.service';
-import { AuthService } from '../../../core/services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { beaconUrlValidator } from '../../validators/beacon-url.validator';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
+import { Observable, of } from 'rxjs';
+
  
 @Component({
   selector: 'app-beacon-url-form',
@@ -15,6 +16,7 @@ import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/mate
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS,
     ...FORM_MATERIAL_IMPORTS,
   ]
@@ -39,9 +41,8 @@ export class BeaconUrlFormComponent implements OnInit {
   });
 
   constructor(
-    private companyService: CompanyService,
-    private authService: AuthService,
-    private deviceConfigurationService: DeviceConfigurationService
+    private deviceConfigurationService: DeviceConfigurationService,
+    private translateService: TranslateService
   ) {
 
     this.deviceConfigurationService
@@ -111,25 +112,43 @@ export class BeaconUrlFormComponent implements OnInit {
     }, 0);
   }
 
-  getErrorMessage(): string {
-      const control = this.beaconUrlForm.get('beaconUrl');
-      if (control?.errors) {
-        if (control.errors['required']) {
-          return 'URL is required';
-        }
-        if (control.errors['url']) {
-          return `Invalid URL: ${control.errors['url'].error}`;
-        }
-        if (control.errors['firstLevelDomain']) {
-          const error = control.errors['firstLevelDomain'];
-          return `Invalid domain "${error.foundDomain}". Allowed domains: ${error.allowedDomains.join(', ')}`;
-        }
-        if (control.errors['eddystoneUrl']) {
-          const error = control.errors['eddystoneUrl'];
-          return `${error.error}`;
-        }
+  getErrorMessage(): Observable<string> {
+
+    const control = this.beaconUrlForm.get('beaconUrl');
+
+    if (control?.errors) {
+      if (control.errors['required']) {
+        return this.translateService.get(
+          _('COMPONENTS.BEACON_URL_FORM.ERRORS.URL_IS_REQUIRED')
+        );
       }
-      return '';
+      if (control.errors['url']) {
+        return this.translateService.get(
+          _('COMPONENTS.BEACON_URL_FORM.ERRORS.URL_IS_INVALID')
+        );
+      }
+      if (control.errors['firstLevelDomain']) {
+        const error = control.errors['firstLevelDomain'];
+        return this.translateService.get(
+          _('COMPONENTS.BEACON_URL_FORM.ERRORS.DOMAIN_IS_INVALID'),
+          {
+            foundDomain: error.foundDomain,
+            allowedDomains: error.allowedDomains.join(', ')
+          }
+        );
+      }
+      if (control.errors['eddystoneUrl']) {
+        const error = control.errors['eddystoneUrl'];
+        return this.translateService.get(
+          _('COMPONENTS.BEACON_URL_FORM.ERRORS.URL_IS_TOO_LONG'),
+          {
+            length: error.encodedLength
+          }
+        );
+      }
     }
+    return of('');
+
+  }
 
 }

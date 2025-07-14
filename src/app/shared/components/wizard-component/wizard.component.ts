@@ -9,6 +9,7 @@ import { ProvisioningComponent } from '../provisioning/provisioning.component';
 import { DeviceControlComponent } from '../device-control/device-control.component';
 import { DeviceDiagnosticsComponent } from '../device-diagnostics/device-diagnostics.component';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-wizard',
@@ -20,6 +21,7 @@ import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
     ProvisioningComponent,
     DeviceControlComponent,
     DeviceDiagnosticsComponent,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ],
   encapsulation: ViewEncapsulation.None

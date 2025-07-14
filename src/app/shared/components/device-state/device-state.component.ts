@@ -3,6 +3,7 @@ import { DeviceService } from '../../../core/services/device/device.service';
 import { DeviceAppState } from '../../../../../app/shared/models';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-device-state',
@@ -10,6 +11,7 @@ import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
   styleUrls: ['./device-state.component.scss'],
   imports: [ 
     CommonModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })

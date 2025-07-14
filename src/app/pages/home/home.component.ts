@@ -4,6 +4,7 @@ import { AuthenticatorService, AmplifyAuthenticatorModule } from '@aws-amplify/u
 import { ProvisioningService } from '../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../core/services/device/device.service';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
@@ -13,7 +14,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    AmplifyAuthenticatorModule
+    AmplifyAuthenticatorModule,
+    TranslatePipe
   ],
   encapsulation: ViewEncapsulation.None
 })

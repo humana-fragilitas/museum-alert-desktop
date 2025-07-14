@@ -4,19 +4,19 @@
   </mat-card-header>
   <mat-card-content>
     <div class="device-diagnostics--info">
-      Try placing you hand in front of the sensor at a distance lesser than you set in the device control panel:
-      red flashes show that the sensor is correctly being able to broacast alerts.
+      {{ 'COMPONENTS.DEVICE_DIAGNOSTICS.CALL_TO_ACTION' | translate }}
     </div>
     <table class="device-diagnostics-table">
       <tr>
         <td class="device-spec-label">
-          {{ (deviceService.alarm$ | async)?
-            "Last alert received at" : "No alerts have been received yet" }}
+          {{ (deviceService.alarm$ | async) ?
+            ('COMPONENTS.DEVICE_DIAGNOSTICS.LAST_ALERT_RECEIVED_AT' | translate) :
+              ('COMPONENTS.DEVICE_DIAGNOSTICS.NO_ALERTS_RECEIVED' | translate) }}
         </td>
         <td class="device-spec-value">{{ (deviceService.alarm$ | async)?.timestamp | date:'M/d/yy, h:mm:ss a' }}</td>
       </tr>
       <tr [style.visibility]="(deviceService.alarm$| async) ? 'visible' : 'hidden'">
-        <td class="device-spec-label">Detected distance</td>
+        <td class="device-spec-label">{{ 'COMPONENTS.DEVICE_DIAGNOSTICS.DETECTED_DISTANCE' | translate }}</td>
         <td class="device-spec-value">{{ ((deviceService.alarm$ | async)?.data?.distance ?? 0) | formatDistance }}</td>
       </tr>
     </table>

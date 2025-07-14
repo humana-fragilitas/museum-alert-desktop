@@ -1,31 +1,47 @@
 <mat-card *ngIf="deviceService.usbConnectionStatus$ | async">
   <mat-card-header class="device-status">
-    <h4>Device found</h4>
+    <h4>{{ 'COMPONENTS.DEVICE_STATE.LABEL' | translate }}</h4>
     <mat-chip [ngSwitch]="(deviceService.deviceAppStatus$ | async)"
               class="device-status-label">
-      <span>Status: </span>
-      <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">ciphering initialization</span>
-      <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">waiting for WiFi configuration</span>
-      <span *ngSwitchCase="deviceAppState.CONFIGURE_CERTIFICATES">waiting for provisioning settings</span>
-      <span *ngSwitchCase="deviceAppState.CONNECT_TO_WIFI">connecting to WiFi</span>
-      <span *ngSwitchCase="deviceAppState.PROVISION_DEVICE">waiting for TLS certificate and private key</span>
-      <span *ngSwitchCase="deviceAppState.CONNECT_TO_MQTT_BROKER">connecting to MQTT Broker</span>
-      <span *ngSwitchCase="deviceAppState.DEVICE_INITIALIZED">initialized</span>
-      <span *ngSwitchDefault>idle</span>
+      <span>{{ 'COMMON.LABELS.STATUS' | translate }}: </span>
+      <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">
+       {{ 'COMPONENTS.DEVICE_STATE.CIPHERING_INITIALIZATION' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">
+        {{ 'COMPONENTS.DEVICE_STATE.WAITING_FOR_WIFI' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_CERTIFICATES">
+        {{ 'COMPONENTS.DEVICE_STATE.WAITING_FOR_PROVISIONING_SETTINGS' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_WIFI">
+        {{ 'COMPONENTS.DEVICE_STATE.CONNECTING_TO_WIFI' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.PROVISION_DEVICE">
+        {{ 'COMPONENTS.DEVICE_STATE.WAITING_FOR_TLS_SETTINGS' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_MQTT_BROKER">
+        {{ 'COMPONENTS.DEVICE_STATE.CONNECTING_TO_MQTT_BROKER' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.DEVICE_INITIALIZED">
+        {{ 'COMPONENTS.DEVICE_STATE.INITIALIZED' | translate }}
+      </span>
+      <span *ngSwitchDefault>
+        {{ 'COMPONENTS.DEVICE_STATE.IDLE' | translate }}
+      </span>
     </mat-chip>
   </mat-card-header>
   <mat-card-content>
     <table *ngIf="deviceService.portInfo$ | async as device" class="device-specs">
       <tr>
-        <td class="device-spec-label">Path</td>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.PATH' | translate }}</td>
         <td class="device-spec-value">{{ device.path }}</td>
       </tr>
       <tr>
-        <td class="device-spec-label">Manufacturer</td>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.MANUFACTURER' | translate }}</td>
         <td class="device-spec-value">{{ device.manufacturer }}</td>
       </tr>
       <tr>
-        <td class="device-spec-label">Serial number</td>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.SERIAL_NUMBER' | translate }}</td>
         <td class="device-spec-value">
           <ng-container *ngIf="(deviceService.serialNumber$ | async) as serialNumber; else loading">
             {{ serialNumber }}
@@ -36,7 +52,7 @@
         </td>
       </tr>
       <tr>
-        <td class="device-spec-label">Product</td>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.PRODUCT' | translate }}</td>
         <td class="device-spec-value">{{ device.productId }}</td>
       </tr>
     </table>
@@ -45,6 +61,6 @@
 
 <mat-card *ngIf="!(deviceService.usbConnectionStatus$ | async)">
   <mat-card-content>
-    <h3>Please connect your Museum Alert Sensor (MAS)<br>to an available USB port on your machine</h3>
+    <h3 [innerHTML]="'COMPONENTS.DEVICE_STATE.CALL_TO_ACTION' | translate"></h3>
   </mat-card-content>
 </mat-card>

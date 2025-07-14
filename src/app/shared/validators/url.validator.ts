@@ -5,7 +5,9 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
  * Supports both http and https protocols
  */
 export function urlValidator(): ValidatorFn {
+  
   return (control: AbstractControl): ValidationErrors | null => {
+
     if (!control.value) {
       return null; // Don't validate empty values (use required validator for that)
     }
@@ -16,12 +18,13 @@ export function urlValidator(): ValidatorFn {
     const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
     
     if (!urlPattern.test(value)) {
+
       return { 
         url: { 
-          value: control.value, 
-          error: 'Invalid URL format' 
+          value: control.value
         } 
       };
+
     }
 
     try {
@@ -37,32 +40,36 @@ export function urlValidator(): ValidatorFn {
       
       // Additional checks
       if (!url.hostname || url.hostname.length === 0) {
+
         return { 
           url: { 
-            value: control.value, 
-            error: 'Invalid hostname' 
+            value: control.value
           } 
         };
+
       }
 
       // Check for valid protocol
       if (!['https:'].includes(url.protocol)) {
+
         return { 
           url: { 
-            value: control.value, 
-            error: 'Protocol must be https' 
+            value: control.value
           } 
         };
+        
       }
 
       return null; // Valid URL
+
     } catch (error) {
+
       return { 
         url: { 
-          value: control.value, 
-          error: 'Invalid URL format' 
+          value: control.value
         } 
       };
+
     }
   };
 }

@@ -4,6 +4,7 @@ import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-device-diagnostics',
@@ -12,6 +13,7 @@ import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
   imports: [
     CommonModule,
     FormatDistancePipe,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })

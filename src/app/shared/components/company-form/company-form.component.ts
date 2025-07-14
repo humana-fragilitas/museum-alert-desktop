@@ -6,7 +6,7 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import { finalize, Subscription } from 'rxjs';
+import { finalize, Observable, of, Subscription } from 'rxjs';
 import {
   FormControl,
   FormGroup,
@@ -20,6 +20,7 @@ import { NotificationService } from '../../../core/services/notification/notific
 import { AppErrorType, ErrorType } from '../../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-company-form',
@@ -28,6 +29,7 @@ import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/mate
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS,
     ...FORM_MATERIAL_IMPORTS
   ],
@@ -56,7 +58,8 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private companyService: CompanyService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private translateService: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -135,6 +138,39 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
 
     return !!this.companyNameForm.get('companyName')?.hasError(error) &&
            !!this.companyNameForm.get('companyName')?.touched;
+
+  }
+
+  getErrorMessage(): Observable<string> {
+
+    const control = this.companyNameForm.get('companyName');
+
+    if (control?.errors) {
+
+      if (control.errors['required']) {
+        return this.translateService.get(
+          _('COMPONENTS.COMPANY_FORM.ERRORS.NAME_IS_REQUIRED')
+        );
+      }
+      if (control.errors['minlength']) {
+        return this.translateService.get(
+          _('COMPONENTS.COMPANY_FORM.ERRORS.NAME_IS_TOO_SHORT'),
+        );
+      }
+      if (control.errors['maxlength']) {
+        return this.translateService.get(
+          _('COMPONENTS.COMPANY_FORM.ERRORS.NAME_IS_TOO_LONG'),
+        );
+      }
+      if (control.errors['pattern']) {
+        return this.translateService.get(
+          _('COMPONENTS.COMPANY_FORM.ERRORS.NAME_DOES_NOT_MATCH_PATTERN')
+        );
+      }
+      
+    }
+    
+    return of('');
 
   }
 

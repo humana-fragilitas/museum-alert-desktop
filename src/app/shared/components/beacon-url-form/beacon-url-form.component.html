@@ -1,9 +1,11 @@
 <form [formGroup]="beaconUrlForm" (ngSubmit)="onSubmit()">
 
   <mat-form-field appearance="fill">
-    <mat-label>Broadcasted beacon URL</mat-label>
+    <mat-label>{{ 'COMPONENTS.BEACON_URL_FORM.LABEL' | translate }}</mat-label>
     <input matInput type="text" formControlName="beaconUrl" #beaconUrl>
-      <mat-error *ngIf="getErrorMessage() && beaconUrlForm.get('beaconUrl')?.touched"><strong>{{getErrorMessage()}}</strong></mat-error>
+      <mat-error *ngIf="(getErrorMessage() | async) && beaconUrlForm.get('beaconUrl')?.touched">
+        <strong>{{getErrorMessage() | async}}</strong>
+      </mat-error>
   </mat-form-field>
 
     <div class="button-cta">
@@ -13,7 +15,7 @@
               type="submit"
               [disabled]="beaconUrlForm.invalid || (isBusy$ | async)">
         <span class="button-content">
-          Submit
+          {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
           <mat-progress-spinner *ngIf="(isBusy$ | async) && isSubmitting" mode="indeterminate" diameter="16"></mat-progress-spinner>
         </span>
       </button>
@@ -23,10 +25,9 @@
         [disabled]="isBusy$ | async"
         (click)="cancel()">
         <span class="button-content">
-          Cancel
+          {{ 'COMMON.ACTIONS.CANCEL' | translate }}
         </span>
       </button>
-
 
   </div>
 
@@ -35,7 +36,7 @@
           [disabled]="isBusy$ | async"
           (click)="edit()">
     <span class="button-content">
-      Edit
+      {{ 'COMMON.ACTIONS.EDIT' | translate }}
     </span>
   </button>
 

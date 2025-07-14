@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { CompanyService } from '../../../core/services/company/company.service';
 import { USBCommandType } from '../../../../../app/shared/models';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-provisioning',
@@ -16,6 +17,7 @@ import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
   styleUrls: ['./provisioning.component.scss'],
   imports: [
     CommonModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })

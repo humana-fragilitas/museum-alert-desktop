@@ -1,12 +1,16 @@
-<h3>You are about to enroll your device<br>in your Company's
-  @if(company$ | async; as company) {
-    <span>({{ company.companyName }})</span>
-  }
-  fleet
-</h3>
+@if(company$ | async; as company) {
+
+  <h3 [innerHTML]="'COMPONENTS.PROVISIONING.EXPLANATORY_MESSAGE_WITH_COMPANY' | translate: { companyName: company.companyName }"></h3>
+
+} @else {
+
+  <h3 [innerHTML]="'COMPONENTS.PROVISIONING.EXPLANATORY_MESSAGE_WITH_NO_COMPANY' | translate"></h3>
+
+}
+
 <button mat-raised-button color="primary" (click)="provisionDevice()" [disabled]="isBusy">
   <span class="button-content">
-    Confirm
+    {{ 'COMMON.ACTIONS.CONFIRM' | translate }}
     <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
   </span>
 </button>

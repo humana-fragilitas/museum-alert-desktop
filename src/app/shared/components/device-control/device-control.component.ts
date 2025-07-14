@@ -10,6 +10,7 @@ import { SettingsTableComponent } from '../settings-table/settings-table.compone
 import { DistanceSliderComponent } from '../distance-slider/distance-slider.component';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { AsyncPipe, CommonModule } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-device-control',
@@ -22,6 +23,7 @@ import { AsyncPipe, CommonModule } from '@angular/common';
     BeaconUrlFormComponent,
     SettingsTableComponent,
     DistanceSliderComponent,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })

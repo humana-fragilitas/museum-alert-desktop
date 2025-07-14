@@ -5,6 +5,7 @@ import { CompanyService } from '../../core/services/company/company.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../shared/utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 // import { CoreModule } from '../../core/core.module';
 
 /**
@@ -20,6 +21,7 @@ import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../shared/uti
   imports: [
     CommonModule,
     RouterModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS,
     ...FORM_MATERIAL_IMPORTS,
     CompanyFormComponent

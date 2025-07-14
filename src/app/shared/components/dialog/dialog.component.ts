@@ -3,6 +3,7 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DialogData, DialogType } from '../../../core/models';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
@@ -11,6 +12,7 @@ import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
   styleUrls: ['./dialog.component.scss'],
   imports: [
     CommonModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })

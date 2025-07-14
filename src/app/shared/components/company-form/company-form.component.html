@@ -1,12 +1,11 @@
 <form [formGroup]="companyNameForm" (ngSubmit)="onSubmit()">
 
   <mat-form-field appearance="fill" class="company-name">
-    <mat-label>Company name</mat-label>
+    <mat-label>{{ 'COMPONENTS.COMPANY_FORM.LABEL' | translate }}</mat-label>
     <input matInput id="company-name" type="text" formControlName="companyName" #companyName>
-      <mat-error *ngIf="hasError('required')">Company name is <strong>required</strong></mat-error>
-      <mat-error *ngIf="hasError('minlength')">Company name must be at least <strong>3 characters</strong> long</mat-error>
-      <mat-error *ngIf="hasError('maxlength')">Company name cannot exceed <strong>50 characters</strong></mat-error>
-      <mat-error *ngIf="hasError('pattern')">Company name can only contain <strong>letters, numbers, spaces, hyphens, apostrophes and common business punctuation</strong></mat-error>
+      <mat-error *ngIf="(getErrorMessage() | async) && companyNameForm.get('companyName')?.touched">
+        <strong>{{getErrorMessage() | async}}</strong>
+      </mat-error>
   </mat-form-field>
 
     <div class="button-cta">
@@ -16,7 +15,7 @@
               type="submit"
               [disabled]="companyNameForm.invalid || isBusy">
         <span class="button-content">
-          Submit
+          {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
           <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
         </span>
       </button>
@@ -26,7 +25,7 @@
         [disabled]="isBusy"
         (click)="cancel()">
         <span class="button-content">
-          Cancel
+          {{ 'COMMON.ACTIONS.CANCEL' | translate }}
         </span>
       </button>
 
@@ -38,7 +37,7 @@
           [disabled]="isBusy"
           (click)="edit()">
     <span class="button-content">
-      Edit
+      {{ 'COMMON.ACTIONS.EDIT' | translate }}
     </span>
   </button>
 

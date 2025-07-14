@@ -1,3 +1,5 @@
+<!-- TO DO: finish to apply translations here -->
+
 <div class="dialog-container" [ngClass]="getDialogClass()">
   <!-- Header -->
   <div class="dialog-header">
@@ -11,12 +13,12 @@
   <mat-dialog-content class="dialog-content">
     <p class="dialog-message">{{ data.message }}</p>
     <div *ngIf="data.details" class="dialog-details">
-      <mat-expansion-panel>
+      <!-- <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>Details</mat-panel-title>
         </mat-expansion-panel-header>
         <pre>{{ data.details }}</pre>
-      </mat-expansion-panel>
+      </mat-expansion-panel> -->
     </div>
   </mat-dialog-content>
 
@@ -27,7 +29,7 @@
       mat-button 
       (click)="onCancel()"
       class="cancel-button">
-      {{ data.cancelText || 'Cancel' }}
+      {{ data.cancelText || ('COMMON.ACTIONS.CANCEL' | translate) }}
     </button>
     <button 
       mat-raised-button 

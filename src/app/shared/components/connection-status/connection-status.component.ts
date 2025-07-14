@@ -3,6 +3,7 @@ import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { distinctUntilChanged, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-connection-status',
@@ -10,6 +11,7 @@ import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
   styleUrls: ['./connection-status.component.scss'],
   imports: [
     CommonModule,
+    TranslatePipe,
     ...COMMON_MATERIAL_IMPORTS
   ]
 })
