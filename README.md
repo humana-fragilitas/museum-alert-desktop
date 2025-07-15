@@ -12,6 +12,8 @@
 [![Star on GitHub][github-star-badge]][github-star]
 [![Tweet][twitter-badge]][twitter]
 
+![alt text](./docs/images/museum_alert_desktop_app.png "Museum Alert Desktop App Screenshot")
+
 # Introduction
 
 ## References
