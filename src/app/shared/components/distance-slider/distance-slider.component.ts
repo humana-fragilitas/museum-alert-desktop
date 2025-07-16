@@ -18,6 +18,8 @@ import { FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 })
 export class DistanceSliderComponent implements OnInit {
 
+  @Input() disabled: boolean = false;
+
   private minDefaultValue = 5;
   private maxDefaultValue = 500;
   public sliderValue: number = this.minDefaultValue;

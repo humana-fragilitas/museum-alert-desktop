@@ -164,7 +164,6 @@ describe('MqttService', () => {
     it('should initialize with correct default values', () => {
       expect(service.isConnected).toBe(false);
       expect(service.messages$.value).toBeNull();
-      expect(service.devicesConnectionStatus$.value).toEqual(new Map());
     });
 
     it('should subscribe to auth service session data on initialization', () => {
@@ -485,14 +484,6 @@ describe('MqttService', () => {
         data: { connected: true },
         timestamp: new Date().toISOString()
       } as any;
-
-      // Subscribe to the devices connection status to verify the update
-      service.devicesConnectionStatus$.subscribe(devicesStatus => {
-        if (devicesStatus.size > 0) {
-          expect(devicesStatus.get('device-123')).toBe(true);
-          done();
-        }
-      });
 
       service.messages$.next(connectionMessage);
     });

@@ -11,6 +11,8 @@ import { DistanceSliderComponent } from '../distance-slider/distance-slider.comp
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
+import { DeviceConnectionStatusService } from '../../../core/services/device-connection-status/device-connection-status.service';
+import { Observable, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-device-control',
@@ -38,7 +40,8 @@ export class DeviceControlComponent implements OnInit {
   constructor(
     public readonly mqttService: MqttService,
     private deviceService: DeviceService,
-    private deviceConfigurationService: DeviceConfigurationService
+    private deviceConfigurationService: DeviceConfigurationService,
+    private deviceConnectionStatusService: DeviceConnectionStatusService
   ) {
 
     this.deviceConfigurationService
@@ -50,15 +53,31 @@ export class DeviceControlComponent implements OnInit {
       }
     });
 
+    this.isConnected$
+        .pipe(takeUntilDestroyed())
+        .subscribe((connected) => {
+      if (connected) {
+        this.deviceConfigurationService
+            .loadSettings()
+            .finally();
+      }
+    });
+
   };
 
   ngOnInit(): void {
 
-  this.deviceConfigurationService
-      .loadSettings()
-      .finally();
-
     console.log('DeviceControlComponent INIT');
+
+  }
+
+  get isConnected$(): Observable<boolean> {
+
+    return this.deviceService.serialNumber$.pipe(
+      switchMap(serialNumber => 
+        this.deviceConnectionStatusService.onChange(serialNumber)
+      )
+    );
 
   }
 

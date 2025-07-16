@@ -13,7 +13,6 @@ import { PendingRequest } from '../../../../../app/shared/models';
 import { BaseMqttMessage,
          MqttMessage,
          MqttCommandType,
-         ConnectionStatus,
          MqttMessageType,
          DeviceConfiguration,
          AlarmPayload
@@ -27,8 +26,6 @@ export class MqttService {
   
   private pendingRequests: Record<string, PendingRequest<any>> = {};
   public readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
-  public readonly devicesConnectionStatus$: BehaviorSubject<Map<string, boolean>> =
-    new BehaviorSubject<Map<string, boolean>>(new Map());
 
   private client: mqtt.MqttClient | undefined;
   private currentSession: AuthSession | null = null;
@@ -93,14 +90,6 @@ export class MqttService {
   }
 
   private setupMessageHandlers(): void {
-    this.onMessageOfType(MqttMessageType.CONNECTION_STATUS)
-      .subscribe((message: BaseMqttMessage<ConnectionStatus>) => {
-        const currentMap = this.devicesConnectionStatus$.getValue();
-        const newMap = new Map(currentMap);
-        newMap.set(message.sn, message.data.connected);
-        this.devicesConnectionStatus$.next(newMap);
-        console.log("Devices connection status:", newMap);
-      });
 
     this.onMessageOfType(MqttMessageType.ALARM)
       .subscribe((message: BaseMqttMessage<AlarmPayload>) => {
@@ -299,12 +288,16 @@ export class MqttService {
   }
 
   onMessageOfType<T extends MqttMessageType>(
-    messageType: T, 
+    messageType: T | readonly T[],
     deviceSN: string = ''
   ): Observable<Extract<MqttMessage, { type: T }>> {
+    const messageTypes = Array.isArray(messageType) ? messageType : [messageType];
+    
     return this.messages$.pipe(
       filter((message): message is MqttMessage => message !== null),
-      filter((message): message is Extract<MqttMessage, { type: T }> => message.type === messageType),
+      filter((message): message is Extract<MqttMessage, { type: T }> => 
+        messageTypes.includes(message.type as T)
+      ),
       filter((message) => deviceSN === '' || message.sn === deviceSN)
     );
   }

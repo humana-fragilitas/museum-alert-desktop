@@ -1,15 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceAppState, DeviceErrorType, USBCommandType, WiFiNetwork } from '../../../../../app/shared/models';
+import { DeviceAppState, DeviceErrorType, DeviceIncomingData, USBCommandType, WiFiNetwork } from '../../../../../app/shared/models';
 import { Subscription } from 'rxjs';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -64,8 +58,8 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
     });
 
     this.errorSubscription = this.deviceService.error$.subscribe(
-      (error: Nullable<DeviceErrorType>) => {
-        if (error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
+      (message: Nullable<DeviceIncomingData>) => {
+        if (message && (message!.data as { error: DeviceErrorType }).error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
           this.isSendingCredentials = false;
         }
       }
@@ -92,11 +86,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
       console.log('Data sent successfully');
     })
     .catch((error) => {
-
       this.isSendingCredentials = false;
-
-      
-
     });
 
   }

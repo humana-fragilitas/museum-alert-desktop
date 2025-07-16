@@ -6,7 +6,7 @@
   showTickMarks
   discrete
   [displayWith]="toReadableDistance.bind(this)"
-  [disabled]="isBusy$ | async"
+  [disabled]="(isBusy$ | async) || disabled"
   (change)="onSliderChange($event)">
   <input matSliderThumb [(ngModel)]="sliderValue">
 </mat-slider>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { beaconUrlValidator } from '../../validators/beacon-url.validator';
@@ -6,7 +6,7 @@ import { DeviceConfigurationService } from '../../../core/services/device-config
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 
  
 @Component({
@@ -23,6 +23,7 @@ import { Observable, of } from 'rxjs';
 })
 export class BeaconUrlFormComponent implements OnInit {
 
+  @Input() disabled: boolean = false;
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
   public isBusy$ = this.deviceConfigurationService.isBusy$;
@@ -149,6 +150,12 @@ export class BeaconUrlFormComponent implements OnInit {
     }
     return of('');
 
+  }
+
+  get isDisabled$(): Observable<boolean> {
+    return this.isBusy$.pipe(
+      map(isBusy => isBusy || this.disabled)
+    );
   }
 
 }

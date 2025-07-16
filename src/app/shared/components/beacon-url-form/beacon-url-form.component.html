@@ -13,7 +13,7 @@
       <button *ngIf="!isBeaconUrlSet || isEditable"
               mat-raised-button color="primary"
               type="submit"
-              [disabled]="beaconUrlForm.invalid || (isBusy$ | async)">
+              [disabled]="beaconUrlForm.invalid || (isDisabled$ | async)">
         <span class="button-content">
           {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
           <mat-progress-spinner *ngIf="(isBusy$ | async) && isSubmitting" mode="indeterminate" diameter="16"></mat-progress-spinner>
@@ -22,7 +22,7 @@
 
       <button *ngIf="isEditable"
         mat-raised-button color="secondary"
-        [disabled]="isBusy$ | async"
+        [disabled]="isDisabled$ | async"
         (click)="cancel()">
         <span class="button-content">
           {{ 'COMMON.ACTIONS.CANCEL' | translate }}
@@ -33,7 +33,7 @@
 
   <button *ngIf="isBeaconUrlSet && !isEditable"
           mat-raised-button color="primary"
-          [disabled]="isBusy$ | async"
+          [disabled]="isDisabled$ | async"
           (click)="edit()">
     <span class="button-content">
       {{ 'COMMON.ACTIONS.EDIT' | translate }}

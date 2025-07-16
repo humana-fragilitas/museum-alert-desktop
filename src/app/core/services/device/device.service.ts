@@ -35,8 +35,8 @@ export class DeviceService {
       new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
   public readonly alarm: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
       new BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>>(null);
-  public readonly error: BehaviorSubject<Nullable<DeviceErrorType>> =
-      new BehaviorSubject<Nullable<DeviceErrorType>>(null);
+  public readonly error: BehaviorSubject<Nullable<DeviceIncomingData>> =
+      new BehaviorSubject<Nullable<DeviceIncomingData>>(null);
 
   public readonly serialNumber$: Observable<string> = 
       this.serialNumber.asObservable();
@@ -52,7 +52,7 @@ export class DeviceService {
       this.configuration.asObservable();
   public readonly alarm$: Observable<Nullable<BaseMqttMessage<AlarmPayload>>> =
       this.alarm.asObservable();
-  public readonly error$: Observable<Nullable<DeviceErrorType>> =
+  public readonly error$: Observable<Nullable<DeviceIncomingData>> =
       this.error.asObservable();
 
   constructor(@Inject(WINDOW) private win: Window,
@@ -123,7 +123,7 @@ export class DeviceService {
         break;
       case DeviceMessageType.ERROR:
         console.log("INCOMING ERROR:", payload.data);
-        this.error.next(payload.data?.error as DeviceErrorType);
+        this.error.next(payload);
         break;
       case DeviceMessageType.ACKNOWLEDGMENT:
         console.log(`Received response via USB for request with correlation id: ${correlationId}`);

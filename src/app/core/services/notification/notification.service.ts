@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import { DeviceService } from '../device/device.service';
-import { DeviceErrorType, ErrorType } from '../../../../../app/shared/models';
+import { DeviceErrorType, DeviceIncomingData, ErrorType } from '../../../../../app/shared/models';
 import { ErrorService } from '../error/error.service';
 import { AppErrorType } from '../../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -19,8 +19,10 @@ export class NotificationService {
   ) {
 
     deviceService.error$.subscribe(
-      (error: Nullable<DeviceErrorType>) => {
-        this.onError(ErrorType.DEVICE_ERROR, error);
+      (message: Nullable<DeviceIncomingData>) => {
+        if (message) {
+           this.onError(ErrorType.DEVICE_ERROR, (message!.data as { error: DeviceErrorType }).error);
+        }
       }
     );
 

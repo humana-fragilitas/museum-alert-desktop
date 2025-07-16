@@ -9,9 +9,9 @@
 
   <mat-card-content>
 
-    <app-distance-slider></app-distance-slider>
+    <app-distance-slider [disabled]="!(isConnected$ | async)"></app-distance-slider>
 
-    <app-beacon-url-form></app-beacon-url-form>
+    <app-beacon-url-form [disabled]="!(isConnected$ | async)"></app-beacon-url-form>
 
     <app-settings-table
       [data$]="settings$"
