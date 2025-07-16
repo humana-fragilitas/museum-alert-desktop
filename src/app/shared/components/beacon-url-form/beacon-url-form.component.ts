@@ -6,7 +6,7 @@ import { DeviceConfigurationService } from '../../../core/services/device-config
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
-import { map, Observable, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, of } from 'rxjs';
 
  
 @Component({
@@ -23,7 +23,13 @@ import { map, Observable, of } from 'rxjs';
 })
 export class BeaconUrlFormComponent implements OnInit {
 
-  @Input() disabled: boolean = false;
+  private readonly disabled$: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);
+
+  @Input()
+  set disabled(value: boolean) {
+    this.disabled$.next(value);
+  }
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
   public isBusy$ = this.deviceConfigurationService.isBusy$;
@@ -60,6 +66,13 @@ export class BeaconUrlFormComponent implements OnInit {
         }
       }
     });
+
+    this.isDisabled$
+        .pipe(takeUntilDestroyed())
+        .subscribe((disabled) => {
+          const beaconUrlField = this.beaconUrlForm.get('beaconUrl');
+          if (!disabled) beaconUrlField?.disable();
+        });
 
   }
 
@@ -153,8 +166,12 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   get isDisabled$(): Observable<boolean> {
-    return this.isBusy$.pipe(
-      map(isBusy => isBusy || this.disabled)
+    return combineLatest([
+      this.isBusy$,
+      this.disabled$
+    ]).pipe(
+      map(([isBusy, disabled]) => isBusy || disabled),
+      distinctUntilChanged()
     );
   }
 

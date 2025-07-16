@@ -14,7 +14,7 @@ export class FormatDistancePipe implements PipeTransform {
     }
     if (value < 100) {
       return `${value} cm`;
-    } else if (value > 100 && value < 200) {
+    } else if (value == 100) {
       return `${(value / 100).toFixed(2)} meter`;
     } else {
       return `${(value / 100).toFixed(2)} meters`;

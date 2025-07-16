@@ -86,16 +86,11 @@ export class DeviceService {
     }
 
     this.usbConnectionStatus
-        .pipe(
-          distinctUntilChanged()
-        )
+        .pipe(distinctUntilChanged())
         .subscribe(status => {
-          // This will only be called when the value of `status` changes
           console.log('USB connection status changed:', status);
-          if (!status) {
-            this.reset();
-          }
-      });
+          if (!status) this.reset();
+        });
     
   }
 
