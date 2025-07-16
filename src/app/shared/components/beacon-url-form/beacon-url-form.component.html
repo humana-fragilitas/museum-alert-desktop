@@ -10,17 +10,17 @@
 
     <div class="button-cta">
 
-      <button *ngIf="!isBeaconUrlSet || isEditable"
+      <button *ngIf="!(isBeaconUrlSet$ | async) || (isEditable$ | async)"
               mat-raised-button color="primary"
               type="submit"
               [disabled]="beaconUrlForm.invalid || (isDisabled$ | async)">
         <span class="button-content">
           {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
-          <mat-progress-spinner *ngIf="(isBusy$ | async) && isSubmitting" mode="indeterminate" diameter="16"></mat-progress-spinner>
+          <mat-progress-spinner *ngIf="(isBusy$ | async) && (isSubmitting$ | async)" mode="indeterminate" diameter="16"></mat-progress-spinner>
         </span>
       </button>
 
-      <button *ngIf="isEditable"
+      <button *ngIf="isEditable$ | async"
         mat-raised-button color="secondary"
         [disabled]="isDisabled$ | async"
         (click)="cancel()">
@@ -31,7 +31,7 @@
 
   </div>
 
-  <button *ngIf="isBeaconUrlSet && !isEditable"
+  <button *ngIf="(isBeaconUrlSet$ | async) && !(isEditable$ | async)"
           mat-raised-button color="primary"
           [disabled]="isDisabled$ | async"
           (click)="edit()">

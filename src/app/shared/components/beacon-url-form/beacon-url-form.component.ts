@@ -33,9 +33,12 @@ export class BeaconUrlFormComponent implements OnInit {
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
   public isBusy$ = this.deviceConfigurationService.isBusy$;
-  public isSubmitting = false;
-  public isEditable = false;
-  public isBeaconUrlSet = false;
+  public isSubmitting$: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);;
+  public isEditable$: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);;
+  public isBeaconUrlSet$: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);;
 
   beaconUrlForm = new FormGroup({
     beaconUrl: new FormControl(
@@ -56,22 +59,26 @@ export class BeaconUrlFormComponent implements OnInit {
         .settings$
         .pipe(takeUntilDestroyed())
         .subscribe((configuration) => {
-      if (configuration) {
-        this.isBeaconUrlSet = !!configuration.beaconUrl;
-        this.beaconUrlForm.get('beaconUrl')?.setValue(configuration.beaconUrl || '');
-        if (this.isBeaconUrlSet) {
-          this.cancel();
-        } else {
-          this.edit();
-        }
-      }
-    });
-
-    this.isDisabled$
-        .pipe(takeUntilDestroyed())
+          if (configuration) {
+            this.beaconUrlForm.get('beaconUrl')?.setValue(configuration.beaconUrl || '');
+            const hasBeaconUrl = !!configuration.beaconUrl;
+            this.isBeaconUrlSet$.next(hasBeaconUrl);
+            if (hasBeaconUrl) {
+              this.cancel();
+            } else {
+              this.edit();
+            }
+          }
+        });
+    
+    this.beaconUrlFieldIsDisabled$.pipe(takeUntilDestroyed())
         .subscribe((disabled) => {
           const beaconUrlField = this.beaconUrlForm.get('beaconUrl');
-          if (!disabled) beaconUrlField?.disable();
+          if (disabled) {
+            beaconUrlField?.disable();
+          } else {
+             beaconUrlField?.enable();
+          }
         });
 
   }
@@ -84,7 +91,8 @@ export class BeaconUrlFormComponent implements OnInit {
 
   async onSubmit() {
 
-    this.isSubmitting = true;
+    //this.isSubmitting = true;
+    this.isSubmitting$.next(true);
 
     this.beaconUrlForm.get('beaconUrl')?.disable();
 
@@ -99,14 +107,15 @@ export class BeaconUrlFormComponent implements OnInit {
     }).catch(() => {
       console.log('Error while saving beacon url');
     }).finally(() => {
-      this.isSubmitting = false;
+      this.isSubmitting$.next(false);
     });
 
   }
 
   edit() {
-    this.isEditable = true;
-    this.beaconUrlForm.get('beaconUrl')?.enable();
+    //this.isEditable = true;
+    this.isEditable$.next(true);
+    //this.beaconUrlForm.get('beaconUrl')?.enable();
     setTimeout(()=>{
       this.beaconUrlInput.nativeElement.focus();
       this.beaconUrlInput.nativeElement.select();
@@ -114,8 +123,9 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   cancel() {
-    this.isEditable = false;
-    this.beaconUrlForm.get('beaconUrl')?.disable();
+    //this.isEditable = false;
+    this.isEditable$.next(false);
+    //this.beaconUrlForm.get('beaconUrl')?.disable();
     this.beaconUrlForm.get('beaconUrl')?.setValue(
       this.deviceConfigurationService
           .settings
@@ -171,6 +181,20 @@ export class BeaconUrlFormComponent implements OnInit {
       this.disabled$
     ]).pipe(
       map(([isBusy, disabled]) => isBusy || disabled),
+      distinctUntilChanged()
+    );
+  }
+
+  get beaconUrlFieldIsDisabled$(): Observable<boolean> {
+    return combineLatest([
+      this.isEditable$,
+      this.disabled$,
+      this.isBusy$
+    ]).pipe(
+      map(([editable, disabled, busy]) => {
+        console.log(`Editable: ${editable}; disabled ${disabled}`);
+        return !editable || disabled || busy;
+      }),
       distinctUntilChanged()
     );
   }
