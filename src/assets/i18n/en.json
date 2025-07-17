@@ -77,6 +77,15 @@
       "REGISTRATION_DONE": "Done",
       "FATAL_ERROR_MESSAGE": "An error occurred: please reset your device",
       "WAIT_FOR_COMMUNICATION_MESSAGE": "Communicating; please wait..."
+    },
+    "DIALOG": {
+      "DEVICE_EXISTS_TITLE": "Device Already Exists",
+      "DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE": "Device {{deviceName}} is already registered for your organization {{company}}. If you performed an hard reset of your sensor and are trying to register it again, please delete the existing device from the registry first.",
+      "DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE": "Device {{deviceName}} is already registered for another organization. If you are its legimitate administrator, please delete the existing device from the registry first.",
+      "AUTHENTICATION_EXPIRED_TITLE": "Authentication Expired",
+      "AUTHENTICATION_EXPIRED_MESSAGE": "Please log in again to continue",
+      "PROVISIONING_FAILED_TITLE": "An Error Occurred",
+      "PROVISIONING_FAILED_MESSAGE": "Cannot provision device. Please try again later."
     }
   },
   "VALIDATORS": {
@@ -96,7 +105,10 @@
       "EDIT": "Edit",
       "SIGN_OUT": "Sign out",
       "CONFIRM": "Confirm",
-      "RESET": "Reset"
+      "RESET": "Reset",
+      "YES": "Yes",
+      "NO": "No",
+      "OK": "OK"
     },
     "LABELS": {
       "YOU": "You",

@@ -10,6 +10,7 @@ import { CompanyService } from '../../../core/services/company/company.service';
 import { USBCommandType } from '../../../../../app/shared/models';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
+import { DialogType } from '../../../core/models/ui.models';
 
 @Component({
   selector: 'app-provisioning',
@@ -54,33 +55,40 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
     const thingName = this.deviceService.getSerialNumber();
     this.deviceRegistryService.checkSensorExists(thingName)
       .subscribe({
-
         next: (sensor: any) => {
-
           if (sensor) {
-            
             // TO DO: fix the model reference: from any to ApiResponse<T>
             // TO DO: the lambda suitable for checking device existence should return the company
             // name by looking up the database
-            this.dialogService.showDeviceExists(sensor.data.thingName, sensor.data.company).subscribe();
-            this.isBusy = false;
+
+                this.dialogService.openDialog({
+                  type: DialogType.WARNING,
+                  showCancel: false,
+                  title: 'COMPONENTS.DIALOG.DEVICE_EXISTS_TITLE',
+                  message: sensor.data.company ?
+                    'COMPONENTS.DIALOG.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
+                      'COMPONENTS.DIALOG.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
+                  messageParams: {
+                    deviceName: sensor.data.thingName,
+                    company: sensor.data.company
+                  }
+                });
+
+                this.isBusy = false;
 
           } else {
-
             this.createProvisioningClaim();
-
           }
-
         },
-
         error: (error: any) => {
-          
           this.isBusy = false;
           if (error instanceof AuthenticationExpiredError) return;
-          this.dialogService.showError('An Error Occurred', 'Cannot provision device. Please try again later.');
-
+          this.dialogService.openDialog({
+            type: DialogType.ERROR,
+            title: 'COMPONENTS.DIALOG.PROVISIONING_FAILED_TITLE',
+            message: 'COMPONENTS.DIALOG.PROVISIONING_FAILED_MESSAGE'
+          }, { disableClose: true });
         }
-
       });
 
   }

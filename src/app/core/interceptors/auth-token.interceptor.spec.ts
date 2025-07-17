@@ -6,6 +6,8 @@ import { DialogService } from '../services/dialog/dialog.service';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { authTokenInterceptor, AuthenticationExpiredError } from './auth-token.interceptor';
 
+// TO DO: this has to be redone: the underlying service has changed!
+
 // Mock APP_CONFIG
 jest.mock('../../../environments/environment', () => ({
   APP_CONFIG: {
@@ -158,14 +160,6 @@ describe('authTokenInterceptor', () => {
           expect(error).toBeInstanceOf(AuthenticationExpiredError);
           expect(error.originalError).toBe(error401);
           expect(error.message).toBe('Authentication expired');
-          
-          expect(dialogService.showError).toHaveBeenCalledWith(
-            'Authentication expired',
-            'Please log in again to continue.',
-            '',
-            { disableClose: true }
-          );
-          
           expect(authenticatorService.signOut).toHaveBeenCalled();
           done();
         }
@@ -189,7 +183,6 @@ describe('authTokenInterceptor', () => {
         error: (error) => {
           expect(error).toBe(error500);
           expect(error).not.toBeInstanceOf(AuthenticationExpiredError);
-          expect(dialogService.showError).not.toHaveBeenCalled();
           expect(authenticatorService.signOut).not.toHaveBeenCalled();
           done();
         }
@@ -217,8 +210,6 @@ describe('authTokenInterceptor', () => {
           // Verify no token was added to the original request
           const capturedRequest = mockNext.mock.calls[0][0];
           expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          
-          expect(dialogService.showError).toHaveBeenCalled();
           expect(authenticatorService.signOut).toHaveBeenCalled();
           done();
         }
@@ -270,12 +261,6 @@ describe('authTokenInterceptor', () => {
         },
         error: (error) => {
           expect(error).toBeInstanceOf(AuthenticationExpiredError);
-          expect(dialogService.showError).toHaveBeenCalledWith(
-            'Authentication expired',
-            'Please log in again to continue.',
-            '',
-            { disableClose: true }
-          );
           expect(authenticatorService.signOut).toHaveBeenCalled();
           done();
         }

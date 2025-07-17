@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { DialogData, DialogType } from '../../../core/models';
+import { DialogPayload, DialogType } from '../../../core/models';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -20,7 +20,7 @@ export class DialogComponent {
 
 constructor(
     public dialogRef: MatDialogRef<DialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData
+    @Inject(MAT_DIALOG_DATA) public data: DialogPayload
   ) {}
 
   getDialogClass(): string {
@@ -28,8 +28,6 @@ constructor(
   }
 
   getIcon(): string {
-
-    if (this.data.icon) return this.data.icon;
     
     switch (this.data.type) {
       case DialogType.ERROR: return 'error';
@@ -51,12 +49,14 @@ constructor(
   getButtonColor(): string {
 
     switch (this.data.type) {
-      // case DialogType.ERROR: return 'warn'; USEFUL FOR ERROR DIALOGS
-      case DialogType.ERROR: return 'primary';
-      case DialogType.WARNING: return 'primary';
-      case DialogType.SUCCESS: return 'primary';
-      case DialogType.CONFIRM: return 'primary';
+
+      // Note: fallthrough to default; add any differentiations here
+      case DialogType.ERROR:
+      case DialogType.WARNING:
+      case DialogType.SUCCESS:
+      case DialogType.CONFIRM:
       default: return 'primary';
+
     }
 
   }
@@ -64,8 +64,9 @@ constructor(
   getDefaultConfirmText(): string {
 
     switch (this.data.type) {
-      case DialogType.CONFIRM: return 'Yes';
-      default: return 'OK';
+      case DialogType.CONFIRM: return 'COMMON.ACTIONS.YES';
+      // Further cases here; see DialogType enum
+      default: return 'COMMON.ACTIONS.OK';
     }
 
   }

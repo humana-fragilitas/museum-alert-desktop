@@ -6,17 +6,14 @@ export enum DialogType {
   CONFIRM = 'confirm'
 }
 
-export interface DialogData {
-  type: DialogType;
+export interface DialogPayload {
+  type?: DialogType;
   title: string;
   message: string;
-  details?: string;
+  messageParams?: { [key: string]: string | number };
   confirmText?: string;
   cancelText?: string;
   showCancel?: boolean;
-  icon?: string;
-  width?: string;
-  disableClose?: boolean;
 }
 
 export interface DialogResult {

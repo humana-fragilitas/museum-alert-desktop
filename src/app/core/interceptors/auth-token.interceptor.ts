@@ -5,6 +5,7 @@ import { APP_CONFIG } from '../../../environments/environment';
 import { catchError, Observable, throwError } from 'rxjs';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { DialogService } from '../services/dialog/dialog.service';
+import { DialogType } from '../models/ui.models';
 
 // Custom error class to distinguish handled 401s
 export class AuthenticationExpiredError extends Error {
@@ -53,12 +54,11 @@ function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequ
 
 function handle401Error(dialogService: DialogService, authenticatorService: AuthenticatorService) {
   
-  dialogService.showError(
-    'Authentication expired',
-    'Please log in again to continue.',
-    '',
-    { disableClose: true }
-  ).subscribe(() => {
+  dialogService.openDialog({
+    type: DialogType.ERROR,
+    title: 'COMPONENTS.DIALOG.AUTHENTICATION_EXPIRED_TITLE',
+    message: 'COMPONENTS.DIALOG.AUTHENTICATION_EXPIRED_MESSAGE'
+  }, { disableClose: true }).subscribe(() => {
     authenticatorService.signOut();
   });
 
