@@ -104,6 +104,7 @@ export class DeviceService {
     if(correlationId && this.pendingRequests[correlationId]) {
       const { resolve, timeout } = this.pendingRequests[correlationId];
       clearTimeout(timeout);
+      // TO DO: reject here messages with type == DeviceMessageType.ERROR ?
       resolve(payload);
       delete this.pendingRequests[correlationId];
     }

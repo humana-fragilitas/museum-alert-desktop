@@ -57,6 +57,8 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
     });
 
+    // TO DO: this is not probably needed anymore: errors return a cid so that
+    // asyncSendData call observable is able to return such exception by itself
     this.errorSubscription = this.deviceService.error$.subscribe(
       (message: Nullable<DeviceIncomingData>) => {
         if (message && (message!.data as { error: DeviceErrorType }).error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
@@ -78,6 +80,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
     console.log('Form submitted:', this.credentialsForm.value);
 
+    // TO DO: try ... catch... block here!
     this.deviceService.asyncSendData(
       USBCommandType.SET_WIFI_CREDENTIALS,
       this.credentialsForm.value
