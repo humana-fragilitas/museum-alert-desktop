@@ -162,4 +162,10 @@ export class AuthService {
 
   }
 
+  get userLoginId(): string {
+
+    return this.user.getValue()?.signInDetails?.loginId || '';
+
+  }
+
 }

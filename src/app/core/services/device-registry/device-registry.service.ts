@@ -4,7 +4,7 @@ import { APP_CONFIG } from '../../../../environments/environment';
 import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { DeviceService } from '../device/device.service';
-import { Sensor, ListThingsResponse } from '../../models';
+import { Sensor, ListThingsResponse, HttpStatusCode } from '../../models';
 
 // TO DO: wrap api responses into proper models
 
@@ -45,7 +45,7 @@ export class DeviceRegistryService {
         return null;
       }),
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 404) {
+        if (error.status === HttpStatusCode.NOT_FOUND) {
           console.log(`[DeviceRegistryService]: device with name ${thingName} not found (404)`);
           return of(null); // Device doesn't exist
         } else {
@@ -57,6 +57,7 @@ export class DeviceRegistryService {
   }
 
   getAllSensors(): Observable<Sensor[]> {
+
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/things`;
     
     return this.httpClient.get<ListThingsResponse>(apiUrl).pipe(
@@ -65,7 +66,7 @@ export class DeviceRegistryService {
         return response.things; // Extract just the things array
       }),
       catchError((error: HttpErrorResponse) => {
-        if (error.status === 404) {
+        if (error.status === HttpStatusCode.NOT_FOUND) {
           console.log(`[DeviceRegistryService]: no devices found`);
           return of([]);
         } else {
@@ -77,4 +78,3 @@ export class DeviceRegistryService {
   }
 
 }
-import { format } from 'path';

@@ -30,9 +30,7 @@ export class NavBarComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-
     console.log('NavBarComponent INIT');
-
   }
 
   signOut() {

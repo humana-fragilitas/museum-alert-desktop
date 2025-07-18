@@ -1,8 +1,8 @@
-<div class="dialog-container" [ngClass]="getDialogClass()">
+<div class="dialog-container" [ngClass]="dialogClass">
 
   <div class="dialog-header">
-    <mat-icon [ngClass]="getIconClass()" class="dialog-icon">
-      {{ getIcon() }}
+    <mat-icon [ngClass]="iconClass" class="dialog-icon">
+      {{ icon }}
     </mat-icon>
     <h2 mat-dialog-title class="dialog-title">{{ data.title | translate }}</h2>
   </div>
@@ -21,11 +21,11 @@
     </button>
     <button 
       mat-raised-button 
-      [color]="getButtonColor()" 
+      [color]="buttonColor" 
       (click)="onConfirm()"
       class="confirm-button"
       cdkFocusInitial>
-      {{ (data.confirmText || getDefaultConfirmText()) | translate }}
+      {{ (data.confirmText || defaultConfirmText) | translate }}
     </button>
   </mat-dialog-actions>
 

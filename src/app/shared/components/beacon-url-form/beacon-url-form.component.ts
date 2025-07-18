@@ -35,14 +35,10 @@ export class BeaconUrlFormComponent implements OnInit {
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
   public isBusy$ = this.deviceConfigurationService.isBusy$;
-  public isSubmitting$: BehaviorSubject<boolean> =
-    new BehaviorSubject<boolean>(false);;
-  public isEditable$: BehaviorSubject<boolean> =
-    new BehaviorSubject<boolean>(false);;
-  public isBeaconUrlSet$: BehaviorSubject<boolean> =
-    new BehaviorSubject<boolean>(false);;
-
-  beaconUrlForm = new FormGroup({
+  public isSubmitting$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public isEditable$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public isBeaconUrlSet$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  public beaconUrlForm = new FormGroup({
     beaconUrl: new FormControl(
       { value: '', disabled: false },
       [
@@ -53,9 +49,9 @@ export class BeaconUrlFormComponent implements OnInit {
   });
 
   constructor(
-    private deviceConfigurationService: DeviceConfigurationService,
-    private translateService: TranslateService,
-    private dialogService: DialogService
+    private readonly deviceConfigurationService: DeviceConfigurationService,
+    private readonly translateService: TranslateService,
+    private readonly dialogService: DialogService
   ) {
 
     this.deviceConfigurationService
@@ -74,7 +70,8 @@ export class BeaconUrlFormComponent implements OnInit {
           }
         });
     
-    this.beaconUrlFieldIsDisabled$.pipe(takeUntilDestroyed())
+    this.beaconUrlFieldIsDisabled$
+        .pipe(takeUntilDestroyed())
         .subscribe((disabled) => {
           const beaconUrlField = this.beaconUrlForm.get('beaconUrl');
           if (disabled) {
@@ -94,28 +91,25 @@ export class BeaconUrlFormComponent implements OnInit {
 
   async onSubmit() {
 
+    console.log('[BeaconUrlFormComponent]: beacon url form submitted:', this.beaconUrlForm.value);
+
     this.isSubmitting$.next(true);
-
     this.beaconUrlForm.get('beaconUrl')?.disable();
+    const beaconUrl = this.beaconUrlForm.value.beaconUrl!;
 
-    console.log('Beacon url form submitted:', this.beaconUrlForm.value);
-
-    const beaconUrl = this.beaconUrlForm.value.beaconUrl || '';
-
-    this.deviceConfigurationService.saveSettings({
-      beaconUrl
-    }).then(() => {
-      console.log('Beacon url saved successfully');
-    }).catch(() => {
-      console.log('Error while saving beacon url');
+    try {
+      await this.deviceConfigurationService.saveSettings({beaconUrl});
+      console.log('[BeaconUrlFormComponent]: beacon url saved successfully');
+    } catch (error) {
+      console.log('[BeaconUrlFormComponent]: error while saving beacon url');
       this.dialogService.openDialog({
         type: DialogType.ERROR,
         title: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE',
         message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
       }, { disableClose: true });
-    }).finally(() => {
+    } finally {
       this.isSubmitting$.next(false);
-    });
+    }
 
   }
 

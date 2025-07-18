@@ -42,6 +42,7 @@ function instantiateEarlyServices() {
 }
 
 export const appConfig: ApplicationConfig = {
+
   providers: [
     // HTTP Client with interceptors
     provideHttpClient(withInterceptors([authTokenInterceptor])),
@@ -54,7 +55,6 @@ export const appConfig: ApplicationConfig = {
     
     // Translation module
     importProvidersFrom(
-      // CoreModule, // Uncomment if needed
       TranslateModule.forRoot({
         loader: {
           provide: TranslateLoader,
@@ -71,4 +71,5 @@ export const appConfig: ApplicationConfig = {
       useValue: { displayDefaultIndicatorType: false }
     }
   ]
+  
 };

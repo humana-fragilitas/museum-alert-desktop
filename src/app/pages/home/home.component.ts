@@ -21,17 +21,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class HomeComponent implements OnInit {
 
-  public signUpAttributes = ['email', 'custom:Company', 'custom:isProfessional'];
-  
-  public formFields = {
-    signUp: {
-      ['custom:isProfessional']: {
-        defaultValue: 1,
-        type: 'hidden' 
-      },
-    },
-  };
-
   constructor(
     private provisioningService: ProvisioningService,
     private authenticatorService: AuthenticatorService,

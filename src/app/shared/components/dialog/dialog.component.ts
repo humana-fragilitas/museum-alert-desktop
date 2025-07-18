@@ -23,11 +23,11 @@ constructor(
     @Inject(MAT_DIALOG_DATA) public data: DialogPayload
   ) {}
 
-  getDialogClass(): string {
+  get dialogClass(): string {
     return `dialog-${this.data.type}`;
   }
 
-  getIcon(): string {
+  get icon(): string {
     
     switch (this.data.type) {
       case DialogType.ERROR: return 'error';
@@ -40,47 +40,35 @@ constructor(
 
   }
 
-  getIconClass(): string {
-
+  get iconClass(): string {
     return `icon-${this.data.type}`;
-
   }
 
-  getButtonColor(): string {
-
+  get buttonColor(): string {
     switch (this.data.type) {
-
       // Note: fallthrough to default; add any differentiations here
       case DialogType.ERROR:
       case DialogType.WARNING:
       case DialogType.SUCCESS:
       case DialogType.CONFIRM:
       default: return 'primary';
-
     }
-
   }
 
-  getDefaultConfirmText(): string {
-
+  get defaultConfirmText(): string {
     switch (this.data.type) {
       case DialogType.CONFIRM: return 'COMMON.ACTIONS.YES';
       // Further cases here; see DialogType enum
       default: return 'COMMON.ACTIONS.OK';
     }
-
   }
 
   onConfirm(): void {
-
     this.dialogRef.close({ confirmed: true });
-
   }
 
   onCancel(): void {
-
     this.dialogRef.close({ confirmed: false });
-    
   }
 
 }

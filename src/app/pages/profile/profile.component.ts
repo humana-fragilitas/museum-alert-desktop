@@ -6,12 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../shared/utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
-// import { CoreModule } from '../../core/core.module';
 
-/**
- * humana.fragilitas@gmail.com
- * zZ&c0qIz
- */
 
 @Component({
   selector: 'app-profile',
@@ -30,7 +25,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class ProfileComponent implements OnInit {
 
   public readonly displayedColumns: string[] = ['username', 'role', 'joined'];
-  public readonly loginId = this.authService.sessionData?.getValue()?.tokens?.signInDetails?.loginId
+  public readonly loginId = this.authService.userLoginId;
   public readonly company$ = this.companyService.company$;
 
   constructor(
@@ -41,7 +36,6 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     console.log('ProfileComponent INIT');
   }
-
 
 }
  

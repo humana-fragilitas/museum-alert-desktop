@@ -108,22 +108,25 @@ export class DistanceSliderComponent implements OnInit {
 
   }
 
-  onSliderChange(event: Event) {
+  async onSliderChange(event: Event) {
 
     const distance = Number((event.target as HTMLInputElement).value);
     this._value = distance; // Update internal value
-
     this.sliderValue = Number(distance);
 
     console.log(`Setting minimum alarm distance to: ${distance} cm`);
 
-    this.deviceConfigurationService.saveSettings({ distance }).catch(() => {
+    try {
+      await this.deviceConfigurationService.saveSettings({ distance });
+      console.log('[DistanceSliderComponent]: distance threshold saved successfully');
+    } catch (error) {
+      console.log('[DistanceSliderComponent]: error while saving distance threshold');
       this.dialogService.openDialog({
         type: DialogType.ERROR,
         title: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE',
         message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
       }, { disableClose: true });
-    });
+    }
 
   }
 
