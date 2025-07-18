@@ -6,9 +6,8 @@ import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
-         WiFiNetwork,
-         DeviceErrorType,
-         PendingRequest } from '../../../../../app/shared/models';
+         WiFiNetwork } from '../../../../../app/shared/models';
+import { PendingRequest } from '../../models';
 import { AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '../../models';
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { USBCommandType } from '../../../../../app/shared/models';

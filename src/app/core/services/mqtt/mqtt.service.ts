@@ -9,7 +9,7 @@ import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { AuthService } from '../auth/auth.service';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import { DeviceService } from '../device/device.service';
-import { PendingRequest } from '../../../../../app/shared/models';
+import { PendingRequest } from '../../models';
 import { BaseMqttMessage,
          MqttMessage,
          MqttCommandType,

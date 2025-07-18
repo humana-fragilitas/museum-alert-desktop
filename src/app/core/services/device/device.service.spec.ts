@@ -24,6 +24,7 @@ import { AlarmPayload } from '../../models';
 import { ConnectionStatus } from '../../models';
 import { MqttMessageType } from '../../models';
 
+// TO DO: rewrite this test!
 // Mock electron interface
 interface MockElectron {
   ipcRenderer: {
@@ -446,7 +447,7 @@ describe('DeviceService', () => {
       service.portInfo.next(mockPortInfo);
       service.deviceAppStatus.next(DeviceAppState.DEVICE_INITIALIZED);
       service.wiFiNetworks.next(mockWiFiNetworks);
-      service.error.next(DeviceErrorType.INVALID_WIFI_CREDENTIALS);
+      //service.error.next(DeviceErrorType.INVALID_WIFI_CREDENTIALS);
       service.alarm.next(null);
       service.configuration.next(null);
 

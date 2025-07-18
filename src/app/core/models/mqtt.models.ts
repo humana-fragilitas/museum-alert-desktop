@@ -1,3 +1,9 @@
+export interface PendingRequest<T> {
+  resolve: (data: T) => void;
+  reject: (error: any) => void;
+  timeout: NodeJS.Timeout;
+}
+
 // Outgoing messages:
 // from device to app
 export enum MqttMessageType {
