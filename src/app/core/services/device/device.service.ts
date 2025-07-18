@@ -61,24 +61,24 @@ export class DeviceService {
 
     if (win.electron) {
       
-      win.electron.ipcRenderer.on('device-found', (data) => {
+      win.electron.ipcRenderer.on('device-found', (data: PortInfo) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device found:', data);
-          this.portInfo.next(data as PortInfo);
+          this.portInfo.next(data);
         });
       });
   
-      win.electron.ipcRenderer.on('device-connection-status-update', (data) => {
+      win.electron.ipcRenderer.on('device-connection-status-update', (data: boolean) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device connection status update:', data);
-          this.usbConnectionStatus.next(data as boolean);
+          this.usbConnectionStatus.next(data);
         }); 
       });
 
-      win.electron.ipcRenderer.on('device-incoming-data', (data) => {
+      win.electron.ipcRenderer.on('device-incoming-data', (data: DeviceIncomingData) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device incoming data:', data);
-          this.parseIncomingData(data as DeviceIncomingData);
+          this.parseIncomingData(data);
         });
       });
 
