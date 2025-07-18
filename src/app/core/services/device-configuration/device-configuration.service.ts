@@ -3,6 +3,28 @@ import { MqttService } from '../mqtt/mqtt.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { MqttCommandType, DeviceConfiguration } from '../../models';
 
+// TO DO:
+/*
+
+USE THIS PATTERN EVERYWHERE:
+
+  return from(this.mqttService.sendCommand(
+    MqttCommandType.SET_CONFIGURATION,
+    { ...configuration }
+  )).pipe(
+    tap((result) => {
+      this._settings$.next(result.data);
+      console.log('Configuration updated:', result);
+    }),
+    catchError((error) => {
+      console.error('Error updating configuration:', error);
+      return throwError(() => error); // Rethrow as observable error
+    }),
+    finalize(() => this._isBusy$.next(false))
+  );
+
+*/
+
 
 @Injectable({
   providedIn: 'root'
@@ -72,9 +94,6 @@ export class DeviceConfigurationService {
       .then((configuration) => {
         this._settings$.next(configuration.data);
         console.log('Configuration updated:', configuration);
-      })
-      .catch(() => {
-        console.error('Error updating configuration');
       })
       .finally(() => this._isBusy$.next(false));
 

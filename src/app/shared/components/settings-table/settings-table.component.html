@@ -4,7 +4,7 @@
     <td class="device-spec-value">{{ (data$ | async)?.firmware }}</td>
   </tr>
   <tr>
-    <td class="device-spec-label">{{ 'COMPONENTS.SETTINGS_TABLE.MINIMUM_ALARM_DISTANCE' | translate }}</td>
+    <td class="device-spec-label">{{ 'COMPONENTS.SETTINGS_TABLE.DISTANCE_THRESHOLD' | translate }}</td>
     <td class="device-spec-value">{{ ((data$ | async)?.distance ?? 0) | formatDistance }}</td>
   </tr>
 </table>

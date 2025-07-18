@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
+import { DialogService } from '../../../core/services/dialog/dialog.service';
+import { DialogType } from '../../../core/models/ui.models';
 
 @Component({
   selector: 'app-distance-slider',
@@ -84,7 +86,9 @@ export class DistanceSliderComponent implements OnInit {
 
   constructor(
     private formatDistancePipe: FormatDistancePipe,
-    private deviceConfigurationService: DeviceConfigurationService
+    private deviceConfigurationService: DeviceConfigurationService,
+    private dialogService: DialogService
+
   ) {
 
     this.deviceConfigurationService
@@ -113,11 +117,13 @@ export class DistanceSliderComponent implements OnInit {
 
     console.log(`Setting minimum alarm distance to: ${distance} cm`);
 
-    this.deviceConfigurationService.saveSettings(
-      {
-        distance
-      }
-    ).finally();
+    this.deviceConfigurationService.saveSettings({ distance }).catch(() => {
+      this.dialogService.openDialog({
+        type: DialogType.ERROR,
+        title: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE',
+        message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
+      }, { disableClose: true });
+    });
 
   }
 

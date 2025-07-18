@@ -7,6 +7,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
 import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, of } from 'rxjs';
+import { DialogService } from '../../../core/services/dialog/dialog.service';
+import { DialogType } from '../../../core/models/ui.models';
 
  
 @Component({
@@ -52,7 +54,8 @@ export class BeaconUrlFormComponent implements OnInit {
 
   constructor(
     private deviceConfigurationService: DeviceConfigurationService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private dialogService: DialogService
   ) {
 
     this.deviceConfigurationService
@@ -91,7 +94,6 @@ export class BeaconUrlFormComponent implements OnInit {
 
   async onSubmit() {
 
-    //this.isSubmitting = true;
     this.isSubmitting$.next(true);
 
     this.beaconUrlForm.get('beaconUrl')?.disable();
@@ -106,6 +108,11 @@ export class BeaconUrlFormComponent implements OnInit {
       console.log('Beacon url saved successfully');
     }).catch(() => {
       console.log('Error while saving beacon url');
+      this.dialogService.openDialog({
+        type: DialogType.ERROR,
+        title: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE',
+        message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
+      }, { disableClose: true });
     }).finally(() => {
       this.isSubmitting$.next(false);
     });
@@ -113,9 +120,7 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   edit() {
-    //this.isEditable = true;
     this.isEditable$.next(true);
-    //this.beaconUrlForm.get('beaconUrl')?.enable();
     setTimeout(()=>{
       this.beaconUrlInput.nativeElement.focus();
       this.beaconUrlInput.nativeElement.select();
@@ -123,9 +128,7 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   cancel() {
-    //this.isEditable = false;
     this.isEditable$.next(false);
-    //this.beaconUrlForm.get('beaconUrl')?.disable();
     this.beaconUrlForm.get('beaconUrl')?.setValue(
       this.deviceConfigurationService
           .settings

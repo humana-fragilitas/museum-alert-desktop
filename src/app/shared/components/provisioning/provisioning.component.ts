@@ -61,20 +61,19 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
             // TO DO: the lambda suitable for checking device existence should return the company
             // name by looking up the database
 
-                this.dialogService.openDialog({
-                  type: DialogType.WARNING,
-                  showCancel: false,
-                  title: 'COMPONENTS.DIALOG.DEVICE_EXISTS_TITLE',
-                  message: sensor.data.company ?
-                    'COMPONENTS.DIALOG.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
-                      'COMPONENTS.DIALOG.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
-                  messageParams: {
-                    deviceName: sensor.data.thingName,
-                    company: sensor.data.company
-                  }
-                });
+            this.dialogService.openDialog({
+              type: DialogType.WARNING,
+              showCancel: false,
+              title: 'ERRORS.APPLICATION.DEVICE_EXISTS_TITLE',
+              message: sensor.data.company ?
+                'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
+                  'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
+              messageParams: {
+                deviceName: sensor.data.thingName
+              }
+            });
 
-                this.isBusy = false;
+            this.isBusy = false;
 
           } else {
             this.createProvisioningClaim();
@@ -85,8 +84,8 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
           if (error instanceof AuthenticationExpiredError) return;
           this.dialogService.openDialog({
             type: DialogType.ERROR,
-            title: 'COMPONENTS.DIALOG.PROVISIONING_FAILED_TITLE',
-            message: 'COMPONENTS.DIALOG.PROVISIONING_FAILED_MESSAGE'
+            title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
+            message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
           }, { disableClose: true });
         }
       });

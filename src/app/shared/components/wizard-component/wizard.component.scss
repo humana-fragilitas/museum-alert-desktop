@@ -7,9 +7,14 @@ mat-stepper {
 }
 
 .mat-horizontal-stepper-header-container {
-
     pointer-events: none;
+}
 
+.mat-horizontal-stepper-content {
+    overflow: visible !important;
+    h3 {
+        margin-top: 0;
+    }
 }
 
 .reset-container {
@@ -42,6 +47,8 @@ h3 {
 
 .mat-horizontal-stepper-wrapper {
     .mat-horizontal-content-container {
+        display: flex;
+        flex-direction: column;
         padding: 0 !important;
         overflow: visible !important;
     }

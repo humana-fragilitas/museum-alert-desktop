@@ -4,10 +4,10 @@ import { Resolve } from '@angular/router';
 import { Observable, of, catchError, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CompanyService } from '../services/company/company.service';
-import { CompanyWithUserContext } from '../models';
+import { CompanyWithUserContext, DialogType } from '../models';
 import { NotificationService } from '../services/notification/notification.service';
-import { AppErrorType, ErrorType } from '../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DialogService } from '../services/dialog/dialog.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +16,8 @@ export class CompanyResolver implements Resolve<CompanyWithUserContext | null> {
 
   constructor(
     private companyService: CompanyService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private dialogService: DialogService
   ) {}
 
   resolve(): Observable<CompanyWithUserContext | null> {
@@ -27,11 +28,11 @@ export class CompanyResolver implements Resolve<CompanyWithUserContext | null> {
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('Failed to resolve company data:', error);
-          this.notificationService.onError(
-            ErrorType.APP_ERROR,
-            AppErrorType.FAILED_COMPANY_RETRIEVAL,
-            error
-          );
+          this.dialogService.openDialog({
+            type: DialogType.ERROR,
+            title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
+            message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
+          }, { disableClose: true });
         return throwError(() => error);
       })
     );

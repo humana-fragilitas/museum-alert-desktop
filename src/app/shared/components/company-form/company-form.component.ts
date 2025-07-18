@@ -14,13 +14,12 @@ import {
   Validators
 } from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { UpdateCompanyRequest } from '../../../core/models';
+import { DialogType, UpdateCompanyRequest } from '../../../core/models';
 import { CommonModule } from '@angular/common';
-import { NotificationService } from '../../../core/services/notification/notification.service';
-import { AppErrorType, ErrorType } from '../../../../../app/shared/models';
 import { HttpErrorResponse } from '@angular/common/http';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
+import { DialogService } from '../../../core/services/dialog/dialog.service';
 
 @Component({
   selector: 'app-company-form',
@@ -58,8 +57,8 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private companyService: CompanyService,
-    private notificationService: NotificationService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private dialogService: DialogService
   ) { }
 
   ngOnInit(): void {
@@ -106,11 +105,11 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
     .subscribe({
       error: (error: HttpErrorResponse) => {
         this.cancel();
-        this.notificationService.onError(
-          ErrorType.APP_ERROR,
-          AppErrorType.FAILED_COMPANY_UPDATE,
-          error
-        );
+        this.dialogService.openDialog({
+          type: DialogType.ERROR,
+          title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
+          message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
+        }, { disableClose: true });
       }
     });
 

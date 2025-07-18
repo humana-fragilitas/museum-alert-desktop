@@ -1,5 +1,3 @@
-// TO DO: move this in core/services
-
 import { Injectable } from '@angular/core';
 
 import { APP_CONFIG } from '../../../../environments/environment';
