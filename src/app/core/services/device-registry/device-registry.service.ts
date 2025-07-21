@@ -4,7 +4,7 @@ import { APP_CONFIG } from '../../../../environments/environment';
 import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { DeviceService } from '../device/device.service';
-import { Sensor, ListThingsResponse, HttpStatusCode } from '../../models';
+import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '../../models';
 
 // TO DO: wrap api responses into proper models
 
@@ -16,44 +16,40 @@ export class DeviceRegistryService {
   constructor(
     private httpClient: HttpClient,
     private authService: AuthService,
-    private deviceService: DeviceService) { }
+    private deviceService: DeviceService
+  ) { }
 
   checkSensorExists(thingName: string): Observable<Nullable<Sensor>> {
 
-    const company = this.authService.sessionData
-      ?.getValue()
-      ?.tokens
-      ?.idToken
-      ?.payload
-      ?.['custom:Company'];
+    const company = this.authService.company;
 
     console.log(`[DeviceRegistryService]: checking device with name ${thingName} ` +
       `(company: ${company}) for existence in the registry...`);
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
     
-    return this.httpClient.get<Sensor>(apiUrl, {
+    return this.httpClient.get<ApiResult<Sensor>>(apiUrl, {
       observe: 'response'
     }).pipe(
-      map((response: any) => {
-        if (response.status === 200) {
-          console.log(`[DeviceRegistryService]: found device with name ${response.body.data?.thingName}: ${JSON.stringify(response.body)}`);
-          console.log(`[DeviceRegistryService]: device associated company ` +
-                      `${ (company === response.body.data?.company) ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
-          return response.body;
-        }
-        return null;
+      map((response: HttpResponse<ApiResult<Sensor>>) => {
+        const result = response.body as SuccessApiResponse<Sensor>;
+        console.log(`[DeviceRegistryService]: found device with name `+
+                    `${result.data?.thingName}: ${JSON.stringify(response.body)}`);
+        console.log(`[DeviceRegistryService]: device associated company ` +
+                    `${ (company === result.data?.company) ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
+        return result.data;
       }),
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === HttpStatusCode.NOT_FOUND) {
+      catchError((exception: HttpErrorResponse) => {
+        if (exception.status === HttpStatusCode.NOT_FOUND) {
           console.log(`[DeviceRegistryService]: device with name ${thingName} not found (404)`);
-          return of(null); // Device doesn't exist
+          return of(null);
         } else {
-          console.error(`[DeviceRegistryService]: error checking device existence:`, error);
-          throw error; // Re-throw other errors
+          console.error(`[DeviceRegistryService]: error checking device existence:`, exception.error as ErrorApiResponse);
+          throw exception;
         }
       })
     );
+
   }
 
   getAllSensors(): Observable<Sensor[]> {
@@ -63,18 +59,19 @@ export class DeviceRegistryService {
     return this.httpClient.get<ListThingsResponse>(apiUrl).pipe(
       map((response: ListThingsResponse) => {
         console.log(`[DeviceRegistryService]: found ${response.things.length} devices for company ${response.company}`);
-        return response.things; // Extract just the things array
+        return response.things;
       }),
-      catchError((error: HttpErrorResponse) => {
-        if (error.status === HttpStatusCode.NOT_FOUND) {
+      catchError((exception: HttpErrorResponse) => {
+        if (exception.status === HttpStatusCode.NOT_FOUND) {
           console.log(`[DeviceRegistryService]: no devices found`);
           return of([]);
         } else {
-          console.error(`[DeviceRegistryService]: error while listing devices:`, error);
-          throw error;
+          console.error(`[DeviceRegistryService]: error while listing devices:`, exception.error as ErrorApiResponse);
+          throw exception;
         }
       })
     );
+
   }
 
 }

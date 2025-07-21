@@ -6,11 +6,12 @@ import { PortInfo } from '@serialport/bindings-cpp';
 import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
-         WiFiNetwork } from '../../../../../app/shared/models';
+         WiFiNetwork, 
+         DeviceEvent} from '../../../../../app/shared/';
 import { PendingRequest } from '../../models';
 import { AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '../../models';
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
-import { USBCommandType } from '../../../../../app/shared/models';
+import { USBCommandType } from '../../../../../app/shared/';
 import { titleStyle } from '../../../shared/helpers/console.helper';
 
 @Injectable({
@@ -57,28 +58,27 @@ export class DeviceService {
   constructor(@Inject(WINDOW) private win: Window,
                               private ngZone: NgZone) {
 
-    console.log('DeviceService created!');
+    console.log('[DeviceService] instance created');
 
     if (win.electron) {
       
-      // TO DO: event names on shared enum?
-      win.electron.ipcRenderer.on('device-found', (data: PortInfo) => {
+      win.electron.ipcRenderer.on(DeviceEvent.FOUND, (data: PortInfo) => {
         this.ngZone.run(() => {
-          console.log('[ANGULAR APP] Device found:', data);
+          console.log('[DeviceService]: device found:', data);
           this.portInfo.next(data);
         });
       });
   
-      win.electron.ipcRenderer.on('device-connection-status-update', (data: boolean) => {
+      win.electron.ipcRenderer.on(DeviceEvent.CONNECTION_STATUS_UPDATE, (data: boolean) => {
         this.ngZone.run(() => {
-          console.log('[ANGULAR APP] Device connection status update:', data);
+          console.log('[DeviceService]: received USB connection update from device:', data);
           this.usbConnectionStatus.next(data);
         }); 
       });
 
-      win.electron.ipcRenderer.on('device-incoming-data', (data: DeviceIncomingData) => {
+      win.electron.ipcRenderer.on(DeviceEvent.INCOMING_DATA, (data: DeviceIncomingData) => {
         this.ngZone.run(() => {
-          console.log('[ANGULAR APP] Device incoming data:', data);
+          console.log('[DeviceService]: received data from device:', data);
           this.parseIncomingData(data);
         });
       });
@@ -88,7 +88,7 @@ export class DeviceService {
     this.usbConnectionStatus
         .pipe(distinctUntilChanged())
         .subscribe(status => {
-          console.log('USB connection status changed:', status);
+          console.log('[DeviceService]: USB device connection status changed:', status);
           if (!status) this.reset();
         });
     
@@ -103,26 +103,35 @@ export class DeviceService {
     const correlationId = payload.cid;
   
     if(correlationId && this.pendingRequests[correlationId]) {
-      const { resolve, timeout } = this.pendingRequests[correlationId];
+      const { resolve, reject, timeout } = this.pendingRequests[correlationId];
       clearTimeout(timeout);
-      // TO DO: reject here messages with type == DeviceMessageType.ERROR ?
-      resolve(payload);
+      // Errors with associated correlation ids are directly handled by
+      // caller objects and should not be retained within this class
+      if (correlationId && payload.type === DeviceMessageType.ERROR) {
+        console.log(`[DeviceService]: processed error with correlation id: ${correlationId}`);
+        reject(payload);
+        return;
+      } else {
+        resolve(payload);
+      }
       delete this.pendingRequests[correlationId];
     }
 
     switch (payload.type) {
       case DeviceMessageType.APP_STATE:
+        console.log(`[DeviceService]: received app state via USB`, payload.data);
         this.deviceAppStatus.next(payload.data?.appState as DeviceAppState);
         break;
       case DeviceMessageType.WIFI_NETWORKS_LIST:
+        console.log(`[DeviceService]: received WiFi networks via USB`, payload.data);
         this.wiFiNetworks.next(payload.data as WiFiNetwork[]);
         break;
       case DeviceMessageType.ERROR:
-        console.log("INCOMING ERROR:", payload.data);
+        console.log(`[DeviceService]: received error response via USB with no correlation id:`,  payload.data);
         this.error.next(payload);
         break;
       case DeviceMessageType.ACKNOWLEDGMENT:
-        console.log(`Received response via USB for request with correlation id: ${correlationId}`);
+        console.log(`[DeviceService]: received acknowledgment via USB for request with correlation id: ${correlationId}`);
         break;
     }
 
@@ -137,15 +146,15 @@ export class DeviceService {
       jsonPayload = JSON.stringify(payload);
 
       if (this.win.electron) {
-        console.log(`Sending data to device: ${jsonPayload}`);
-        this.win.electron.ipcRenderer.send('device-send-data', `<|${jsonPayload}|>`);
+        console.log(`[DeviceService]: sending data to device: ${jsonPayload}`);
+        this.win.electron.ipcRenderer.send(DeviceEvent.OUTGOING_DATA, `<|${jsonPayload}|>`);
       } else {
-        console.error('Error while sending data to device: Electron not available!');
+        console.error('[DeviceService]: error while sending data to device: Electron object not available!');
       }
       
     } catch (error) {
 
-      console.error('Error sending data to device:', error);
+      console.error('[DeviceService]: error while sending data to device:', error);
 
     }
 
@@ -161,8 +170,8 @@ export class DeviceService {
         resolve: resolve as (data: any) => void,
         reject,
         timeout: setTimeout(() => {
-          console.error(`Request ${cid} timed out.`);
-          reject(new Error("USB request timeout"));
+          console.error(`[DeviceService]: request ${cid} timed out.`);
+          reject(new Error('USB request timeout'));
           delete this.pendingRequests[cid];
         }, APP_CONFIG.settings.USB_RESPONSE_TIMEOUT),
       };
@@ -173,10 +182,9 @@ export class DeviceService {
         payload
       });
 
-      console.log('%USB request sent:', titleStyle);
-      console.log(`Request sent with correlation id: ${cid}`);
-      console.log('Pending requests:', Object.keys(this.pendingRequests).length);
-      console.log(this.pendingRequests);
+      console.log('[DeviceService]: %cUSB request sent:', titleStyle);
+      console.log(`[DeviceService]: request sent with correlation id: ${cid}`);
+      console.log('[DeviceService]: pending requests:', this.pendingRequests);
 
     });
 

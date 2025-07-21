@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DeviceAppState } from '../../../../app/shared/models';
+import { DeviceAppState } from '../../../../app/shared';
 import { DeviceStateComponent } from '../../shared/components/device-state/device-state.component';
 import { WizardComponent } from '../../shared/components/wizard-component/wizard.component';
 import { COMMON_MATERIAL_IMPORTS } from '../../shared/utils/material-imports';
@@ -20,7 +20,7 @@ export class DeviceComponent implements OnInit {
   public deviceAppState = DeviceAppState;
 
   ngOnInit(): void {
-    console.log('Device INIT');
+    console.log('[DeviceComponent] ngOnInit');
   }
 
 }

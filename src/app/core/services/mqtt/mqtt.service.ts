@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
 
-import { AuthSession, fetchAuthSession } from 'aws-amplify/auth';
+import { AuthSession } from 'aws-amplify/auth';
 
 import mqtt from 'mqtt';
 
@@ -38,9 +38,11 @@ export class MqttService {
     private sigV4Service: SigV4Service,
     private deviceService: DeviceService
   ) {
-    console.log('MqttService instance! New version!');
+
+    console.log('[MqttService]: instance created');
     this.initializeAuthSubscription();
     this.setupMessageHandlers();
+
   }
 
   private initializeAuthSubscription(): void {
@@ -50,10 +52,12 @@ export class MqttService {
   }
 
   private async handleSessionChange(sessionData: Nullable<AuthSession>): Promise<void> {
-    console.log('Session data changed, current connection status:', this.isConnected);
+
+    console.log(`[MqttService]: session data changed, current connection status: `+ 
+                `${ this.isConnected ? 'connected' : 'disconnected' }`);
 
     if (!sessionData) {
-      console.log('No session data, disconnecting MQTT');
+      console.log('[MqttService]: no session data, disconnecting MQTT');
       this.disconnect();
       this.currentSession = null;
       return;
@@ -64,7 +68,7 @@ export class MqttService {
     const isConnectedAndSameUser = this.isConnected && isSameUser;
 
     if (isConnectedAndSameUser) {
-      console.log('Session refreshed for same user, updating credentials without reconnecting');
+      console.log('[MqttService]: session refreshed for same user, updating credentials without reconnecting');
       this.currentSession = sessionData;
       // Update the transform function to use new credentials
       return;
@@ -72,18 +76,19 @@ export class MqttService {
 
     // Different user or not connected - need to reconnect
     if (this.isConnected) {
-      console.log('Different user detected, reconnecting MQTT');
+      console.log('[MqttService]: different user detected, reconnecting MQTT');
       await this.reconnect(sessionData);
     } else {
-      console.log('Not connected, establishing new MQTT connection');
+      console.log('[MqttService]: not connected, establishing new MQTT connection');
       await this.connect(sessionData);
     }
 
     this.currentSession = sessionData;
+
   }
 
   private async reconnect(sessionData: AuthSession): Promise<void> {
-    console.log('Reconnecting MQTT client...');
+    console.log('[MqttService]: reconnecting MQTT client...');
     await this.disconnect();
     await new Promise(resolve => setTimeout(resolve, 1000)); // Brief delay
     await this.connect(sessionData);
@@ -94,29 +99,29 @@ export class MqttService {
     this.onMessageOfType(MqttMessageType.ALARM)
       .subscribe((message: BaseMqttMessage<AlarmPayload>) => {
         this.deviceService.onAlarm(message);
-        console.log("Alarm:", message);
+        console.log(`[MqttService]: received message of type 'alarm':`, message);
       });
 
     this.onMessageOfType(MqttMessageType.CONFIGURATION)
       .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
+        console.log(`[MqttService]: received message of type 'configuration':`, message);
         this.deviceService.onConfiguration(message.data);
-        console.log("Device configuration:", message);
       });
 
     this.onMessageOfType(MqttMessageType.ACK)
       .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
-        console.log("Acknowledgment:", message);
+        console.log(`[MqttService]: received message of type 'acknowledgment':`, message);
       });
   }
 
   async connect(sessionData: AuthSession): Promise<void> {
 
-    if (sessionData && sessionData.tokens?.idToken?.payload['custom:hasPolicy'] !== '1') {
-      console.log('User does not have an iot policy attached yet; skipping...');
+    if (!this.authService.hasPolicy) {
+      console.log('[MqttService]: user does not have an iot policy attached yet; skipping...');
     }
 
     if (this.isConnecting) {
-      console.log('Connection already in progress, skipping...');
+      console.log('[MqttService]: connection already in progress, skipping...');
       return;
     }
 
@@ -126,7 +131,7 @@ export class MqttService {
       const { identityId: clientId } = sessionData;
       const url = this.sigV4Service.getSignedURL(sessionData);
 
-      console.log('Connecting to MQTT broker...');
+      console.log('[MqttService]: connecting to MQTT broker...');
 
       this.client = mqtt.connect(url, {
         clientId,
@@ -138,7 +143,7 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
-          const currentSession = this.authService.sessionData.getValue();
+          const currentSession = this.authService.session;
           if (currentSession) {
             return this.sigV4Service.getSignedURL(currentSession);
           }
@@ -150,17 +155,19 @@ export class MqttService {
       this.setupClientEventHandlers(sessionData);
 
     } catch (error) {
-      console.error('Failed to connect to MQTT broker:', error);
+      console.error('[MqttService]: failed to connect to MQTT broker:', error);
       this.isConnecting = false;
       throw error;
     }
+
   }
 
   private setupClientEventHandlers(sessionData: AuthSession): void {
+
     if (!this.client) return;
 
     this.client.on('connect', () => {
-      console.log('MQTT broker connected successfully');
+      console.log('[MqttService]: MQTT broker connected successfully');
       this.isConnecting = false;
       
       const company = sessionData.tokens?.idToken?.payload['custom:Company'];
@@ -168,42 +175,44 @@ export class MqttService {
       
       this.client?.subscribe(topicToSubscribe, (error) => {
         if (error) {
-          console.error('Failed to subscribe to topic:', topicToSubscribe, error);
+          console.error('[MqttService]: failed to subscribe to topic:', topicToSubscribe, error);
         } else {
-          console.log('Successfully subscribed to topic:', topicToSubscribe);
+          console.log('[MqttService]: successfully subscribed to topic:', topicToSubscribe);
         }
       });
     });
 
     this.client.on('message', (topic, message) => {
-      console.log(`MQTT message received on topic ${topic}:`, message.toString());
+      console.log(`[MqttService]: MQTT message received on topic ${topic}:`, message.toString());
       this.handleIncomingMessage(message);
     });
 
     this.client.on('error', (error) => {
-      console.error('MQTT client error:', error);
+      console.error('[MqttService]: MQTT client error:', error);
       this.isConnecting = false;
     });
 
     this.client.on('disconnect', (packet) => {
-      console.log('MQTT client disconnected:', packet);
+      console.log('[MqttService]: MQTT client disconnected:', packet);
     });
 
     this.client.on('close', () => {
-      console.log('MQTT connection closed');
+      console.log('[MqttService]: MQTT connection closed');
       this.isConnecting = false;
     });
 
     this.client.on('reconnect', () => {
-      console.log('MQTT client attempting to reconnect...');
+      console.log('[MqttService]: MQTT client attempting to reconnect...');
     });
 
     this.client.on('offline', () => {
-      console.log('MQTT client is offline');
+      console.log('[MqttService]: MQTT client is offline');
     });
+    
   }
 
   private removeClientEventHandlers(): void {
+
     if (!this.client) return;
     
     // Remove all event listeners
@@ -215,11 +224,14 @@ export class MqttService {
     this.client.removeAllListeners('reconnect');
     this.client.removeAllListeners('offline');
     
-    console.log('MQTT client event handlers removed');
+    console.log('[MqttService]: MQTT client event handlers removed');
+
   }
 
   private handleIncomingMessage(message: Buffer): void {
+
     try {
+
       const parsedMessage = JSON.parse(message.toString()) as MqttMessage;
       const correlationId = parsedMessage.cid;
 
@@ -229,18 +241,22 @@ export class MqttService {
         clearTimeout(timeout);
         resolve(parsedMessage);
         delete this.pendingRequests[correlationId];
-        console.log(`Received response for correlation ID: ${correlationId}`);
+        console.log(`[MqttService]: received response for correlation ID: ${correlationId}`);
       }
 
       // Broadcast to all subscribers
       this.messages$.next(parsedMessage);
 
     } catch (error) {
-      console.error('Failed to parse MQTT message:', error);
+
+      console.error('[MqttService]: failed to parse MQTT message:', error);
+
     }
+
   }
 
   async disconnect(): Promise<void> {
+
     if (this.isDisconnecting || !this.client) {
       return;
     }
@@ -258,7 +274,7 @@ export class MqttService {
       if (this.client.connected) {
         await new Promise<void>((resolve) => {
           this.client!.end(true, {}, () => {
-            console.log('MQTT client disconnected gracefully');
+            console.log('[MqttService]: MQTT client disconnected gracefully');
             resolve();
           });
         });
@@ -266,7 +282,7 @@ export class MqttService {
 
       this.client = undefined;
     } catch (error) {
-      console.error('Error during MQTT disconnect:', error);
+      console.error('[MqttService]: error during MQTT disconnect:', error);
     } finally {
       this.isDisconnecting = false;
     }
@@ -276,14 +292,14 @@ export class MqttService {
     Object.keys(this.pendingRequests).forEach(cid => {
       const { reject, timeout } = this.pendingRequests[cid];
       clearTimeout(timeout);
-      reject(new Error('Connection closed'));
+      reject(new Error('[MqttService]: connection closed'));
       delete this.pendingRequests[cid];
     });
   }
 
   get isConnected(): boolean {
     const connected = this.client?.connected || false;
-    console.log(`MQTT connection status: ${connected}`);
+    console.log(`[MqttService]: MQTT connection status: ${connected}`);
     return connected;
   }
 
@@ -302,37 +318,38 @@ export class MqttService {
     );
   }
 
-  sendCommand(type: MqttCommandType, payload: any = null): Promise<any> {
+  sendCommand<T>(type: MqttCommandType, payload: any = null): Promise<T> {
+
     if (!this.isConnected) {
-      return Promise.reject(new Error('MQTT client is not connected'));
+      return Promise.reject(new Error('[MqttService]: MQTT client is not connected'));
     }
 
     return new Promise<any>((resolve, reject) => {
-      const company = this.currentSession?.tokens?.idToken?.payload['custom:Company'];
+
+      const company = this.authService.company;
       const deviceSN = this.deviceService.getSerialNumber();
       
       if (!company || !deviceSN) {
-        reject(new Error('Missing company or device serial number'));
+        reject(new Error('[MqttService]: missing company or device serial number'));
         return;
       }
 
       const topic = `companies/${company}/devices/${deviceSN}/commands`;
       const cid = this.deviceService.generateCid();
 
-      console.log('Sending MQTT command:', { type, topic, cid, payload });
+      console.log('[MqttService]: sending MQTT command:', { type, topic, cid, payload });
 
       // Store the pending request
       this.pendingRequests[cid] = {
         resolve: resolve as (data: any) => void,
         reject,
         timeout: setTimeout(() => {
-          console.error(`MQTT request ${cid} timed out`);
+          console.error(`[MqttService]: MQTT request ${cid} timed out`);
           delete this.pendingRequests[cid];
-          reject(new Error("MQTT request timeout"));
+          reject(new Error('[MqttService]: MQTT request timeout'));
         }, APP_CONFIG.settings.MQTT_RESPONSE_TIMEOUT),
       };
 
-      // Publish the command
       const messagePayload = JSON.stringify({
         type,
         cid,
@@ -341,19 +358,22 @@ export class MqttService {
 
       this.client?.publish(topic, messagePayload, (error) => {
         if (error) {
-          console.error('Failed to publish MQTT message:', error);
+          console.error('[MqttService]: failed to publish MQTT message:', error);
           clearTimeout(this.pendingRequests[cid]?.timeout);
           delete this.pendingRequests[cid];
           reject(error);
         }
       });
     });
+    
   }
 
-  // Add cleanup method for manual cleanup if needed (like in tests)
   cleanup(): void {
+
     this.authSubscription?.unsubscribe();
     this.disconnect();
     this.clearPendingRequests();
+
   }
+
 }

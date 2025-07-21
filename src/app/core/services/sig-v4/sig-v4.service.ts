@@ -69,10 +69,10 @@ export class SigV4Service {
       identityId: clientId
     } = sessionData;
 
-    console.log("secretAccessKey", secretAccessKey);
-    console.log("accessKeyId", accessKeyId);
-    console.log("sessionToken", sessionToken);
-    console.log("clientId", clientId);
+    console.log('[SigV4Service]: secretAccessKey:', secretAccessKey);
+    console.log('[SigV4Service]: accessKeyId:', accessKeyId);
+    console.log('[SigV4Service]: sessionToken:', sessionToken);
+    console.log('[SigV4Service]: clientId:', clientId);
 
     // Set credential scope to today for a specific service in a specific region
     var credentialScope = dateStamp + '/' + region + '/' + service + '/' + 'aws4_request';
@@ -98,15 +98,15 @@ export class SigV4Service {
 
     // Build canonical request
     var canonicalRequest = method + '\n' + canonicalUri + '\n' + canonicalQuerystring + '\n' + canonicalHeaders + '\nhost\n' + payloadHash;
-    console.log('canonicalRequest: \n' + canonicalRequest);
+    console.log('[SigV4Service]: canonicalRequest:', canonicalRequest);
 
     // Hash the canonical request and create the message to be signed
     var stringToSign = algorithm + '\n' +  amzdate + '\n' +  credentialScope + '\n' +  this.sha256(canonicalRequest);
 
     // Derive the key to be used for the signature based on the scoped down request
     var signingKey = this.getSignatureKey(secretAccessKey!, dateStamp, region, service);
-    console.log('stringToSign: \n'); console.log(stringToSign);
-    console.log('signingKey: \n'); console.log(signingKey);
+    console.log('[SigV4Service]: stringToSign:', stringToSign);
+    console.log('[SigV4Service]: signingKey:', signingKey);
 
     // Calculate signature
     var signature = this.sign(signingKey, stringToSign);
@@ -121,9 +121,7 @@ export class SigV4Service {
     
     const requestUrl = 'wss://' + host + canonicalUri + '?' + canonicalQuerystring;
 
-    console.log('-------------------------');
     console.dir(requestUrl);
-    console.log('-------------------------');
 
     return requestUrl;
 

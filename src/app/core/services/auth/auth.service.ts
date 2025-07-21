@@ -7,8 +7,6 @@ import { fetchAuthSession,
          fetchUserAttributes,
          GetCurrentUserOutput,
         FetchUserAttributesOutput } from 'aws-amplify/auth';
-import { Amplify } from 'aws-amplify';
-import { APP_CONFIG } from '../../../../environments/environment';
 import { Hub, HubCapsule } from '@aws-amplify/core';
 import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
 import { titleStyle } from '../../../shared/helpers/console.helper';
@@ -21,13 +19,11 @@ export class AuthService {
 
   private timeOutId: number = 0;
 
-  // To be used only to retrieve authentication tokens and AWS credentials
-  readonly sessionData = new BehaviorSubject<Nullable<AuthSession>>(
-    null
-  );
+  // Authentication tokens and AWS credentials
+  private readonly sessionData = new BehaviorSubject<Nullable<AuthSession>>(null);
   // To be used to check if the user is authenticated
   private readonly user = new BehaviorSubject<Nullable<GetCurrentUserOutput>>(null);
-  // To be used to retrieve user attributes (e.g.: email, company, etc.)
+  // User attributes (e.g.: email, company, etc.)
   private readonly userAttributes = new BehaviorSubject<Nullable<FetchUserAttributesOutput>>(null);
 
   public readonly sessionData$ = this.sessionData.asObservable();
@@ -36,31 +32,24 @@ export class AuthService {
 
   constructor() {
 
-    console.log('AuthService instance created');
-
-    Amplify.configure(APP_CONFIG.aws.amplify);
+    console.log('[AuthService]: instance created');
 
     this.user.pipe(
       distinctUntilChanged()
     ).subscribe((user) => {
-
       this.fetchSession();
-
       if (user) {
         this.getUserAttributes();
       }
-
     });
 
     // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
     Hub.listen('auth', (data: HubCapsule<string, AuthHubEventData>) => {
-      const { payload } = data;
 
+      const { payload } = data;
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
-
         this.getUser();
-
       }
 
     });
@@ -77,9 +66,9 @@ export class AuthService {
       (session: AuthSession) => {
 
         /**
-         * Note: oddly, the fetchAuthSession() function returns the AuthSession
+         * Note: fetchAuthSession() function returns the AuthSession
          * object with all properties set to undefined when a session does
-         *  not exist.
+         * not exist
          */
 
         const hasSession = session.credentials &&
@@ -92,17 +81,17 @@ export class AuthService {
         console.log('[AuthService]: session data:');
         console.log(session);
         
-        console.log('%cAccess token:', titleStyle);
+        console.log('%c[AuthService]: access token:', titleStyle);
         console.log(session.tokens?.accessToken.toString());
 
-        console.log('%cId token:', titleStyle);
+        console.log('%c[AuthService]: id token:', titleStyle);
         console.log(session.tokens?.idToken?.toString());
 
         if (this.timeOutId) { clearTimeout(this.timeOutId); }
 
         if (!hasSession) return;
 
-        console.log(`User session is set to expire at: ${session.credentials!.expiration}`);
+        console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
 
         const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
             new Date().getTime()) - (1000 * 60);
@@ -111,7 +100,7 @@ export class AuthService {
         const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
 
-        console.log(`User session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
+        console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
 
         // Note: typings point to NodeJS.Timeout
         this.timeOutId = Number(setTimeout(
@@ -163,8 +152,34 @@ export class AuthService {
   }
 
   get userLoginId(): string {
-
     return this.user.getValue()?.signInDetails?.loginId || '';
+  }
+
+  get company(): string {
+
+    return this.sessionData
+              ?.getValue()
+              ?.tokens
+              ?.idToken
+              ?.payload
+              ?.['custom:Company'] as string;
+
+  }
+
+  get hasPolicy(): boolean {
+
+    return this.sessionData
+              ?.getValue()
+              ?.tokens
+              ?.idToken
+              ?.payload
+              ?.['custom:hasPolicy'] === '1';
+
+  }
+
+  get session(): Nullable<AuthSession> {
+
+    return this.sessionData.getValue();
 
   }
 

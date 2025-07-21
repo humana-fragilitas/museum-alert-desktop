@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DeviceErrorType } from '../../../../../app/shared/models';
+import { DeviceErrorType } from '../../../../../app/shared';
 
 
 type ErrorsMap = {

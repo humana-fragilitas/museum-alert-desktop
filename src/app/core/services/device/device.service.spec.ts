@@ -15,8 +15,9 @@ import {
   ProvisioningData,
   USBCommand,
   DeviceStateUpdate,
-  Error as DeviceError
-} from '../../../../../app/shared/models';
+  Error as DeviceError,
+  DeviceEvent
+} from '../../../../../app/shared';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { BaseMqttMessage } from '../../models';
 import { DeviceConfiguration } from '../../models';
@@ -132,15 +133,15 @@ describe('DeviceService', () => {
 
     it('should set up electron IPC listeners if electron is available', () => {
       expect(mockElectron.ipcRenderer.on).toHaveBeenCalledWith(
-        'device-found',
+        DeviceEvent.FOUND,
         expect.any(Function)
       );
       expect(mockElectron.ipcRenderer.on).toHaveBeenCalledWith(
-        'device-connection-status-update',
+        DeviceEvent.CONNECTION_STATUS_UPDATE,
         expect.any(Function)
       );
       expect(mockElectron.ipcRenderer.on).toHaveBeenCalledWith(
-        'device-incoming-data',
+        DeviceEvent.INCOMING_DATA,
         expect.any(Function)
       );
     });
@@ -319,7 +320,7 @@ describe('DeviceService', () => {
       service.sendData(payload);
 
       expect(mockElectron.ipcRenderer.send).toHaveBeenCalledWith(
-        'device-send-data',
+        DeviceEvent.OUTGOING_DATA,
         '<|{"test":"data"}|>'
       );
       expect(consoleSpy).toHaveBeenCalledWith('Sending data to device: {"test":"data"}');

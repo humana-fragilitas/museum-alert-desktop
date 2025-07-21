@@ -3,7 +3,7 @@ import { BehaviorSubject, catchError, finalize, map, Observable, of, tap, throwE
 import { APP_CONFIG } from '../../../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
-import { SuccessApiResponse } from '../../models';
+import { SuccessApiResponse, ApiResult, ErrorApiResponse } from '../../models';
 import { NotificationService } from '../notification/notification.service';
 import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '../../models';
 
@@ -13,12 +13,8 @@ import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, Co
 })
 export class CompanyService {
 
-  private readonly company = new BehaviorSubject<
-    Nullable<CompanyWithUserContext>
-  >(null);
-  private readonly isFetchingCompany = new BehaviorSubject<
-    boolean
-  >(false);
+  private readonly company = new BehaviorSubject<Nullable<CompanyWithUserContext>>(null);
+  private readonly isFetchingCompany = new BehaviorSubject<boolean>(false);
 
   public readonly company$ = this.company.asObservable();
   public readonly isFetchingCompany$ = this.isFetchingCompany.asObservable();
@@ -29,7 +25,7 @@ export class CompanyService {
     private notificationService: NotificationService
   ) {
 
-    this.authService.sessionData.subscribe((session) => {
+    this.authService.sessionData$.subscribe((session) => {
       if (session) {
         this.get().subscribe();
       } else {
@@ -39,23 +35,19 @@ export class CompanyService {
 
   }
 
-  setName(company: UpdateCompanyRequest): Observable<
-    SuccessApiResponse<UpdateCompanyResponse>
-  > {
+  setName(company: UpdateCompanyRequest): Observable<ApiResult<UpdateCompanyResponse>> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
     
-    return this.httpClient.put<
-      SuccessApiResponse<UpdateCompanyResponse>
-    >(apiUrl, { companyName: company.companyName }).pipe(
-      tap((response: SuccessApiResponse<UpdateCompanyResponse>) => {
+    return this.httpClient.put<ApiResult<UpdateCompanyResponse>>(apiUrl, { companyName: company.companyName }).pipe(
+      tap((response: ApiResult<UpdateCompanyResponse>) => {
 
         // Preserve user context from current company data
         const currentCompany = this.company.value;
 
         if (currentCompany) {
           const updatedCompanyWithContext: CompanyWithUserContext = {
-            ...response.data.company,
+            ...(response as SuccessApiResponse<UpdateCompanyResponse>).data.company,
             userRole: currentCompany.userRole,
             userJoinedAt: currentCompany.userJoinedAt
           };
@@ -65,7 +57,7 @@ export class CompanyService {
       }),
       catchError((exception: HttpErrorResponse) => {
         console.error('Error updating company name:', exception);
-        return throwError(() => exception);
+        return throwError(() => exception.error as ErrorApiResponse);
       })
 
     );
@@ -75,36 +67,27 @@ export class CompanyService {
   /**
    * Get company data (loads fresh from API)
    */
-  get(): Observable<Nullable<CompanyWithUserContext>> {
+  get(): Observable<ApiResult<CompanyWithUserContext>> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
     
     this.isFetchingCompany.next(true);
 
-    return this.httpClient.get<
-      SuccessApiResponse<CompanyWithUserContext>
-    >(apiUrl).pipe(
-
+    return this.httpClient.get<ApiResult<CompanyWithUserContext>>(apiUrl).pipe(
       tap(
-        (response: SuccessApiResponse<CompanyWithUserContext>) => {
-          this.company.next(response.data);
+        (response: ApiResult<CompanyWithUserContext>) => {
+          if ('data' in response) {
+            this.company.next(response.data);
+          }
         }
       ),
-
-      map(
-        (response: SuccessApiResponse<CompanyWithUserContext>) => 
-          response.data
-      ),
-
       catchError((exception: HttpErrorResponse) => {
         console.error('Error fetching company:', exception);
-        return throwError(() => exception);
+        return throwError(() => exception.error as ErrorApiResponse);
       }),
-
       finalize(() => {
         this.isFetchingCompany.next(false);
       })
-
     );
 
   }

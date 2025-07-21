@@ -1,29 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MqttService } from '../mqtt/mqtt.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { MqttCommandType, DeviceConfiguration } from '../../models';
-
-// TO DO:
-/*
-
-USE THIS PATTERN EVERYWHERE:
-
-  return from(this.mqttService.sendCommand(
-    MqttCommandType.SET_CONFIGURATION,
-    { ...configuration }
-  )).pipe(
-    tap((result) => {
-      this._settings$.next(result.data);
-      console.log('Configuration updated:', result);
-    }),
-    catchError((error) => {
-      console.error('Error updating configuration:', error);
-      return throwError(() => error); // Rethrow as observable error
-    }),
-    finalize(() => this._isBusy$.next(false))
-  );
-
-*/
+import { MqttCommandType, DeviceConfiguration, BaseMqttMessage } from '../../models';
 
 
 @Injectable({
@@ -31,32 +9,36 @@ USE THIS PATTERN EVERYWHERE:
 })
 export class DeviceConfigurationService {
 
-  private readonly _settings$ = new BehaviorSubject<DeviceConfiguration | null>(null);
-  public readonly settings$: Observable<DeviceConfiguration | null> = this._settings$.asObservable();
-
-  private readonly _isBusy$ = new BehaviorSubject<boolean>(false);
-  public readonly isBusy$: Observable<boolean> = this._isBusy$.asObservable();
+  private readonly properties = new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
+  private readonly isBusy = new BehaviorSubject<boolean>(false);
+  
+  public readonly properties$: Observable<Nullable<DeviceConfiguration>> = this.properties.asObservable();
+  public readonly isBusy$: Observable<boolean> = this.isBusy.asObservable();
 
   constructor(private readonly mqttService: MqttService) {
 
-    console.log('DeviceConfigurationService created!');
+    console.log('[DeviceConfigurationService]: instance created');
 
   }
 
-  async loadSettings(maxRetries: number = 3, baseDelay: number = 1000): Promise<DeviceConfiguration | void> {
-    this._isBusy$.next(true);
+  async loadSettings(maxRetries: number = 3, baseDelay: number = 1000): Promise<DeviceConfiguration> {
+    
+    this.isBusy.next(true);
     
     let attempt = 0;
     
-    const attemptLoad = async (): Promise<DeviceConfiguration | void> => {
+    const attemptLoad = async (): Promise<DeviceConfiguration> => {
+
       try {
-        const configuration: any = await this.mqttService.sendCommand(MqttCommandType.GET_CONFIGURATION);
-        this._settings$.next(configuration.data);
-        console.log('Received device configuration:', configuration);
+        const configuration = await this.mqttService.sendCommand<BaseMqttMessage<DeviceConfiguration>>(
+          MqttCommandType.GET_CONFIGURATION
+        );
+        this.properties.next(configuration.data);
+        console.log('[DeviceConfigurationService]: received device configuration:', configuration);
         return configuration.data;
       } catch (error) {
         attempt++;
-        console.error(`Error getting device configuration (attempt ${attempt}/${maxRetries}):`, error);
+        console.error(`[DeviceConfigurationService]: error getting device configuration (attempt ${attempt}/${maxRetries}):`, error);
         
         if (attempt >= maxRetries) {
           throw error; // Re-throw after max retries
@@ -64,43 +46,47 @@ export class DeviceConfigurationService {
         
         // Exponential backoff: wait longer between each retry
         const delay = baseDelay * Math.pow(2, attempt - 1);
-        console.log(`Retrying in ${delay}ms...`);
+        console.log(`[DeviceConfigurationService]: retrying in ${delay}ms...`);
         
         await new Promise(resolve => setTimeout(resolve, delay));
         return attemptLoad(); // Recursive retry
       }
+
     };
     
     try {
       return await attemptLoad();
     } catch (error) {
-      console.error('Failed to load settings after all retries:', error);
+      console.error('[DeviceConfigurationService]: failed to load settings after all retries:', error);
       throw error;
     } finally {
-      this._isBusy$.next(false);
+      this.isBusy.next(false);
     }
+
   }
 
-  async saveSettings(configuration: DeviceConfiguration): Promise<DeviceConfiguration | void> {
+  async saveSettings(configuration: DeviceConfiguration): Promise<DeviceConfiguration> {
 
-    this._isBusy$.next(true);
+    this.isBusy.next(true);
 
-    return this.mqttService
-      .sendCommand(
+    try {
+      const result = await this.mqttService.sendCommand<BaseMqttMessage<DeviceConfiguration>>(
         MqttCommandType.SET_CONFIGURATION,
-        {
-          ...configuration
-        })
-      .then((configuration) => {
-        this._settings$.next(configuration.data);
-        console.log('Configuration updated:', configuration);
-      })
-      .finally(() => this._isBusy$.next(false));
+        { ...configuration }
+      );
+      this.properties.next(result.data);
+      return result.data;
+    } catch(error) {
+      console.error('[DeviceConfigurationService]: failed to save settings:', error);
+      throw error;
+    } finally {
+      this.isBusy.next(false);
+    }
 
   }
 
-  get settings(): DeviceConfiguration | null {
-    return this._settings$.value;
+  get settings(): Nullable<DeviceConfiguration> {
+    return this.properties.value;
   }
 
 }

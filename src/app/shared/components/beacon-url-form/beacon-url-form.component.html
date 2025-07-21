@@ -3,8 +3,8 @@
   <mat-form-field appearance="fill">
     <mat-label>{{ 'COMPONENTS.BEACON_URL_FORM.LABEL' | translate }}</mat-label>
     <input matInput type="text" formControlName="beaconUrl" #beaconUrl>
-      <mat-error *ngIf="(getErrorMessage() | async) && beaconUrlForm.get('beaconUrl')?.touched">
-        <strong>{{getErrorMessage() | async}}</strong>
+      <mat-error *ngIf="(errorMessage$ | async) && beaconUrlForm.get('beaconUrl')?.touched">
+        <strong>{{errorMessage$ | async}}</strong>
       </mat-error>
   </mat-form-field>
 
@@ -13,7 +13,7 @@
       <button *ngIf="!(isBeaconUrlSet$ | async) || (isEditable$ | async)"
               mat-raised-button color="primary"
               type="submit"
-              [disabled]="beaconUrlForm.invalid || (isDisabled$ | async)">
+              [disabled]="beaconUrlForm.invalid || !(isEnabled$ | async)">
         <span class="button-content">
           {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
           <mat-progress-spinner *ngIf="(isBusy$ | async) && (isSubmitting$ | async)" mode="indeterminate" diameter="16"></mat-progress-spinner>
@@ -22,7 +22,7 @@
 
       <button *ngIf="isEditable$ | async"
         mat-raised-button color="secondary"
-        [disabled]="isDisabled$ | async"
+        [disabled]="!(isEnabled$ | async)"
         (click)="cancel()">
         <span class="button-content">
           {{ 'COMMON.ACTIONS.CANCEL' | translate }}
@@ -33,7 +33,7 @@
 
   <button *ngIf="(isBeaconUrlSet$ | async) && !(isEditable$ | async)"
           mat-raised-button color="primary"
-          [disabled]="isDisabled$ | async"
+          [disabled]="!(isEnabled$ | async)"
           (click)="edit()">
     <span class="button-content">
       {{ 'COMMON.ACTIONS.EDIT' | translate }}

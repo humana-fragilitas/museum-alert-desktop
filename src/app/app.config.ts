@@ -24,6 +24,8 @@ import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { MqttService } from './core/services/mqtt/mqtt.service';
 import { PolicyService } from './core/services/policy/policy.service';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
+import { Amplify } from 'aws-amplify';
+import { APP_CONFIG } from '../environments/environment';
 
 // AoT requires an exported function for factories
 export function httpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -32,6 +34,9 @@ export function httpLoaderFactory(http: HttpClient): TranslateHttpLoader {
 
 // Early services instantiation
 function instantiateEarlyServices() {
+
+  Amplify.configure(APP_CONFIG.aws.amplify);
+
   const mqttService = inject(MqttService);
   const policyService = inject(PolicyService);
   const electronService = inject(ElectronService);
@@ -39,6 +44,7 @@ function instantiateEarlyServices() {
   const authenticatorService = inject(AuthenticatorService);
   const companyService = inject(CompanyService);
   const redirectService = inject(RedirectService);
+  
 }
 
 export const appConfig: ApplicationConfig = {

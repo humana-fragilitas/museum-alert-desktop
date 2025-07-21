@@ -11,11 +11,11 @@ import { AuthService } from '../auth/auth.service';
 })
 export class PolicyService {
 
-  constructor(private httpClient: HttpClient, private authService: AuthService) {
+  constructor(private readonly httpClient: HttpClient, private readonly authService: AuthService) {
 
-    authService.sessionData.subscribe({
-      next: (session: AuthSession | null) => {
-        if (session && session.tokens?.idToken?.payload['custom:hasPolicy'] !== '1') {
+    this.authService.sessionData$.subscribe({
+      next: (session: Nullable<AuthSession>) => {
+        if (session && !this.authService.hasPolicy) {
           this.attachPolicy(session);
         }
       }

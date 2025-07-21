@@ -13,19 +13,9 @@ export class ProvisioningService {
   constructor(
     private httpClient: HttpClient,
     private authService: AuthService,
-    private deviceService: DeviceService) { }
+    private deviceService: DeviceService
+  ) { }
 
-  /**
-   *  Root CA Certificate (CACert):
-      The certificatePem value should be used here.
-      Set it using net.setCACert(certificatePem).
-      Client Certificate and Private Key:
-      For the client certificate, use the same certificatePem value.
-      For the client private key, use the keyPair.PrivateKey value.
-      Set them using net.setCertificate(clientCertificate) and net.setPrivateKey(clientPrivateKey).
-   */
-
-  // <| { "ssid": "Test", "password": "qyqijczyz2p37xz" } |>
   createClaim(): Observable<any> {
 
     const cid = this.deviceService.generateCid();
@@ -36,11 +26,10 @@ export class ProvisioningService {
         ...response,
         cid,
         idToken: this.authService
-        .sessionData
-        .value
-        ?.tokens
-        ?.idToken
-        ?.toString()
+                     .session
+                    ?.tokens
+                    ?.idToken
+                    ?.toString()
       }))
     );
 

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DeviceAppState } from '../../../../../app/shared/models';
+import { DeviceAppState } from '../../../../../app/shared';
 import { MqttService } from '../../../core/services/mqtt/mqtt.service';
 import { ConnectionStatusComponent } from '../connection-status/connection-status.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,7 +33,7 @@ export class DeviceControlComponent implements OnInit {
 
   public readonly deviceAppState = DeviceAppState;
   public readonly isBusy$ = this.deviceConfigurationService.isBusy$;
-  public readonly settings$ = this.deviceConfigurationService.settings$;
+  public readonly settings$ = this.deviceConfigurationService.properties$;
   public readonly serialNumber$ = this.deviceService.serialNumber$;
   public sliderValue: number = 0;
 
@@ -45,7 +45,7 @@ export class DeviceControlComponent implements OnInit {
   ) {
 
     this.deviceConfigurationService
-        .settings$
+        .properties$
         .pipe(takeUntilDestroyed())
         .subscribe((configuration) => {
       if (configuration) {

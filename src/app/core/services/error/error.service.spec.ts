@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ErrorService } from './error.service';
-import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../app/shared/models';
+import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../app/shared';
 
 describe('ErrorService', () => {
   let service: ErrorService;

@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, AfterViewIn
 import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
-import { DeviceAppState, USBCommandType } from '../../../../../app/shared/models';
+import { DeviceAppState, USBCommandType } from '../../../../../app/shared';
 import { MatStepper } from '@angular/material/stepper';
 import { CommonModule } from '@angular/common';
 import { ProvisioningComponent } from '../provisioning/provisioning.component';

@@ -1,5 +1,4 @@
 import { Injectable, Injector, runInInjectionContext } from '@angular/core';
-import { Hub } from '@aws-amplify/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { afterNextRender } from '@angular/core';
@@ -49,11 +48,13 @@ export class RedirectService {
   }
 
   private navigateWithDelay(target: string[]): void {
-  runInInjectionContext(this.injector, () => {
-    afterNextRender(() => {
-      this.router.navigate(target);
+    
+    runInInjectionContext(this.injector, () => {
+      afterNextRender(() => {
+        this.router.navigate(target);
+      });
     });
-  });
-}
+    
+  }
 
 }

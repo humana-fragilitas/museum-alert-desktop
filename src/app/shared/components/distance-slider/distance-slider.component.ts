@@ -92,7 +92,7 @@ export class DistanceSliderComponent implements OnInit {
   ) {
 
     this.deviceConfigurationService
-        .settings$
+        .properties$
         .pipe(takeUntilDestroyed())
         .subscribe((configuration) => {
 

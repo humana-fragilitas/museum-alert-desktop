@@ -4,7 +4,7 @@ export type DeviceIncomingData =
   | { cid?: string, type: DeviceMessageType.APP_STATE; sn: string, data: DeviceStateUpdate }
   | { cid?: string, type: DeviceMessageType.WIFI_NETWORKS_LIST; sn: string, data: WiFiNetwork[] }
   | { cid?: string, type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
-  | { cid?: string, type: DeviceMessageType; sn: string, data?: undefined };
+  | { cid?: string, type: DeviceMessageType.ACKNOWLEDGMENT; sn: string, data?: undefined };
 
 export interface WiFiNetwork {
     encryptionType: number;
@@ -73,4 +73,11 @@ export interface ProvisioningData {
 
 export interface USBCommand {
     command: USBCommandType;
+}
+
+export enum DeviceEvent {
+    FOUND = 'device-found',
+    CONNECTION_STATUS_UPDATE = 'device-connection-status-update',
+    INCOMING_DATA = 'device-incoming-data',
+    OUTGOING_DATA = 'device-outgoing-data'
 }

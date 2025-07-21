@@ -34,7 +34,7 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    console.log('ProfileComponent INIT');
+    console.log('[ProfileComponent] ngOnInit');
   }
 
 }

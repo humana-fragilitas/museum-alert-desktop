@@ -1,32 +1,29 @@
 // src/app/core/resolvers/company.resolver.ts
 import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
-import { Observable, of, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CompanyService } from '../services/company/company.service';
-import { CompanyWithUserContext, DialogType } from '../models';
-import { NotificationService } from '../services/notification/notification.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '../models';
 import { DialogService } from '../services/dialog/dialog.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CompanyResolver implements Resolve<CompanyWithUserContext | null> {
+export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWithUserContext>>> {
 
   constructor(
     private companyService: CompanyService,
-    private notificationService: NotificationService,
     private dialogService: DialogService
   ) {}
 
-  resolve(): Observable<CompanyWithUserContext | null> {
+  resolve(): Observable<ApiResult<CompanyWithUserContext>> {
     return this.companyService.get().pipe(
-      map((response: CompanyWithUserContext | null) => {
+      map((response: ApiResult<CompanyWithUserContext>) => {
         console.log('Company data resolved:', response);
         return response;
       }),
-      catchError((error: HttpErrorResponse) => {
+      catchError((error: ErrorApiResponse) => {
         console.error('Failed to resolve company data:', error);
           this.dialogService.openDialog({
             type: DialogType.ERROR,
@@ -37,4 +34,5 @@ export class CompanyResolver implements Resolve<CompanyWithUserContext | null> {
       })
     );
   }
+  
 }

@@ -21,22 +21,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(
-    private provisioningService: ProvisioningService,
-    private authenticatorService: AuthenticatorService,
-    public deviceService: DeviceService
-  ) { }
-
   ngOnInit(): void {
-    console.log('HomeComponent INIT');
-  }
-
-  createProvisioningClaim() {
-    this.provisioningService.createClaim();
-  }
-
-  signOut() {
-    this.authenticatorService.signOut();
+    console.log('[HomeComponent] ngOnInit');
   }
 
 }

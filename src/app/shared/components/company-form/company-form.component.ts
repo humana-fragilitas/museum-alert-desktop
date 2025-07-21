@@ -14,7 +14,7 @@ import {
   Validators
 } from '@angular/forms';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { DialogType, SuccessApiResponse, UpdateCompanyRequest, UpdateCompanyResponse } from '../../../core/models';
+import { ApiResult, DialogType, ErrorApiResponse, SuccessApiResponse, UpdateCompanyRequest, UpdateCompanyResponse } from '../../../core/models';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
@@ -93,29 +93,27 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
     this.isBusy = true;
     this.companyNameForm.get('companyName')?.disable();
 
-    this.companyService.setName(
-      (this.companyNameForm.value as UpdateCompanyRequest) 
-    )
-    .pipe(
-      finalize(() => {
-        this.isBusy = false;
-        this.isEditable = false;
-      })
-    )
-    .subscribe({
-      next: (response: SuccessApiResponse<UpdateCompanyResponse>) => {
-        console.log('[CompanyFormComponent]: company successfully updated:', response);
-      },
-      error: (error: HttpErrorResponse) => {
-        console.error('[CompanyFormComponent]: there was an error while attempting to update company', error);
-        this.cancel();
-        this.dialogService.openDialog({
-          type: DialogType.ERROR,
-          title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
-          message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
-        }, { disableClose: true });
-      }
-    });
+    this.companyService.setName((this.companyNameForm.value as UpdateCompanyRequest))
+        .pipe(
+          finalize(() => {
+            this.isBusy = false;
+            this.isEditable = false;
+          })
+        )
+        .subscribe({
+          next: (response: ApiResult<UpdateCompanyResponse>) => {
+            console.log('[CompanyFormComponent]: company successfully updated:', response);
+          },
+          error: (error: ErrorApiResponse) => {
+            console.error('[CompanyFormComponent]: there was an error while attempting to update company', error);
+            this.cancel();
+            this.dialogService.openDialog({
+              type: DialogType.ERROR,
+              title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
+              message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
+            }, { disableClose: true });
+          }
+        });
 
   }
 

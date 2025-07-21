@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DeviceService } from '../../../core/services/device/device.service';
-import { DeviceAppState } from '../../../../../app/shared/models';
+import { DeviceAppState } from '../../../../../app/shared';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';

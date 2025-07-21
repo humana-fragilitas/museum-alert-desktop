@@ -7,7 +7,7 @@ import { DialogService } from '../../../core/services/dialog/dialog.service';
 import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
 import { CommonModule } from '@angular/common';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { USBCommandType } from '../../../../../app/shared/models';
+import { USBCommandType } from '../../../../../app/shared';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogType } from '../../../core/models/ui.models';
@@ -109,7 +109,7 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
             console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
             console.log(claim);
 
-            const idToken = this.authService.sessionData.value?.tokens?.idToken?.toString();
+            const idToken = this.authService.session?.tokens?.idToken?.toString();
 
             this.deviceService.asyncSendData(USBCommandType.SET_PROVISIONING_CERTIFICATES, { ...testBluetoothPayload, idToken }).finally(() => {
             this.isBusy = false; // TO DO: check if this is the right place to set isBusy to false

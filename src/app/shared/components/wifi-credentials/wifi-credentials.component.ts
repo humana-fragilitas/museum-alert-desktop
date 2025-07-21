@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceAppState, DeviceErrorType, DeviceIncomingData, USBCommandType, WiFiNetwork } from '../../../../../app/shared/models';
+import { DeviceAppState, DeviceErrorType, DeviceIncomingData, USBCommandType, WiFiNetwork } from '../../../../../app/shared';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ErrorService } from '../../../core/services/error/error.service';
 
 @Component({
   selector: 'app-wifi-credentials',
@@ -33,7 +35,12 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
   private wiFiNetworksSubscription!: Subscription;
   private errorSubscription!: Subscription;
 
-  constructor(private deviceService: DeviceService) {}
+  constructor(
+    private deviceService: DeviceService,
+    private snackBar: MatSnackBar,
+    private translate: TranslateService,
+    private errorService: ErrorService
+  ) {}
 
   ngOnInit(): void {
 
@@ -88,7 +95,11 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
     .then(() => {
       console.log('Data sent successfully');
     })
-    .catch((error) => {
+    .catch((exception) => {
+    this.snackBar.open(
+      this.translate.instant(this.errorService.toTranslationTag(exception.data.error)), 
+      this.translate.instant('COMMON.ACTIONS.DISMISS')
+    );
       this.isSendingCredentials = false;
     });
 
