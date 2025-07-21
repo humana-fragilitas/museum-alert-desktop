@@ -24,6 +24,7 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
         return response;
       }),
       catchError((error: ErrorApiResponse) => {
+        // TO DO: EXCLUDE EXPIRED SESSION ERRORS HERE!
         console.error('Failed to resolve company data:', error);
           this.dialogService.openDialog({
             type: DialogType.ERROR,
