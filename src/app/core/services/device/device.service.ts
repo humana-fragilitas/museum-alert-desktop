@@ -61,6 +61,7 @@ export class DeviceService {
 
     if (win.electron) {
       
+      // TO DO: event names on shared enum?
       win.electron.ipcRenderer.on('device-found', (data: PortInfo) => {
         this.ngZone.run(() => {
           console.log('[ANGULAR APP] Device found:', data);
