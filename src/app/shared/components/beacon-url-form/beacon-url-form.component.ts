@@ -27,7 +27,7 @@ export class BeaconUrlFormComponent implements OnInit {
 
   private readonly isDisabled: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private readonly isSubmitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private readonly isEditable: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private readonly isEditMode: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   private readonly isBeaconUrlSet: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   @Input()
@@ -39,7 +39,7 @@ export class BeaconUrlFormComponent implements OnInit {
   public isBusy$ = this.deviceConfigurationService.isBusy$;
   public isDisabled$: Observable<boolean> = this.isDisabled.asObservable();
   public isSubmitting$: Observable<boolean> = this.isSubmitting.asObservable();
-  public isEditable$: Observable<boolean> = this.isEditable.asObservable();
+  public isEditMode$: Observable<boolean> = this.isEditMode.asObservable();
   public isBeaconUrlSet$: Observable<boolean> = this.isBeaconUrlSet.asObservable();
 
   public beaconUrlForm = new FormGroup({
@@ -81,7 +81,7 @@ export class BeaconUrlFormComponent implements OnInit {
           if (disabled) {
             beaconUrlField?.disable();
           } else {
-             beaconUrlField?.enable();
+            beaconUrlField?.enable();
           }
         });
 
@@ -118,7 +118,7 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   edit() {
-    this.isEditable.next(true);
+    this.isEditMode.next(true);
     setTimeout(()=>{
       this.beaconUrlInput.nativeElement.focus();
       this.beaconUrlInput.nativeElement.select();
@@ -126,7 +126,7 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   cancel() {
-    this.isEditable.next(false);
+    this.isEditMode.next(false);
     this.beaconUrlForm.get('beaconUrl')?.setValue(
       this.deviceConfigurationService
           .settings
@@ -137,7 +137,7 @@ export class BeaconUrlFormComponent implements OnInit {
     }, 0);
   }
 
-  errorMessage$(): Observable<string> {
+  get errorMessage$(): Observable<string> {
 
     const control = this.beaconUrlForm.get('beaconUrl');
 
@@ -188,13 +188,27 @@ export class BeaconUrlFormComponent implements OnInit {
 
   get beaconUrlFieldIsDisabled$(): Observable<boolean> {
     return combineLatest([
-      this.isEditable$,
+      this.isEditMode$,
       this.isDisabled$,
       this.isBusy$
     ]).pipe(
-      map(([editable, disabled, busy]) => {
-        console.log(`Editable: ${editable}; disabled ${disabled}`);
-        return !editable || disabled || busy;
+      map(([isEditMode, disabled, busy]) => {
+        console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
+        return !isEditMode || disabled || busy;
+      }),
+      distinctUntilChanged()
+    );
+  }
+
+  get submitButtonVisible$(): Observable<boolean> {
+    return combineLatest([
+      this.isEditMode$,
+      this.isDisabled$,
+      this.isBusy$
+    ]).pipe(
+      map(([isEditMode, disabled, busy]) => {
+        console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
+        return !isEditMode || disabled || busy;
       }),
       distinctUntilChanged()
     );

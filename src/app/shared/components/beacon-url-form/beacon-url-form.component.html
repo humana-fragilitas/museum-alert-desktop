@@ -10,7 +10,7 @@
 
     <div class="button-cta">
 
-      <button *ngIf="!(isBeaconUrlSet$ | async) || (isEditable$ | async)"
+      <button *ngIf="isEditMode$ | async"
               mat-raised-button color="primary"
               type="submit"
               [disabled]="beaconUrlForm.invalid || !(isEnabled$ | async)">
@@ -20,7 +20,7 @@
         </span>
       </button>
 
-      <button *ngIf="isEditable$ | async"
+      <button *ngIf="isEditMode$ | async"
         mat-raised-button color="secondary"
         [disabled]="!(isEnabled$ | async)"
         (click)="cancel()">
@@ -31,7 +31,7 @@
 
   </div>
 
-  <button *ngIf="(isBeaconUrlSet$ | async) && !(isEditable$ | async)"
+  <button *ngIf="!(isEditMode$ | async)"
           mat-raised-button color="primary"
           [disabled]="!(isEnabled$ | async)"
           (click)="edit()">
