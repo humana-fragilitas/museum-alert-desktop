@@ -33,9 +33,10 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
       return throwError(() => error);
     })
   );
+
 };
 
-function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequest<any> {
+function addAuthToken(req: HttpRequest<unknown>, authService: AuthService): HttpRequest<unknown> {
 
   const idToken = authService.session
                             ?.tokens
@@ -55,7 +56,7 @@ function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequ
 }
 
 function handle401Error(dialogService: DialogService, authenticatorService: AuthenticatorService) {
-  
+
   dialogService.openDialog({
     type: DialogType.ERROR,
     title: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_TITLE',

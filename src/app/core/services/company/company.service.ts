@@ -56,8 +56,8 @@ export class CompanyService {
 
       }),
       catchError((exception: HttpErrorResponse) => {
-        console.error('Error updating company name:', exception);
-        return throwError(() => exception.error as ErrorApiResponse);
+        console.error('[CompanyService]: error updating company name:', exception.error as ErrorApiResponse);
+        return throwError(() => exception);
       })
 
     );
@@ -82,8 +82,8 @@ export class CompanyService {
         }
       ),
       catchError((exception: HttpErrorResponse) => {
-        console.error('Error fetching company:', exception);
-        return throwError(() => exception.error as ErrorApiResponse);
+        console.error('[CompanyService]: error fetching company:', exception.error as ErrorApiResponse);
+        return throwError(() => exception);
       }),
       finalize(() => {
         this.isFetchingCompany.next(false);

@@ -11,7 +11,10 @@ import { USBCommandType } from '../../../../../app/shared';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogType } from '../../../core/models/ui.models';
-import { Observable, pipe, tap } from 'rxjs';
+import { EMPTY, Observable, pipe, tap } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorService } from '../../../core/services/error/error.service';
+import { Sensor } from '../../../core/models';
 
 @Component({
   selector: 'app-provisioning',
@@ -34,7 +37,8 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
     public readonly deviceService: DeviceService,
     private readonly dialogService: DialogService,
     private readonly deviceRegistryService: DeviceRegistryService,
-    private readonly companyService: CompanyService
+    private readonly companyService: CompanyService,
+    private readonly errorService: ErrorService
   ) {};
 
   ngOnInit(): void {
@@ -56,34 +60,28 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
     const thingName = this.deviceService.getSerialNumber();
     this.deviceRegistryService.checkSensorExists(thingName)
       .subscribe({
-        next: (sensor: any) => {
+        next: (sensor: Nullable<Sensor>) => {
           if (sensor) {
             // TO DO: fix the model reference: from any to ApiResponse<T>
-            // TO DO: the lambda suitable for checking device existence should return the company
-            // name by looking up the database
-
             this.dialogService.openDialog({
               type: DialogType.WARNING,
               showCancel: false,
               title: 'ERRORS.APPLICATION.DEVICE_EXISTS_TITLE',
-              message: sensor.data.company ?
+              message: sensor.company ?
                 'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
                   'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
               messageParams: {
-                deviceName: sensor.data.thingName
+                deviceName: sensor.thingName
               }
             });
-
             this.isBusy = false;
-
           } else {
             return this.createProvisioningClaim().subscribe();
           }
         },
-        error: (error: any) => {
+        error: (error: HttpErrorResponse) => {
           this.isBusy = false;
-          if (error instanceof AuthenticationExpiredError) return;
-          this.dialogService.openDialog({
+          this.errorService.showModal(error, {
             type: DialogType.ERROR,
             title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
             message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'

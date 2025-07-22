@@ -20,6 +20,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
+import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
+import { ErrorService } from '../../../core/services/error/error.service';
 
 @Component({
   selector: 'app-company-form',
@@ -58,7 +60,8 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
   constructor(
     private companyService: CompanyService,
     private translateService: TranslateService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly errorService: ErrorService
   ) { }
 
   ngOnInit(): void {
@@ -104,14 +107,15 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
           next: (response: ApiResult<UpdateCompanyResponse>) => {
             console.log('[CompanyFormComponent]: company successfully updated:', response);
           },
-          error: (error: ErrorApiResponse) => {
+          error: (error: HttpErrorResponse) => {
             console.error('[CompanyFormComponent]: there was an error while attempting to update company', error);
             this.cancel();
-            this.dialogService.openDialog({
-              type: DialogType.ERROR,
-              title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
-              message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
-            }, { disableClose: true });
+            this.errorService.showModal(error, {
+                type: DialogType.ERROR,
+                title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
+                message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
+              }, { disableClose: true }
+            );
           }
         });
 

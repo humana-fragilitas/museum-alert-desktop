@@ -48,13 +48,11 @@ export class RedirectService {
   }
 
   private navigateWithDelay(target: string[]): void {
-    
-    runInInjectionContext(this.injector, () => {
-      afterNextRender(() => {
-        this.router.navigate(target);
-      });
+  runInInjectionContext(this.injector, () => {
+    afterNextRender(() => {
+      this.router.navigate(target);
     });
-    
-  }
+  });
+}
 
 }

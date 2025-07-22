@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
 import { DeviceErrorType } from '../../../../../app/shared';
+import { DialogService } from '../dialog/dialog.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
+import { DialogPayload, DialogType, ErrorApiResponse } from '../../models';
+import { MatDialogConfig } from '@angular/material/dialog';
 
 
 type ErrorsMap = {
@@ -23,6 +28,8 @@ export class ErrorService {
     [DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT]: "ERRORS.DEVICE.FAILED_SENSOR_DETECTION_REPORT"
   };
 
+  constructor(private readonly dialogService: DialogService) {}
+
   toTranslationTag(code: Nullable<DeviceErrorType>): string {
 
     const tag = this.errors[code as DeviceErrorType];
@@ -30,6 +37,20 @@ export class ErrorService {
       `[ErrorService]: error code ${code} does not correspond to any translation tag`
     );
     return tag || "ERRORS.DEVICE.UNKNOWN_ERROR";
+
+  }
+
+  showModal(
+    exception: HttpErrorResponse | AuthenticationExpiredError,
+    data: DialogPayload, configuration?: MatDialogConfig
+  ) {
+
+    if (!(exception instanceof AuthenticationExpiredError)) {
+      console.error('[ErrorService]: showing error modal for error:', exception.error as ErrorApiResponse);
+      this.dialogService.openDialog(data, configuration);
+    } else {
+      console.log(`[ErrorService]: skipping error modal: error is of type 'AuthenticationExpiredError':`, exception);
+    }
 
   }
   
