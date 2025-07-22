@@ -34,7 +34,7 @@ export class DeviceConnectionStatusService {
     this.mqttService.onMessageOfType([
       MqttMessageType.ALARM,
       MqttMessageType.CONFIGURATION,
-      MqttMessageType.ACK
+      MqttMessageType.ACKNOWLEGDE
     ]).subscribe((message: BaseMqttMessage<ConnectionStatus | AlarmPayload | DeviceConfiguration>) => {
       const currentMap = this.devicesConnectionStatus.getValue();
       const newMap = new Map(currentMap);

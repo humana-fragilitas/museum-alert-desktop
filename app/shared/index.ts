@@ -1,4 +1,4 @@
-export type DeviceOutgoingData = WiFiCredentials | ProvisioningData | USBCommand;
+export type DeviceOutgoingData = WiFiCredentials | USBCommand | ProvisioningSettings;
 
 export type DeviceIncomingData =
   | { cid?: string, type: DeviceMessageType.APP_STATE; sn: string, data: DeviceStateUpdate }
@@ -66,9 +66,10 @@ export interface WiFiCredentials {
     password: string;
 }
 
-export interface ProvisioningData {
-    tempCert: string;
-    tempKey: string;
+export interface ProvisioningSettings {
+    tempCertPem: string;
+    tempPrivateKey: string;
+    idToken: string;
 }
 
 export interface USBCommand {

@@ -77,6 +77,8 @@ try {
 
     new SerialCom(createWindow()).startDeviceDetection();
 
+    // ipcMain.on('ciao', ()=> { alert('ciao'); });
+
   }, 400));
 
   // Quit when all windows are closed.

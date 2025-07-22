@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceAppState, DeviceErrorType, DeviceIncomingData, USBCommandType, WiFiNetwork } from '../../../../../app/shared';
+import { DeviceAppState, DeviceErrorType, DeviceIncomingData, USBCommandType, WiFiCredentials, WiFiNetwork } from '../../../../../app/shared';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
@@ -44,7 +44,7 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    console.log('WiFiCredentials INIT');
+    console.log('[WiFiCredentialsComponent]: ngOnInit');
 
     this.wiFiNetworksSubscription = this.deviceService.wiFiNetworks$.subscribe((networks) => {
 
@@ -64,8 +64,8 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
     });
 
-    // TO DO: this is not probably needed anymore: errors return a cid so that
-    // asyncSendData call observable is able to return such exception by itself
+    //TO DO: this is not probably needed anymore: errors return a cid so that
+    //asyncSendData call observable is able to return such exception by itself
     this.errorSubscription = this.deviceService.error$.subscribe(
       (message: Nullable<DeviceIncomingData>) => {
         if (message && (message!.data as { error: DeviceErrorType }).error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
@@ -85,41 +85,44 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
     this.isSendingCredentials = true;
 
-    console.log('Form submitted:', this.credentialsForm.value);
+    console.log('[WiFiCredentialsComponent]: form submitted:', this.credentialsForm.value);
 
-    // TO DO: try ... catch... block here!
-    this.deviceService.asyncSendData(
-      USBCommandType.SET_WIFI_CREDENTIALS,
-      this.credentialsForm.value
-    )
-    .then(() => {
-      console.log('Data sent successfully');
-    })
-    .catch((exception) => {
-    this.snackBar.open(
-      this.translate.instant(this.errorService.toTranslationTag(exception.data.error)), 
-      this.translate.instant('COMMON.ACTIONS.DISMISS')
-    );
+    try {
+      await this.deviceService.sendUSBCommand(
+        USBCommandType.SET_WIFI_CREDENTIALS,
+        this.credentialsForm.value as WiFiCredentials
+      );
+      console.log('[WiFiCredentialsComponent]: data sent successfully');
+    } catch (exception: any) {
+      const translationTag = (exception.data) ?
+        this.errorService.toTranslationTag(exception.data.error) :
+          'ERRORS.APPLICATION.WIFI_CREDENTIALS_COMMAND_TIMED_OUT';
+      this.snackBar.open(
+        this.translate.instant(translationTag), 
+        this.translate.instant('COMMON.ACTIONS.DISMISS')
+      );
       this.isSendingCredentials = false;
-    });
+    }
 
   }
 
-  refreshWiFiNetworks() {
+  async refreshWiFiNetworks() {
 
     this.isRefreshingWiFiNetworks = true;
     this.credentialsForm.reset();
-    console.log('Sending empty payload to refresh WiFi networks...');
-    this.deviceService.asyncSendData(
-      USBCommandType.REFRESH_WIFI_CREDENTIALS,
-      this.credentialsForm.value
-    ).then(() => {
-        console.log('WiFi networks request sent successfully');
-        this.isRefreshingWiFiNetworks = false;
-      })
-      .catch((error) => {
-        this.isRefreshingWiFiNetworks = false;
-      });
+    console.log('[WiFiCredentialsComponent]: sending empty payload to refresh WiFi networks...');
+
+    try {
+      await this.deviceService.sendUSBCommand(USBCommandType.REFRESH_WIFI_CREDENTIALS);
+      console.log('[WiFiCredentialsComponent]: WiFi networks refresh request successfully sent');
+    } catch (exception) {
+      this.snackBar.open(
+        this.translate.instant('ERRORS.APPLICATION.WIFI_NETWORKS_REFRESH_COMMAND_TIMED_OUT'), 
+        this.translate.instant('COMMON.ACTIONS.DISMISS')
+      );
+    } finally {
+      this.isRefreshingWiFiNetworks = false;
+    }
 
   }
 

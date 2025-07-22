@@ -108,7 +108,7 @@ export class MqttService {
         this.deviceService.onConfiguration(message.data);
       });
 
-    this.onMessageOfType(MqttMessageType.ACK)
+    this.onMessageOfType(MqttMessageType.ACKNOWLEGDE)
       .subscribe((message: BaseMqttMessage<DeviceConfiguration>) => {
         console.log(`[MqttService]: received message of type 'acknowledgment':`, message);
       });

@@ -4,14 +4,13 @@ import { DeviceService } from '../../../core/services/device/device.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
-import { AuthenticationExpiredError } from '../../../core/interceptors/auth-token.interceptor';
 import { CommonModule } from '@angular/common';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { USBCommandType } from '../../../../../app/shared';
+import { ProvisioningSettings, USBCommandType } from '../../../../../app/shared';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogType } from '../../../core/models/ui.models';
-import { EMPTY, Observable, pipe, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorService } from '../../../core/services/error/error.service';
 import { Sensor } from '../../../core/models';
@@ -95,26 +94,26 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
     this.isBusy = true;
     
-    return this.provisioningService.createClaim()
-        .pipe(
-          tap((claim: any) => {
+    return this.provisioningService.createClaim().pipe(
+      tap((claim: any) => {
 
-            const testBluetoothPayload = {
-              tempCertPem: claim.data.certificatePem,
-              tempPrivateKey: claim.data.keyPair.PrivateKey
-            };
+        const payload: ProvisioningSettings = {
+          tempCertPem: claim.data.certificatePem,
+          tempPrivateKey: claim.data.keyPair.PrivateKey,
+          idToken: this.authService.idToken
+        };
 
-            console.log("<|" + JSON.stringify(testBluetoothPayload) + "|>");
-            console.log(claim);
+        console.log("<|" + JSON.stringify(payload) + "|>");
+        console.log(claim);
 
-            const idToken = this.authService.session?.tokens?.idToken?.toString();
-
-            this.deviceService.asyncSendData(USBCommandType.SET_PROVISIONING_CERTIFICATES, { ...testBluetoothPayload, idToken }).finally(() => {
-            this.isBusy = false; // TO DO: check if this is the right place to set isBusy to false
+        this.deviceService
+            .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, payload)
+            .finally(() => {
+              this.isBusy = false;
             });
 
-          })
-        );
+      })
+    );
 
   }
 

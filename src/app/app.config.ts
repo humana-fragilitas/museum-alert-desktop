@@ -26,6 +26,7 @@ import { PolicyService } from './core/services/policy/policy.service';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { Amplify } from 'aws-amplify';
 import { APP_CONFIG } from '../environments/environment';
+import { NotificationService } from './core/services/notification/notification.service';
 
 // AoT requires an exported function for factories
 export function httpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -44,6 +45,7 @@ function instantiateEarlyServices() {
   const authenticatorService = inject(AuthenticatorService);
   const companyService = inject(CompanyService);
   const redirectService = inject(RedirectService);
+  const notificationService = inject(NotificationService);
   
 }
 

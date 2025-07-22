@@ -38,9 +38,7 @@ export class AuthService {
       distinctUntilChanged()
     ).subscribe((user) => {
       this.fetchSession();
-      if (user) {
-        this.getUserAttributes();
-      }
+      if (user) this.fetchUserAttributes();
     });
 
     // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
@@ -49,12 +47,12 @@ export class AuthService {
       const { payload } = data;
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
-        this.getUser();
+        this.fetchUser();
       }
 
     });
 
-    this.getUser();
+    this.fetchUser();
 
   }
  
@@ -78,18 +76,21 @@ export class AuthService {
 
         this.sessionData.next(hasSession ? session : null);
 
+        if (this.timeOutId) { clearTimeout(this.timeOutId); }
+
+        if (!hasSession) {
+           console.log('[AuthService]: no session data available');
+          return;
+        }
+
         console.log('[AuthService]: session data:');
         console.log(session);
         
         console.log('%c[AuthService]: access token:', titleStyle);
-        console.log(session.tokens?.accessToken.toString());
+        console.log(this.accessToken);
 
         console.log('%c[AuthService]: id token:', titleStyle);
-        console.log(session.tokens?.idToken?.toString());
-
-        if (this.timeOutId) { clearTimeout(this.timeOutId); }
-
-        if (!hasSession) return;
+        console.log(this.idToken);
 
         console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
 
@@ -110,16 +111,14 @@ export class AuthService {
 
       },
       () => {
-
-        console.log('[AuthService]: can\'t retrieve session data');
+        console.log(`[AuthService]: can't retrieve session data`);
         this.sessionData.next(null);
-
       }
     );
 
   }
 
-  getUser() {
+  fetchUser() {
 
     getCurrentUser().then(
       (user: GetCurrentUserOutput) => {
@@ -128,14 +127,14 @@ export class AuthService {
         this.user.next(user);
       },
       () => {
-        console.log('[AuthService]: can\'t retrieve user data');
+        console.log(`[AuthService]: can't retrieve user data`);
         this.user.next(null);
       }
     );
 
   }
 
-  getUserAttributes() {
+  fetchUserAttributes() {
 
     return fetchUserAttributes().then(
       (attributes: FetchUserAttributesOutput) => {
@@ -144,7 +143,7 @@ export class AuthService {
         this.userAttributes.next(attributes);
       },
       () => {
-        console.log('[AuthService]: can\'t retrieve user attributes');
+        console.log(`[AuthService]: can't retrieve user attributes`);
         this.userAttributes.next(null);
       }
     );
@@ -152,13 +151,17 @@ export class AuthService {
   }
 
   get userLoginId(): string {
-    return this.user.getValue()?.signInDetails?.loginId || '';
+
+    return this.user
+               .getValue()
+              ?.signInDetails
+              ?.loginId || '';
+
   }
 
   get company(): string {
 
-    return this.sessionData
-              ?.getValue()
+    return this.session
               ?.tokens
               ?.idToken
               ?.payload
@@ -168,8 +171,7 @@ export class AuthService {
 
   get hasPolicy(): boolean {
 
-    return this.sessionData
-              ?.getValue()
+    return this.session
               ?.tokens
               ?.idToken
               ?.payload
@@ -180,6 +182,24 @@ export class AuthService {
   get session(): Nullable<AuthSession> {
 
     return this.sessionData.getValue();
+
+  }
+
+  get idToken(): string {
+
+    return this.session
+              ?.tokens
+              ?.idToken
+              ?.toString() || '';
+
+  }
+
+  get accessToken(): string {
+
+    return this.session
+              ?.tokens
+              ?.accessToken
+              .toString() || '';
 
   }
 

@@ -133,7 +133,7 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
   cancel() {
     this.isEditable = false;
     this.companyNameForm.get('companyName')?.disable();
-    this.companyNameForm.get('companyName')?.setValue(this.companyService.currentCompany?.companyName || '');
+    this.companyNameForm.get('companyName')?.setValue(this.companyService.organization?.companyName || '');
     setTimeout(() => {
       this.companyNameInput.nativeElement.blur();
     }, 0);

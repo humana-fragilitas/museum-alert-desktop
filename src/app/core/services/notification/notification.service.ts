@@ -20,6 +20,8 @@ export class NotificationService {
 
     this.deviceService.error$.subscribe(
       (message: Nullable<DeviceIncomingData>) => {
+        console.log('ERROR');
+        console.log(message);
         if (message && message.type === DeviceMessageType.ERROR) {
            this.onError(message.data.error);
         }

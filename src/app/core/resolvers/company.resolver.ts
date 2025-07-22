@@ -1,13 +1,11 @@
 // src/app/core/resolvers/company.resolver.ts
 import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
-import { EMPTY, Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CompanyService } from '../services/company/company.service';
-import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '../models';
-import { DialogService } from '../services/dialog/dialog.service';
+import { ApiResult, CompanyWithUserContext, DialogType } from '../models';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AuthenticationExpiredError } from '../interceptors/auth-token.interceptor';
 import { ErrorService } from '../services/error/error.service';
 
 
@@ -18,12 +16,11 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
 
   constructor(
     private companyService: CompanyService,
-    private dialogService: DialogService,
     private errorService: ErrorService
   ) {}
 
   resolve(): Observable<ApiResult<CompanyWithUserContext>> {
-    return this.companyService.get().pipe(
+    return this.companyService.fetch().pipe(
       map((response: ApiResult<CompanyWithUserContext>) => {
         console.log('[CompanyResolver]: resolved company data:', response);
         return response;

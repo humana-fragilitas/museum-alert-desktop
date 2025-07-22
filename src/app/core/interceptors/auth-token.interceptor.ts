@@ -38,10 +38,7 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 
 function addAuthToken(req: HttpRequest<unknown>, authService: AuthService): HttpRequest<unknown> {
 
-  const idToken = authService.session
-                            ?.tokens
-                            ?.idToken
-                            ?.toString();
+  const idToken = authService.idToken;
                             
   const allowedBasePath = APP_CONFIG.aws.apiGateway;
   

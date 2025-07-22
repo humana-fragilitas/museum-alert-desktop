@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, finalize, map, Observable, of, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, EMPTY, finalize, Observable, switchMap, tap, throwError } from 'rxjs';
 import { APP_CONFIG } from '../../../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 import { SuccessApiResponse, ApiResult, ErrorApiResponse } from '../../models';
-import { NotificationService } from '../notification/notification.service';
 import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '../../models';
+import { AuthSession } from 'aws-amplify/auth';
 
 
 @Injectable({
@@ -19,19 +19,24 @@ export class CompanyService {
   public readonly company$ = this.company.asObservable();
   public readonly isFetchingCompany$ = this.isFetchingCompany.asObservable();
 
-  constructor(
-    private httpClient: HttpClient,
-    private authService: AuthService,
-    private notificationService: NotificationService
-  ) {
+  constructor(private httpClient: HttpClient, private authService: AuthService) {
 
-    this.authService.sessionData$.subscribe((session) => {
-      if (session) {
-        this.get().subscribe();
-      } else {
-        this.clear();
-      }
-    });
+    this.authService.sessionData$.pipe(
+      switchMap((session: Nullable<AuthSession>) => {
+        if (session) {
+          return this.fetch().pipe(
+            catchError(exception => {
+              console.error('[CompanyService]: failed to load company data:',
+                            exception.error as ErrorApiResponse);
+              return EMPTY;
+            })
+          );
+        } else {
+          this.clear();
+          return EMPTY;
+        }
+      })
+    ).subscribe();
 
   }
 
@@ -56,10 +61,10 @@ export class CompanyService {
 
       }),
       catchError((exception: HttpErrorResponse) => {
-        console.error('[CompanyService]: error updating company name:', exception.error as ErrorApiResponse);
+        console.error('[CompanyService]: error updating company name:',
+                      exception.error as ErrorApiResponse);
         return throwError(() => exception);
       })
-
     );
 
   }
@@ -67,20 +72,18 @@ export class CompanyService {
   /**
    * Get company data (loads fresh from API)
    */
-  get(): Observable<ApiResult<CompanyWithUserContext>> {
+  fetch(): Observable<ApiResult<CompanyWithUserContext>> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
     
     this.isFetchingCompany.next(true);
 
     return this.httpClient.get<ApiResult<CompanyWithUserContext>>(apiUrl).pipe(
-      tap(
-        (response: ApiResult<CompanyWithUserContext>) => {
-          if ('data' in response) {
-            this.company.next(response.data);
-          }
+      tap((response: ApiResult<CompanyWithUserContext>) => {
+        if ('data' in response) {
+          this.company.next(response.data);
         }
-      ),
+      }),
       catchError((exception: HttpErrorResponse) => {
         console.error('[CompanyService]: error fetching company:', exception.error as ErrorApiResponse);
         return throwError(() => exception);
@@ -92,21 +95,17 @@ export class CompanyService {
 
   }
 
-  get currentCompany(): Nullable<CompanyWithUserContext> {
+  get organization(): Nullable<CompanyWithUserContext> {
     return this.company.value;
   }
 
   get isOwner(): boolean {
-    const company = this.currentCompany;
+    const company = this.organization;
     return company?.userRole === CompanyRole.OWNER;
   }
 
   clear(): void {
     this.company.next(null);
   }
-
-  get hasCompanyData(): boolean {
-    return this.currentCompany !== null;
-  }
-
+  
 }

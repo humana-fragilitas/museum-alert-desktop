@@ -7,7 +7,8 @@ import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
          WiFiNetwork, 
-         DeviceEvent} from '../../../../../app/shared/';
+         DeviceEvent,
+         DeviceOutgoingData} from '../../../../../app/shared/';
 import { PendingRequest } from '../../models';
 import { AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '../../models';
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
@@ -137,30 +138,7 @@ export class DeviceService {
 
   }
 
-  public sendData(payload: any) {
-
-    let jsonPayload;
-
-    try {
-
-      jsonPayload = JSON.stringify(payload);
-
-      if (this.win.electron) {
-        console.log(`[DeviceService]: sending data to device: ${jsonPayload}`);
-        this.win.electron.ipcRenderer.send(DeviceEvent.OUTGOING_DATA, `<|${jsonPayload}|>`);
-      } else {
-        console.error('[DeviceService]: error while sending data to device: Electron object not available!');
-      }
-      
-    } catch (error) {
-
-      console.error('[DeviceService]: error while sending data to device:', error);
-
-    }
-
-  }
-
-  public async asyncSendData(type: USBCommandType, payload: any): Promise<any> {
+  public async sendUSBCommand(type: USBCommandType, payload: DeviceOutgoingData | null = null): Promise<any> {
 
     return new Promise<any>((resolve, reject) => {
 
@@ -176,11 +154,26 @@ export class DeviceService {
         }, APP_CONFIG.settings.USB_RESPONSE_TIMEOUT),
       };
 
-      this.sendData({
-        cid,
-        commandType: type,
-        payload
-      });
+      try {
+
+        const jsonPayload = JSON.stringify({
+          cid,
+          commandType: type,
+          payload
+        });
+
+        if (this.win.electron) {
+          console.log(`[DeviceService]: sending data to device: ${jsonPayload}`);
+          this.win.electron.ipcRenderer.send(DeviceEvent.OUTGOING_DATA, `<|${jsonPayload}|>`);
+        } else {
+          console.error('[DeviceService]: error while sending data to device: Electron object not available!');
+        }
+        
+      } catch (error) {
+
+        console.error('[DeviceService]: error while sending data to device:', error);
+
+      }
 
       console.log('[DeviceService]: %cUSB request sent:', titleStyle);
       console.log(`[DeviceService]: request sent with correlation id: ${cid}`);

@@ -10,7 +10,7 @@ export enum MqttMessageType {
   ALARM,
   CONNECTION_STATUS,
   CONFIGURATION,
-  ACK
+  ACKNOWLEGDE
 }
 
 // Incoming messages:
