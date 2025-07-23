@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
 import { DialogPayload, DialogResult, DialogType, ErrorApiResponse } from '../../models';
 import { MatDialogConfig } from '@angular/material/dialog';
+import { USBCommandTimeoutException } from '../device/device.service';
 
 type ErrorsMap = {
   [key in keyof typeof DeviceErrorType as string]: string;
@@ -12,7 +13,7 @@ type ErrorsMap = {
 
 // Configuration interface for showModal method
 interface ShowModalConfig {
-  exception?: HttpErrorResponse | AuthenticationExpiredError | null;
+  exception?: HttpErrorResponse | AuthenticationExpiredError | USBCommandTimeoutException;
   data: DialogPayload;
   dialogConfig?: MatDialogConfig;
   onClosed?: (result?: DialogResult) => void;

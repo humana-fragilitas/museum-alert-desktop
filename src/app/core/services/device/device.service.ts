@@ -15,6 +15,14 @@ import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { USBCommandType } from '../../../../../app/shared/';
 import { titleStyle } from '../../../shared/helpers/console.helper';
 
+
+export class USBCommandTimeoutException extends Error {
+  constructor(public error: string) {
+    super(error);
+    this.name = 'USBCommandTimeoutException';
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -106,8 +114,10 @@ export class DeviceService {
     if(correlationId && this.pendingRequests[correlationId]) {
       const { resolve, reject, timeout } = this.pendingRequests[correlationId];
       clearTimeout(timeout);
-      // Errors with associated correlation ids are directly handled by
-      // caller objects and should not be retained within this class
+      /**
+       * Note: errors with associated correlation ids are expected to be directly handled by
+       * caller objects and should not be retained within this class for further processing
+       */
       if (correlationId && payload.type === DeviceMessageType.ERROR) {
         console.log(`[DeviceService]: processed error with correlation id: ${correlationId}`);
         reject(payload);
@@ -149,7 +159,7 @@ export class DeviceService {
         reject,
         timeout: setTimeout(() => {
           console.error(`[DeviceService]: request ${cid} timed out.`);
-          reject(new Error('USB request timeout'));
+          reject(new USBCommandTimeoutException('USB request timeout'));
           delete this.pendingRequests[cid];
         }, APP_CONFIG.settings.USB_RESPONSE_TIMEOUT),
       };

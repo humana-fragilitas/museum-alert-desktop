@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
-import { DeviceService } from '../../../core/services/device/device.service';
+import { DeviceService, USBCommandTimeoutException } from '../../../core/services/device/device.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
@@ -57,6 +57,7 @@ export class ProvisioningComponent implements OnInit {
       let sensor: Nullable<Sensor>;
 
       console.log(`[ProvisioningComponent]: step 1/3: checking if sensor has already been registered...`);
+      
       // Note: assignment and evaluation
       if (!(sensor = await this.checkIfSensorExists())) {
 
@@ -85,7 +86,7 @@ export class ProvisioningComponent implements OnInit {
 
       console.log(`[ProvisioningComponent]: an error occurred while provisioning device`);
       this.errorService.showModal({
-        exception: exception as HttpErrorResponse | undefined,
+        exception: exception as HttpErrorResponse | USBCommandTimeoutException,
         data: {
           type: DialogType.ERROR,
           title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
