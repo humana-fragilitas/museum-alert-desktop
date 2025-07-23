@@ -20,8 +20,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class NavBarComponent implements OnInit {
 
-  public readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
-  public readonly userAttributes$ = this.authService.userAttributes$;
+  readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
+  readonly userAttributes$ = this.authService.userAttributes$;
 
   constructor(
     private readonly companyService: CompanyService,

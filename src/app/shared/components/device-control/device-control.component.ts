@@ -48,20 +48,20 @@ export class DeviceControlComponent implements OnInit {
         .properties$
         .pipe(takeUntilDestroyed())
         .subscribe((configuration) => {
-      if (configuration) {
-        this.sliderValue = Number(configuration.distance);
-      }
-    });
+          if (configuration) {
+            this.sliderValue = Number(configuration.distance);
+          }
+        });
 
     this.isConnected$
         .pipe(takeUntilDestroyed())
         .subscribe((connected) => {
-      if (connected) {
-        this.deviceConfigurationService
-            .loadSettings()
-            .finally();
-      }
-    });
+          if (connected) {
+            this.deviceConfigurationService
+                .loadSettings()
+                .finally();
+          }
+        });
 
   };
 
@@ -72,13 +72,11 @@ export class DeviceControlComponent implements OnInit {
   }
 
   get isConnected$(): Observable<boolean> {
-
     return this.deviceService.serialNumber$.pipe(
       switchMap(serialNumber => 
         this.deviceConnectionStatusService.onChange(serialNumber)
       )
     );
-
   }
 
 }

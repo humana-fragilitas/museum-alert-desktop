@@ -1,16 +1,15 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, computed, signal, effect } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { beaconUrlValidator } from '../../validators/beacon-url.validator';
 import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
-import { BehaviorSubject, combineLatest, distinctUntilChanged, map, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { DialogService } from '../../../core/services/dialog/dialog.service';
 import { DialogType } from '../../../core/models/ui.models';
 
- 
 @Component({
   selector: 'app-beacon-url-form',
   templateUrl: './beacon-url-form.component.html',
@@ -25,22 +24,49 @@ import { DialogType } from '../../../core/models/ui.models';
 })
 export class BeaconUrlFormComponent implements OnInit {
 
-  private readonly isDisabled: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private readonly isSubmitting: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private readonly isEditMode: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private readonly isBeaconUrlSet: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  // 🔥 MIGRATED TO SIGNALS - Component State
+  private readonly isDisabled = signal<boolean>(false);
+  private readonly isSubmitting = signal<boolean>(false);
+  private readonly isEditMode = signal<boolean>(false);
+  private readonly isBeaconUrlSet = signal<boolean>(false);
+
+  // 🔥 MIGRATED TO SIGNALS - Service observables converted to signals
+  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$, { initialValue: false });
+  private readonly deviceProperties = toSignal(this.deviceConfigurationService.properties$);
 
   @Input()
   set disabled(value: boolean) {
-    this.isDisabled.next(value);
+    this.isDisabled.set(value);
   }
+
   @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
-  public isBusy$ = this.deviceConfigurationService.isBusy$;
-  public isDisabled$: Observable<boolean> = this.isDisabled.asObservable();
-  public isSubmitting$: Observable<boolean> = this.isSubmitting.asObservable();
-  public isEditMode$: Observable<boolean> = this.isEditMode.asObservable();
-  public isBeaconUrlSet$: Observable<boolean> = this.isBeaconUrlSet.asObservable();
+  // 🔥 COMPUTED SIGNALS - Replace complex observables with computed
+  public readonly isEnabled = computed(() => 
+    !this.isBusy() && !this.isDisabled()
+  );
+
+  public readonly beaconUrlFieldIsDisabled = computed(() => {
+    const isEditMode = this.isEditMode();
+    const disabled = this.isDisabled();
+    const busy = this.isBusy();
+    console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
+    return !isEditMode || disabled || busy;
+  });
+
+  public readonly submitButtonVisible = computed(() => {
+    const isEditMode = this.isEditMode();
+    const disabled = this.isDisabled();
+    const busy = this.isBusy();
+    console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
+    return isEditMode && !disabled && !busy;
+  });
+
+  // 🔥 EXPOSE READONLY SIGNALS FOR TEMPLATE
+  public readonly isEditMode$ = this.isEditMode.asReadonly();
+  public readonly isSubmitting$ = this.isSubmitting.asReadonly();
+  public readonly isEnabled$ = this.isEnabled;
+  public readonly beaconUrlFieldIsDisabled$ = this.beaconUrlFieldIsDisabled;
 
   public beaconUrlForm = new FormGroup({
     beaconUrl: new FormControl(
@@ -58,46 +84,41 @@ export class BeaconUrlFormComponent implements OnInit {
     private readonly dialogService: DialogService
   ) {
 
-    this.deviceConfigurationService
-        .properties$
-        .pipe(takeUntilDestroyed())
-        .subscribe((configuration) => {
-          if (configuration) {
-            this.beaconUrlForm.get('beaconUrl')?.setValue(configuration.beaconUrl || '');
-            const hasBeaconUrl = !!configuration.beaconUrl;
-            this.isBeaconUrlSet.next(hasBeaconUrl);
-            if (hasBeaconUrl) {
-              this.cancel();
-            } else {
-              this.edit();
-            }
-          }
-        });
-    
-    this.beaconUrlFieldIsDisabled$
-        .pipe(takeUntilDestroyed())
-        .subscribe((disabled) => {
-          const beaconUrlField = this.beaconUrlForm.get('beaconUrl');
-          if (disabled) {
-            beaconUrlField?.disable();
-          } else {
-            beaconUrlField?.enable();
-          }
-        });
+    // 🔥 EFFECT - Handle device configuration changes
+    effect(() => {
+      const configuration = this.deviceProperties();
+      if (configuration) {
+        this.beaconUrlForm.get('beaconUrl')?.setValue(configuration.beaconUrl || '');
+        const hasBeaconUrl = !!configuration.beaconUrl;
+        this.isBeaconUrlSet.set(hasBeaconUrl);
+        if (hasBeaconUrl) {
+          this.cancel();
+        } else {
+          this.edit();
+        }
+      }
+    });
 
+    // 🔥 EFFECT - Handle form field enable/disable
+    effect(() => {
+      const disabled = this.beaconUrlFieldIsDisabled();
+      const beaconUrlField = this.beaconUrlForm.get('beaconUrl');
+      if (disabled) {
+        beaconUrlField?.disable();
+      } else {
+        beaconUrlField?.enable();
+      }
+    });
   }
 
   ngOnInit(): void {
-
     console.log('[BeaconUrlFormComponent] ngOnInit');
-    
   }
 
   async onSubmit() {
-
     console.log('[BeaconUrlFormComponent]: beacon url form submitted:', this.beaconUrlForm.value);
 
-    this.isSubmitting.next(true);
+    this.isSubmitting.set(true);
     this.beaconUrlForm.get('beaconUrl')?.disable();
     const beaconUrl = this.beaconUrlForm.value.beaconUrl!;
 
@@ -112,33 +133,30 @@ export class BeaconUrlFormComponent implements OnInit {
         message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
       }, { disableClose: true });
     } finally {
-      this.isSubmitting.next(false);
+      this.isSubmitting.set(false);
     }
-
   }
 
   edit() {
-    this.isEditMode.next(true);
-    setTimeout(()=>{
+    this.isEditMode.set(true);
+    setTimeout(() => {
       this.beaconUrlInput.nativeElement.focus();
       this.beaconUrlInput.nativeElement.select();
     });
   }
 
   cancel() {
-    this.isEditMode.next(false);
+    this.isEditMode.set(false);
     this.beaconUrlForm.get('beaconUrl')?.setValue(
-      this.deviceConfigurationService
-          .settings
-          ?.beaconUrl || ''
+      this.deviceConfigurationService.settings?.beaconUrl || ''
     );
     setTimeout(() => {
       this.beaconUrlInput.nativeElement.blur();
     }, 0);
   }
 
+  // 🚫 KEEP AS OBSERVABLE - Complex form validation logic
   get errorMessage$(): Observable<string> {
-
     const control = this.beaconUrlForm.get('beaconUrl');
 
     if (control?.errors) {
@@ -173,45 +191,5 @@ export class BeaconUrlFormComponent implements OnInit {
       }
     }
     return of('');
-
   }
-
-  get isEnabled$(): Observable<boolean> {
-    return combineLatest([
-      this.isBusy$,
-      this.isDisabled$
-    ]).pipe(
-      map(([isBusy, disabled]) => !isBusy && !disabled),
-      distinctUntilChanged()
-    );
-  }
-
-  get beaconUrlFieldIsDisabled$(): Observable<boolean> {
-    return combineLatest([
-      this.isEditMode$,
-      this.isDisabled$,
-      this.isBusy$
-    ]).pipe(
-      map(([isEditMode, disabled, busy]) => {
-        console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
-        return !isEditMode || disabled || busy;
-      }),
-      distinctUntilChanged()
-    );
-  }
-
-  get submitButtonVisible$(): Observable<boolean> {
-    return combineLatest([
-      this.isEditMode$,
-      this.isDisabled$,
-      this.isBusy$
-    ]).pipe(
-      map(([isEditMode, disabled, busy]) => {
-        console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
-        return !isEditMode || disabled || busy;
-      }),
-      distinctUntilChanged()
-    );
-  }
-
 }

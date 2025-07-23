@@ -17,14 +17,16 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class DeviceStateComponent implements OnInit {
 
-  public readonly deviceAppState = DeviceAppState;
+  readonly deviceAppState = DeviceAppState;
+  readonly usbConnectionStatus$ = this.deviceService.usbConnectionStatus$;
+  readonly deviceAppStatus$ = this.deviceService.deviceAppStatus$;
+  readonly portInfo$ = this.deviceService.portInfo$;
+  readonly serialNumber$ = this.deviceService.serialNumber$;
 
-  constructor(public readonly deviceService: DeviceService) {}
+  constructor(private readonly deviceService: DeviceService) {}
 
   ngOnInit(): void {
-
     console.log('DeviceStateComponent INIT');
-
   }
 
 }

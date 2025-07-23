@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
-import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -17,29 +17,25 @@ import { TranslatePipe } from '@ngx-translate/core';
     ...COMMON_MATERIAL_IMPORTS
   ]
 })
-export class DeviceDiagnosticsComponent implements OnInit, OnDestroy {
-
-  private alarmSubscription!: Subscription;
+export class DeviceDiagnosticsComponent implements OnInit {
   public flashOnChange = false;
 
-  constructor(
-    public readonly deviceService: DeviceService
-  ) {};
+  constructor(public readonly deviceService: DeviceService) {
 
-  ngOnInit(): void {
-
-    console.log('DeviceDiagnosticsComponent INIT');
-
-    this.alarmSubscription = this.deviceService.alarm$.subscribe((alarm) => {  
-      this.flashOnChange = true;
-      console.log('flashOnChange:', alarm);
+    this.deviceService.alarm$
+      .pipe(takeUntilDestroyed())
+      .subscribe((alarm) => {
+        this.flashOnChange = true;
+        console.log('flashOnChange:', alarm);
         setTimeout(() => this.flashOnChange = false, 1000);
       });
 
   }
 
-  ngOnDestroy(): void {
-    this.alarmSubscription?.unsubscribe();
+  ngOnInit(): void {
+
+    console.log('DeviceDiagnosticsComponent INIT');
+    
   }
 
 }
