@@ -44,3 +44,24 @@ export class AppComponent {
   }
 
 }
+
+/* EXAMPLE OF STANDARD IMPORTS
+
+// External libraries
+import { Observable } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+
+// Angular
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+// Absolute imports (your app)
+import { AuthService } from '@core/services/auth.service';
+import { User, ApiResponse } from '@shared/models';
+import { APP_CONFIG } from '@/environments/environment';
+
+// Relative imports (nearby files)
+import { UserDialogComponent } from './user-dialog.component';
+import { UserFormData } from '../models/user-form.interface';
+
+*/

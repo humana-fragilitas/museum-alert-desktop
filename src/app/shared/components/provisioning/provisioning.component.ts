@@ -125,7 +125,7 @@ export class ProvisioningComponent implements OnInit {
 
   }
 
-  private async sendProvisioningSettingsToDevice(claim: ProvisioningSettings): Promise<DeviceIncomingData> {
+  private async sendProvisioningSettingsToDevice(claim: ProvisioningSettings): Promise<DeviceIncomingData | void> {
  
       return this.deviceService
                  .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, claim);

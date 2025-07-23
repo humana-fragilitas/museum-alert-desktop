@@ -148,14 +148,14 @@ export class DeviceService {
 
   }
 
-  public async sendUSBCommand(type: USBCommandType, payload: DeviceOutgoingData | null = null): Promise<DeviceIncomingData> {
+  public async sendUSBCommand(type: USBCommandType, payload: DeviceOutgoingData | null = null): Promise<DeviceIncomingData | void> {
 
     return new Promise<any>((resolve, reject) => {
 
       const cid = this.generateCid();
 
       this.pendingRequests[cid] = {
-        resolve: resolve as (data: DeviceIncomingData) => void,
+        resolve: resolve as (data: DeviceIncomingData | void) => void,
         reject,
         timeout: setTimeout(() => {
           console.error(`[DeviceService]: request ${cid} timed out.`);
