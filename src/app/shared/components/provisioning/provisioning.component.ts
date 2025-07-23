@@ -6,7 +6,7 @@ import { DeviceRegistryService } from '../../../core/services/device-registry/de
 import { DialogService } from '../../../core/services/dialog/dialog.service';
 import { CommonModule } from '@angular/common';
 import { CompanyService } from '../../../core/services/company/company.service';
-import { ProvisioningSettings, USBCommandType } from '../../../../../app/shared';
+import { DeviceIncomingData, ProvisioningSettings, USBCommandType } from '../../../../../app/shared';
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogType } from '../../../core/models/ui.models';
@@ -125,7 +125,7 @@ export class ProvisioningComponent implements OnInit {
 
   }
 
-  private async sendProvisioningSettingsToDevice(claim: ProvisioningSettings): Promise<void> {
+  private async sendProvisioningSettingsToDevice(claim: ProvisioningSettings): Promise<DeviceIncomingData> {
  
       return this.deviceService
                  .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, claim);
