@@ -20,8 +20,7 @@ export class NotificationService {
 
     this.deviceService.error$.subscribe(
       (message: Nullable<DeviceIncomingData>) => {
-        console.log('ERROR');
-        console.log(message);
+        console.log('[NotificationService]: got new error:', message);
         if (message && message.type === DeviceMessageType.ERROR) {
            this.onError(message.data.error);
         }
@@ -32,8 +31,7 @@ export class NotificationService {
 
   onError(type: Nullable<DeviceErrorType>) {
 
-    console.log(`[NotificationService]: received device error:`, type);
-
+    console.log(`[NotificationService]: handling device error:`, type);
     this.snackBar.open(
       this.translate.instant(this.errorService.toTranslationTag(type)), 
       this.translate.instant('COMMON.ACTIONS.DISMISS')

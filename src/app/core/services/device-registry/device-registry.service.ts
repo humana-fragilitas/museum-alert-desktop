@@ -18,7 +18,7 @@ export class DeviceRegistryService {
     const company = this.authService.company;
 
     console.log(`[DeviceRegistryService]: checking device with name ${thingName} ` +
-      `(company: ${company}) for existence in the registry...`);
+                `(company: ${company}) for existence in the registry...`);
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
     
