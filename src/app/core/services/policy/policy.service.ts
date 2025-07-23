@@ -20,6 +20,7 @@ export class PolicyService {
     private readonly errorService: ErrorService,
     private readonly authenticatorService: AuthenticatorService
   ) {
+
     this.authService.sessionData$.subscribe({
       next: (session: Nullable<AuthSession>) => {
         if (session && !this.authService.hasPolicy) {
@@ -28,6 +29,7 @@ export class PolicyService {
         }
       }
     });
+
   }
 
   private async attachPolicyWithRetry(
@@ -107,10 +109,13 @@ export class PolicyService {
     maxRetries: number = 10, 
     baseDelay: number = 1000
   ): Promise<ApiResult<AttachPolicyResponse>> {
+    
     let attempt = 0;
 
     const attemptAttach = async (): Promise<ApiResult<AttachPolicyResponse>> => {
+
       try {
+
         attempt++;
         console.log(
           `[PolicyService]: attempting to attach IoT policy to authenticated user; ` +
@@ -130,6 +135,7 @@ export class PolicyService {
         return response;
 
       } catch (error) {
+
         const httpError = error as HttpErrorResponse;
         console.log(
           `[PolicyService]: error occurred while attaching IoT policy (attempt ${attempt}/${maxRetries}):`,
@@ -145,7 +151,9 @@ export class PolicyService {
         await new Promise(resolve => setTimeout(resolve, delay));
 
         return attemptAttach();
+
       }
+      
     };
 
     try {
@@ -160,5 +168,7 @@ export class PolicyService {
       );
       throw error;
     }
+
   }
+
 }

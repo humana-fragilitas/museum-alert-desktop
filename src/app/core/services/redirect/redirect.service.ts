@@ -17,7 +17,7 @@ export class RedirectService {
     private injector: Injector
   ) {
 
-  combineLatest([
+    combineLatest([
       this.authService.user$,
       this.deviceService.usbConnectionStatus$
     ]).pipe(
@@ -43,16 +43,17 @@ export class RedirectService {
         console.log('User authenticated but no USB connected, could redirect to profile or stay');
         this.navigateWithDelay(['/device']);
       }
+      
     });
 
   }
 
   private navigateWithDelay(target: string[]): void {
-  runInInjectionContext(this.injector, () => {
-    afterNextRender(() => {
-      this.router.navigate(target);
+    runInInjectionContext(this.injector, () => {
+      afterNextRender(() => {
+        this.router.navigate(target);
+      });
     });
-  });
-}
+  }
 
 }
