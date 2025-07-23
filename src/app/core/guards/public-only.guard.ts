@@ -20,6 +20,8 @@ export const publicOnlyGuard: CanActivateFn = (route, state) => {
         router.navigate(['/device']);
         return false;
       }
+      console.log(`[publicOnlyGuard]: non authenticated user is allowed ` +
+                  `to browse public only route '${state.url}'`);
       return true;
     })
   );

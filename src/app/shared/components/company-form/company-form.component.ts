@@ -107,15 +107,18 @@ export class CompanyFormComponent implements OnInit, OnDestroy {
           next: (response: ApiResult<UpdateCompanyResponse>) => {
             console.log('[CompanyFormComponent]: company successfully updated:', response);
           },
-          error: (error: HttpErrorResponse) => {
-            console.error('[CompanyFormComponent]: there was an error while attempting to update company', error);
+          error: (exception: HttpErrorResponse) => {
+            console.error('[CompanyFormComponent]: there was an error while attempting to update company', exception.error as ErrorApiResponse);
             this.cancel();
-            this.errorService.showModal(error, {
+            this.errorService.showModal({
+              exception,
+              data: {
                 type: DialogType.ERROR,
                 title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
                 message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
-              }, { disableClose: true }
-            );
+              },
+              dialogConfig: { disableClose: true }
+            });
           }
         });
 

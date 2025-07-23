@@ -3,21 +3,15 @@ import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '../../../../environments/environment';
 import { catchError, map, Observable, of, Subscription } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { DeviceService } from '../device/device.service';
 import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '../../models';
 
-// TO DO: wrap api responses into proper models
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceRegistryService {
 
-  constructor(
-    private httpClient: HttpClient,
-    private authService: AuthService,
-    private deviceService: DeviceService
-  ) { }
+  constructor(private httpClient: HttpClient, private authService: AuthService) { }
 
   checkSensorExists(thingName: string): Observable<Nullable<Sensor>> {
 

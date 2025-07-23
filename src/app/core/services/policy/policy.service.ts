@@ -1,39 +1,164 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { APP_CONFIG } from '../../../../environments/environment';
-
 import { AuthSession } from 'aws-amplify/auth';
-
 import { AuthService } from '../auth/auth.service';
+import { firstValueFrom } from 'rxjs';
+import { ApiResult, ErrorApiResponse, SuccessApiResponse } from '../../models/api.models';
+import { AttachPolicyResponse } from '../../models/policy.models';
+import { ErrorService } from '../error/error.service';
+import { DialogType } from '../../models/ui.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PolicyService {
-
-  constructor(private readonly httpClient: HttpClient, private readonly authService: AuthService) {
-
+  constructor(
+    private readonly httpClient: HttpClient, 
+    private readonly authService: AuthService,
+    private readonly errorService: ErrorService,
+    private readonly authenticatorService: AuthenticatorService
+  ) {
     this.authService.sessionData$.subscribe({
       next: (session: Nullable<AuthSession>) => {
         if (session && !this.authService.hasPolicy) {
-          this.attachPolicy(session);
+          console.log(`[PolicyService]: authenticated user has no IoT policy attached`);
+          this.attachPolicyWithRetry(session);
         }
       }
     });
-
   }
 
-  async attachPolicy(session: AuthSession) {
+  private async attachPolicyWithRetry(
+    session: AuthSession,
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<void> {
+    let attempt = 0;
 
-    const apiUrl = `${APP_CONFIG.aws.apiGateway}/user-policy`;
-  
-    this.httpClient.post(apiUrl, null).subscribe({
-        error: (e) => console.error(e),
-        complete: () => {
-          this.authService.fetchSession({ forceRefresh: true });
-        } 
-    });
+    const attemptAttach = async (): Promise<ApiResult<AttachPolicyResponse>> => {
+      try {
+        attempt++;
+        console.log(
+          `[PolicyService]: attempting to attach IoT policy to authenticated user; ` +
+          `attempt number: ${attempt}/${maxRetries}`
+        );
 
+        const apiUrl = `${APP_CONFIG.aws.apiGateway}/user-policy`;
+        
+        // Convert Observable to Promise for consistent async/await pattern
+        const response = await firstValueFrom(
+          this.httpClient.post<ApiResult<AttachPolicyResponse>>(apiUrl, null)
+        );
+
+        // Success - refresh session and log
+        await this.authService.fetchSession({ forceRefresh: true });
+        console.log(
+          `[PolicyService]: successfully attached IoT policy to authenticated user:`,
+          (response as SuccessApiResponse<AttachPolicyResponse>).data
+        );
+
+        return response;
+
+      } catch (error) {
+        const httpError = error as HttpErrorResponse;
+        console.log(
+          `[PolicyService]: error occurred while attaching IoT policy (attempt ${attempt}/${maxRetries}):`,
+          httpError.error as ErrorApiResponse
+        );
+
+        if (attempt >= maxRetries) {
+          throw error; // Re-throw after max retries
+        }
+
+        // Exponential backoff: wait longer between each retry
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`[PolicyService]: retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        return attemptAttach(); // Recursive retry
+      }
+    };
+
+    try {
+      await attemptAttach();
+    } catch (error) {
+      console.error(
+        `[PolicyService]: failed to attach IoT policy after ${maxRetries} attempts:`,
+        error
+      );
+      this.errorService.showModal({
+        data: {
+          type: DialogType.ERROR,
+          title: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_TITLE',
+          message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
+        },
+        dialogConfig: { disableClose: true },
+        onClosed: () => {
+          this.authenticatorService.signOut();
+        }
+      });
+    }
   }
 
+  async attachPolicy(
+    session: AuthSession, 
+    maxRetries: number = 10, 
+    baseDelay: number = 1000
+  ): Promise<ApiResult<AttachPolicyResponse>> {
+    let attempt = 0;
+
+    const attemptAttach = async (): Promise<ApiResult<AttachPolicyResponse>> => {
+      try {
+        attempt++;
+        console.log(
+          `[PolicyService]: attempting to attach IoT policy to authenticated user; ` +
+          `attempt number: ${attempt}/${maxRetries}`
+        );
+
+        const apiUrl = `${APP_CONFIG.aws.apiGateway}/user-policy`;
+        const response = await firstValueFrom(
+          this.httpClient.post<ApiResult<AttachPolicyResponse>>(apiUrl, null)
+        );
+
+        console.log(
+          `[PolicyService]: successfully attached IoT policy to authenticated user:`,
+          (response as SuccessApiResponse<AttachPolicyResponse>).data
+        );
+
+        return response;
+
+      } catch (error) {
+        const httpError = error as HttpErrorResponse;
+        console.log(
+          `[PolicyService]: error occurred while attaching IoT policy (attempt ${attempt}/${maxRetries}):`,
+          httpError.error as ErrorApiResponse
+        );
+
+        if (attempt >= maxRetries) {
+          throw error;
+        }
+
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        console.log(`[PolicyService]: retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        return attemptAttach();
+      }
+    };
+
+    try {
+      const result = await attemptAttach();
+      // Always refresh session after successful policy attachment
+      this.authService.fetchSession({ forceRefresh: true });
+      return result;
+    } catch (error) {
+      console.error(
+        `[PolicyService]: failed to attach IoT policy after ${maxRetries} attempts:`,
+        error
+      );
+      throw error;
+    }
+  }
 }

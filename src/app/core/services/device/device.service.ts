@@ -22,21 +22,21 @@ export class DeviceService {
 
   private pendingRequests: Record<string, PendingRequest<any>> = {};
 
-  public readonly serialNumber: BehaviorSubject<string> =
+  private readonly serialNumber: BehaviorSubject<string> =
       new BehaviorSubject<string>('');
-  public readonly portInfo: BehaviorSubject<Nullable<PortInfo>> =
+  private readonly portInfo: BehaviorSubject<Nullable<PortInfo>> =
       new BehaviorSubject<Nullable<PortInfo>>(null);
-  public readonly deviceAppStatus: BehaviorSubject<Nullable<DeviceAppState>> =
+  private readonly deviceAppStatus: BehaviorSubject<Nullable<DeviceAppState>> =
       new BehaviorSubject<Nullable<DeviceAppState>>(DeviceAppState.STARTED);
-  public readonly usbConnectionStatus: BehaviorSubject<boolean> =
+  private readonly usbConnectionStatus: BehaviorSubject<boolean> =
       new BehaviorSubject<boolean>(false);
-  public readonly wiFiNetworks: BehaviorSubject<WiFiNetwork[]> =
+  private readonly wiFiNetworks: BehaviorSubject<WiFiNetwork[]> =
       new BehaviorSubject<WiFiNetwork[]>([]);
-  public readonly configuration: BehaviorSubject<Nullable<DeviceConfiguration>> =
+  private readonly configuration: BehaviorSubject<Nullable<DeviceConfiguration>> =
       new BehaviorSubject<Nullable<DeviceConfiguration>>(null);
-  public readonly alarm: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
+  private readonly alarm: BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>> =
       new BehaviorSubject<Nullable<BaseMqttMessage<AlarmPayload>>>(null);
-  public readonly error: BehaviorSubject<Nullable<DeviceIncomingData>> =
+  private readonly error: BehaviorSubject<Nullable<DeviceIncomingData>> =
       new BehaviorSubject<Nullable<DeviceIncomingData>>(null);
 
   public readonly serialNumber$: Observable<string> = 

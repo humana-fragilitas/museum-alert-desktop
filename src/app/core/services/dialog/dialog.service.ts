@@ -16,9 +16,9 @@ export class DialogService {
       restoreFocus: true
   };
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog) { }
 
-  openDialog(data: DialogPayload, configuration: MatDialogConfig = {})  : Observable<DialogResult> {
+  openDialog(data: DialogPayload, configuration: MatDialogConfig = {}): Observable<DialogResult> {
 
     const dialogRef = this.dialog.open(DialogComponent, {
       ...this.defaultConfiguration,

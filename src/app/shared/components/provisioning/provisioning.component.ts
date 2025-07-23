@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
 import { DeviceService } from '../../../core/services/device/device.service';
 import { AuthService } from '../../../core/services/auth/auth.service';
@@ -10,10 +10,11 @@ import { ProvisioningSettings, USBCommandType } from '../../../../../app/shared'
 import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogType } from '../../../core/models/ui.models';
-import { Observable, tap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorService } from '../../../core/services/error/error.service';
-import { Sensor } from '../../../core/models';
+import { ApiResult, ProvisioningClaimResponse, Sensor } from '../../../core/models';
+import { firstValueFrom, map } from 'rxjs';
+import { SuccessApiResponse } from '../../../core/models';
 
 @Component({
   selector: 'app-provisioning',
@@ -25,7 +26,7 @@ import { Sensor } from '../../../core/models';
     ...COMMON_MATERIAL_IMPORTS
   ]
 })
-export class ProvisioningComponent implements OnInit, OnDestroy {
+export class ProvisioningComponent implements OnInit {
 
   isBusy: boolean = false;
   company$ = this.companyService.company$;
@@ -46,74 +47,87 @@ export class ProvisioningComponent implements OnInit, OnDestroy {
 
   }
 
-  ngOnDestroy(): void {
-
-  }
-
   async provisionDevice() {
 
     console.log('[ProvisioningComponent]: Provisioning device...');
 
-    this.isBusy = true;
-    
-    const thingName = this.deviceService.getSerialNumber();
-    this.deviceRegistryService.checkSensorExists(thingName)
-      .subscribe({
-        next: (sensor: Nullable<Sensor>) => {
-          if (sensor) {
-            // TO DO: fix the model reference: from any to ApiResponse<T>
-            this.dialogService.openDialog({
-              type: DialogType.WARNING,
-              showCancel: false,
-              title: 'ERRORS.APPLICATION.DEVICE_EXISTS_TITLE',
-              message: sensor.company ?
-                'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
-                  'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
-              messageParams: {
-                deviceName: sensor.thingName
-              }
-            });
-            this.isBusy = false;
-          } else {
-            return this.createProvisioningClaim().subscribe();
+    try {
+
+      this.isBusy = true;
+      let sensor: Nullable<Sensor>;
+
+      console.log(`[ProvisioningComponent]: step 1/3: checking if sensor has already been registered...`);
+      // Note: assignment and evaluation
+      if (!(sensor = await this.checkIfSensorExists())) {
+
+        console.log(`[ProvisioningComponent]: step 2/3: creating provisioning claim...`);
+        const claim = await this.createClaim();
+
+        console.log(`[ProvisioningComponent]: step 3/3: sending provisioning settings to device...`);
+        await this.sendProvisioningSettingsToDevice(claim!);
+
+      } else {
+
+        this.dialogService.openDialog({
+          type: DialogType.WARNING,
+          showCancel: false,
+          title: 'ERRORS.APPLICATION.DEVICE_EXISTS_TITLE',
+          message: sensor.company ?
+            'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
+              'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
+          messageParams: {
+            deviceName: sensor.thingName
           }
+        });
+
+      }
+    } catch(exception) {
+
+      console.log(`[ProvisioningComponent]: an error occurred while provisioning device`);
+      this.errorService.showModal({
+        exception: exception as HttpErrorResponse | undefined,
+        data: {
+          type: DialogType.ERROR,
+          title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
+          message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
         },
-        error: (error: HttpErrorResponse) => {
-          this.isBusy = false;
-          this.errorService.showModal(error, {
-            type: DialogType.ERROR,
-            title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
-            message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
-          }, { disableClose: true });
-        }
+        dialogConfig: { disableClose: true }
       });
+
+    } finally {
+
+      this.isBusy = false;
+
+    }
 
   }
 
-  createProvisioningClaim(): Observable<any> {
+  private async checkIfSensorExists(): Promise<Nullable<Sensor>> {
 
-    this.isBusy = true;
-    
-    return this.provisioningService.createClaim().pipe(
-      tap((claim: any) => {
+    const thingName = this.deviceService.getSerialNumber();
+    return firstValueFrom(this.deviceRegistryService.checkSensorExists(thingName));
 
-        const payload: ProvisioningSettings = {
-          tempCertPem: claim.data.certificatePem,
-          tempPrivateKey: claim.data.keyPair.PrivateKey,
+  }
+
+  private async createClaim(): Promise<Nullable<ProvisioningSettings>> {
+
+    return firstValueFrom(this.provisioningService.createClaim().pipe(
+      map((response: ApiResult<ProvisioningClaimResponse>) => {
+        const claim = (response as SuccessApiResponse<ProvisioningClaimResponse>).data;
+        return {
+          tempCertPem: claim.certificatePem,
+          tempPrivateKey: claim.keyPair.PrivateKey,
           idToken: this.authService.idToken
         };
-
-        console.log("<|" + JSON.stringify(payload) + "|>");
-        console.log(claim);
-
-        this.deviceService
-            .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, payload)
-            .finally(() => {
-              this.isBusy = false;
-            });
-
       })
-    );
+    ));
+
+  }
+
+  private async sendProvisioningSettingsToDevice(claim: ProvisioningSettings): Promise<void> {
+ 
+      return this.deviceService
+                 .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, claim);
 
   }
 

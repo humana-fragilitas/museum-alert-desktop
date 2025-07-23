@@ -9,6 +9,7 @@ import * as fs from 'fs';
   providedIn: 'root'
 })
 export class ElectronService {
+  
   ipcRenderer!: typeof ipcRenderer;
   webFrame!: typeof webFrame;
   childProcess!: typeof childProcess;

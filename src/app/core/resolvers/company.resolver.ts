@@ -2,9 +2,9 @@
 import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
 import { Observable, catchError, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { CompanyService } from '../services/company/company.service';
-import { ApiResult, CompanyWithUserContext, DialogType } from '../models';
+import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '../models';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorService } from '../services/error/error.service';
 
@@ -21,18 +21,20 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
 
   resolve(): Observable<ApiResult<CompanyWithUserContext>> {
     return this.companyService.fetch().pipe(
-      map((response: ApiResult<CompanyWithUserContext>) => {
+      tap((response: ApiResult<CompanyWithUserContext>) => {
         console.log('[CompanyResolver]: resolved company data:', response);
-        return response;
       }),
-      catchError((error: HttpErrorResponse) => {
-        console.error('[CompanyResolver]: failed to resolve company data:', error);
-        this.errorService.showModal(error, {
-          type: DialogType.ERROR,
-          title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
-          message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
-        }, { disableClose: true });
-        return throwError(() => error);
+      catchError((exception: HttpErrorResponse) => {
+        console.error('[CompanyResolver]: failed to resolve company data:', exception.error as ErrorApiResponse);
+        this.errorService.showModal({
+          data: {
+            type: DialogType.ERROR,
+            title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
+            message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
+          },
+          dialogConfig: { disableClose: true }
+        });
+        return throwError(() => exception);
       })
     );
   }

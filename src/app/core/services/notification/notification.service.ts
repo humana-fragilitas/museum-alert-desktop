@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { DeviceService } from '../device/device.service';
 import { DeviceErrorType, DeviceIncomingData, DeviceMessageType } from '../../../../../app/shared';
 import { ErrorService } from '../error/error.service';

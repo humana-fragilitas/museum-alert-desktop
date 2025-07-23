@@ -21,24 +21,19 @@ export class DeviceConnectionStatusService {
     private readonly mqttService: MqttService
   ) {
 
-    this.mqttService.onMessageOfType(MqttMessageType.CONNECTION_STATUS)
-      .subscribe((message: BaseMqttMessage<ConnectionStatus>) => {
-        const currentMap = this.devicesConnectionStatus.getValue();
-        const newMap = new Map(currentMap);
-        newMap.set(message.sn, message.data.connected);
-        this.devicesConnectionStatus.next(newMap);
-        console.log(`Received connection status update via MQTT for device with SN: ${message.sn}; ` +
-                    `updating devices connection status map:`, newMap);
-      });
-
     this.mqttService.onMessageOfType([
       MqttMessageType.ALARM,
       MqttMessageType.CONFIGURATION,
-      MqttMessageType.ACKNOWLEGDE
-    ]).subscribe((message: BaseMqttMessage<ConnectionStatus | AlarmPayload | DeviceConfiguration>) => {
+      MqttMessageType.ACKNOWLEGDE,
+      MqttMessageType.CONNECTION_STATUS
+    ]).subscribe((message: BaseMqttMessage<ConnectionStatus | AlarmPayload | DeviceConfiguration | void>) => {
       const currentMap = this.devicesConnectionStatus.getValue();
       const newMap = new Map(currentMap);
-      newMap.set(message.sn, true);
+      if (message.type === MqttMessageType.CONNECTION_STATUS) {
+        newMap.set(message.sn, (message.data as ConnectionStatus).connected);
+      } else {
+        newMap.set(message.sn, true);
+      }
       this.devicesConnectionStatus.next(newMap);
       console.log(`Received message via MQTT from device with SN: ${message.sn}; ` +
                   `updating devices connection status map:`, newMap);

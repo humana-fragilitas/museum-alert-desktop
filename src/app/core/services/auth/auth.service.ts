@@ -38,7 +38,7 @@ export class AuthService {
       distinctUntilChanged()
     ).subscribe((user) => {
       this.fetchSession();
-      if (user) this.fetchUserAttributes();
+      if (user) this.fetchAttributes();
     });
 
     // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
@@ -134,7 +134,7 @@ export class AuthService {
 
   }
 
-  fetchUserAttributes() {
+  fetchAttributes() {
 
     return fetchUserAttributes().then(
       (attributes: FetchUserAttributesOutput) => {
@@ -199,7 +199,7 @@ export class AuthService {
     return this.session
               ?.tokens
               ?.accessToken
-              .toString() || '';
+              ?.toString() || '';
 
   }
 
