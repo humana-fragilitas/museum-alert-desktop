@@ -48,6 +48,7 @@ export class ErrorService {
   }
 
   showModal(config: ShowModalConfig): void {
+
     const { 
       exception, 
       data, 
@@ -78,6 +79,7 @@ export class ErrorService {
         error: (error) => console.error('[ErrorService]: dialog close error:', error)
       });
     }
+    
   }
 
 }

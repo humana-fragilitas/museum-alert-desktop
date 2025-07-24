@@ -24,10 +24,10 @@ export class DeviceStateComponent implements OnInit {
   readonly deviceAppState = DeviceAppState;
   
   // Convert observables to signals
-  readonly usbConnectionStatus = toSignal(this.deviceService.usbConnectionStatus$);
-  readonly deviceAppStatus = toSignal(this.deviceService.deviceAppStatus$);
-  readonly portInfo = toSignal(this.deviceService.portInfo$);
-  readonly serialNumber = toSignal(this.deviceService.serialNumber$);
+  readonly usbConnectionStatus = this.deviceService.usbConnectionStatus;
+  readonly deviceAppStatus = this.deviceService.deviceAppStatus;
+  readonly portInfo = this.deviceService.portInfo;
+  readonly serialNumber = this.deviceService.serialNumber;
 
   constructor(private readonly deviceService: DeviceService) {}
 

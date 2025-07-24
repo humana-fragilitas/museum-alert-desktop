@@ -6,7 +6,8 @@ import { Injectable } from '@angular/core';
 import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
 import { DeviceService } from '@services/device/device.service';
-import { ApiResult, ProvisioningClaimResponse } from '@models/.';
+import { ApiResult,
+         ProvisioningClaimResponse } from '@models/.';
 
 
 @Injectable({
@@ -28,7 +29,7 @@ export class ProvisioningService {
       map((response: any) => ({
         ...response,
         cid,
-        idToken: this.authService.idToken
+        idToken: this.authService.idToken()
       }))
     );
 

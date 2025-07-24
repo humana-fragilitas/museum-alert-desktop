@@ -23,7 +23,7 @@ import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 export class DeviceDiagnosticsComponent implements OnInit {
   
   // Convert observable to signal
-  public readonly alarm = toSignal(this.deviceService.alarm$);
+  public readonly alarm = this.deviceService.alarm;
   
   // Convert flashOnChange to signal
   public flashOnChange = signal<boolean>(false);

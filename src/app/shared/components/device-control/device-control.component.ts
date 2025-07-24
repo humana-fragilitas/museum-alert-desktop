@@ -1,14 +1,18 @@
 import { Subscription } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { Component, OnInit, OnDestroy, computed, signal, effect } from '@angular/core';
+import { Component,
+         OnInit,
+         OnDestroy,
+         computed,
+         signal,
+         effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 
 import { DeviceAppState } from '@shared-with-electron/.';
 import { MqttService } from '@services/mqtt/mqtt.service';
 import { ConnectionStatusComponent } from '@shared/components/connection-status/connection-status.component';
-
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
 import { BeaconUrlFormComponent } from '@shared/components/beacon-url-form/beacon-url-form.component';
 import { DeviceService } from '@services/device/device.service';
@@ -36,9 +40,9 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
   public readonly deviceAppState = DeviceAppState;
 
   // Convert observables to signals with proper initial values
-  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$, { initialValue: false });
-  public readonly settings = toSignal(this.deviceConfigurationService.properties$, { initialValue: null });
-  public readonly serialNumber = toSignal(this.deviceService.serialNumber$, { initialValue: '' });
+  public readonly isBusy = this.deviceConfigurationService.isBusy;
+  public readonly settings = this.deviceConfigurationService.properties;
+  public readonly serialNumber = this.deviceService.serialNumber;
 
   // Signal for connection status
   private connectionStatus = signal<boolean>(false);

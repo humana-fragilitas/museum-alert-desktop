@@ -34,8 +34,8 @@ export class BeaconUrlFormComponent implements OnInit {
   private readonly isBeaconUrlSet = signal<boolean>(false);
 
   // 🔥 MIGRATED TO SIGNALS - Service observables converted to signals
-  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$);
-  private readonly deviceProperties = toSignal(this.deviceConfigurationService.properties$);
+  public readonly isBusy = this.deviceConfigurationService.isBusy;
+  private readonly deviceProperties = this.deviceConfigurationService.properties;
 
   @Input()
   set disabled(value: boolean) {
@@ -151,7 +151,7 @@ export class BeaconUrlFormComponent implements OnInit {
   cancel() {
     this.isEditMode.set(false);
     this.beaconUrlForm.get('beaconUrl')?.setValue(
-      this.deviceConfigurationService.settings?.beaconUrl || ''
+      this.deviceConfigurationService.settings()?.beaconUrl || ''
     );
     setTimeout(() => {
       this.beaconUrlInput.nativeElement.blur();

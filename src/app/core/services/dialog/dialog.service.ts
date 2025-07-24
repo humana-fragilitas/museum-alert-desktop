@@ -12,10 +12,10 @@ import { DialogPayload, DialogResult } from '@models/.'
 export class DialogService {
 
   private readonly defaultConfiguration: MatDialogConfig = {
-      width: '400px',
-      disableClose: false,
-      autoFocus: true,
-      restoreFocus: true
+    width: '400px',
+    disableClose: false,
+    autoFocus: true,
+    restoreFocus: true
   };
 
   constructor(private dialog: MatDialog) { }

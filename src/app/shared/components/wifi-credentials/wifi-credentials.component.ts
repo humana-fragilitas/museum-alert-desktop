@@ -37,9 +37,9 @@ export class WiFiCredentialsComponent implements OnInit {
   });
 
   // Convert observables to signals
-  private wiFiNetworksSignal = toSignal(this.deviceService.wiFiNetworks$, { initialValue: [] });
-  private errorSignal = toSignal(this.deviceService.error$);
-  private appStatusSignal = toSignal(this.deviceService.deviceAppStatus$);
+  private wiFiNetworksSignal = this.deviceService.wiFiNetworks;
+  private errorSignal = this.deviceService.error;
+  private appStatusSignal = this.deviceService.deviceAppStatus;
 
   // Convert getter to computed signal
   isBusy = computed(() => {

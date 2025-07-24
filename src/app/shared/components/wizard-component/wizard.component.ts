@@ -13,7 +13,6 @@ import { DeviceControlComponent } from '@shared/components/device-control/device
 import { DeviceDiagnosticsComponent } from '@shared/components/device-diagnostics/device-diagnostics.component';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 
-
 @Component({
   selector: 'app-wizard',
   templateUrl: './wizard.component.html',
@@ -53,6 +52,8 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     public deviceService: DeviceService
   ) {
+    // Move both effects to constructor (injection context)
+    
     // Effect to handle stepper state changes when deviceAppStatus changes
     // This preserves the original behavior from the subscription
     effect(() => {
@@ -62,23 +63,21 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.setStepperState(appStatus);
       }
     });
+
+    // Effect to sync with device service signals
+    effect(() => {
+      const isConnected = this.deviceService.usbConnectionStatus();
+      const appStatus = this.deviceService.deviceAppStatus();
+      
+      // Update signals instead of properties
+      this.usbConnectionStatus.set(isConnected);
+      this.deviceAppStatus.set(appStatus);
+    });
   }
 
   ngOnInit(): void {
     console.log('WizardComponent INIT');
     
-    // Keep the original subscription but update signals
-    combineLatest([
-      this.deviceService.usbConnectionStatus$,
-      this.deviceService.deviceAppStatus$
-    ])
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(([isConnected, appStatus]) => {
-      // Update signals instead of properties
-      this.usbConnectionStatus.set(isConnected);
-      this.deviceAppStatus.set(appStatus);
-    });
-
     // TO DO: remove after testing
     // this.isReady = false;
     // this.isVisible = true;

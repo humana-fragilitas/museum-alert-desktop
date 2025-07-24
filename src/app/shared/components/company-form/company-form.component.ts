@@ -150,7 +150,7 @@ export class CompanyFormComponent implements OnInit {
   cancel() {
     this.isEditable.set(false);
     this.companyNameForm.get('companyName')?.disable();
-    this.companyNameForm.get('companyName')?.setValue(this.companyService.organization?.companyName || '');
+    this.companyNameForm.get('companyName')?.setValue(this.companyService.organization()?.companyName || '');
     setTimeout(() => {
       this.companyNameInput.nativeElement.blur();
     }, 0);

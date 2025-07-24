@@ -36,7 +36,7 @@ export class ProvisioningComponent implements OnInit {
   isBusy = signal<boolean>(false);
   
   // Convert observable to signal
-  company = toSignal(this.companyService.company$);
+  company = this.companyService.organization;
 
   constructor(
     private readonly authService: AuthService,
@@ -120,10 +120,17 @@ export class ProvisioningComponent implements OnInit {
     return firstValueFrom(this.provisioningService.createClaim().pipe(
       map((response: ApiResult<ProvisioningClaimResponse>) => {
         const claim = (response as SuccessApiResponse<ProvisioningClaimResponse>).data;
+
+        console.log({
+          tempCertPem: claim.certificatePem,
+          tempPrivateKey: claim.keyPair.PrivateKey,
+          idToken: this.authService.idToken()
+        });
+
         return {
           tempCertPem: claim.certificatePem,
           tempPrivateKey: claim.keyPair.PrivateKey,
-          idToken: this.authService.idToken
+          idToken: this.authService.idToken()
         };
       })
     ));

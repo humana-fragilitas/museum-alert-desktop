@@ -45,7 +45,7 @@ export class MqttService {
 
   async connect(sessionData: AuthSession): Promise<void> {
 
-    if (!this.authService.hasPolicy) {
+    if (!this.authService.hasPolicy()) {
       console.log('[MqttService]: user does not have an iot policy attached yet; skipping...');
     }
 
@@ -72,7 +72,7 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
-          const currentSession = this.authService.session;
+          const currentSession = this.authService.session();
           if (currentSession) {
             return this.sigV4Service.getSignedURL(currentSession);
           }
@@ -162,7 +162,7 @@ export class MqttService {
 
     return new Promise<any>((resolve, reject) => {
 
-      const company = this.authService.company;
+      const company = this.authService.company();
       const deviceSN = this.deviceService.getSerialNumber();
       
       if (!company || !deviceSN) {

@@ -134,5 +134,7 @@ export class SigV4Service {
     console.dir(requestUrl);
 
     return requestUrl;
+
   }
+  
 }

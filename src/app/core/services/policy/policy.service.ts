@@ -3,11 +3,15 @@ import { AuthSession } from 'aws-amplify/auth';
 import { firstValueFrom } from 'rxjs';
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient,
+         HttpErrorResponse } from '@angular/common/http';
 
 import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
-import { ApiResult, ErrorApiResponse, SuccessApiResponse, AttachPolicyResponse } from '@models/.';
+import { ApiResult,
+         ErrorApiResponse,
+         SuccessApiResponse,
+         AttachPolicyResponse } from '@models/.';
 import { ErrorService } from '@services/error/error.service';
 import { DialogType } from '@models/ui.models';
 
@@ -25,7 +29,7 @@ export class PolicyService {
 
     this.authService.sessionData$.subscribe({
       next: (session: Nullable<AuthSession>) => {
-        if (session && !this.authService.hasPolicy) {
+        if (session && !this.authService.hasPolicy()) {
           console.log(`[PolicyService]: authenticated user has no IoT policy attached`);
           this.attachPolicyWithRetry(session);
         }

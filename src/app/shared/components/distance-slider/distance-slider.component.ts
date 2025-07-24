@@ -44,7 +44,7 @@ export class DistanceSliderComponent implements OnInit {
   private _value = signal<number>(this.minDefaultValue);
 
   // Convert observable to signal
-  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$);
+  public readonly isBusy = this.deviceConfigurationService.isBusy;
 
   // Input signals with simple default values (validation handled in effects)
   minValue = input<number>(this.minDefaultValue);

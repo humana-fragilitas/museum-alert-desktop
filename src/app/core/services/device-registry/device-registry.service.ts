@@ -17,7 +17,7 @@ export class DeviceRegistryService {
 
   checkSensorExists(thingName: string): Observable<Nullable<Sensor>> {
 
-    const company = this.authService.company;
+    const company = this.authService.company();
 
     console.log(`[DeviceRegistryService]: checking device with name ${thingName} ` +
                 `(company: ${company}) for existence in the registry...`);

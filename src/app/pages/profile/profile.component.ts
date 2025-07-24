@@ -28,7 +28,7 @@ export class ProfileComponent implements OnInit {
 
   public readonly displayedColumns: string[] = ['username', 'role', 'joined'];
   public readonly loginId = this.authService.userLoginId;
-  public readonly company$ = this.companyService.company$;
+  public readonly company = this.companyService.organization;
 
   constructor(
     private companyService: CompanyService,

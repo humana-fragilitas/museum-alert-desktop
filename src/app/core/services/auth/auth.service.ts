@@ -9,10 +9,10 @@ import { fetchAuthSession,
 import { Hub, HubCapsule } from '@aws-amplify/core';
 import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
 
-import { Injectable } from '@angular/core';
+import { Injectable, signal, computed, effect } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 import { titleStyle } from '@shared/helpers/console.helper';
-
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({
@@ -22,41 +22,63 @@ export class AuthService {
 
   private timeOutId: number = 0;
 
-  // Authentication tokens and AWS credentials
-  private readonly sessionData = new BehaviorSubject<Nullable<AuthSession>>(null);
-  // To be used to check if the user is authenticated
-  private readonly user = new BehaviorSubject<Nullable<GetCurrentUserOutput>>(null);
-  // User attributes (e.g.: email, company, etc.)
-  private readonly userAttributes = new BehaviorSubject<Nullable<FetchUserAttributesOutput>>(null);
+  // Convert BehaviorSubjects to signals
+  private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
+  private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
+  private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
 
-  public readonly sessionData$ = this.sessionData.asObservable();
-  public readonly user$ = this.user.asObservable();
-  public readonly userAttributes$ = this.userAttributes.asObservable();
+  // Maintain backward compatibility with observables
+  public readonly sessionData$ = toObservable(this.sessionDataSignal);
+  public readonly user$ = toObservable(this.userSignal);
+  public readonly userAttributes$ = toObservable(this.userAttributesSignal);
+
+  // Convert getters to computed signals
+  public readonly userLoginId = computed(() => 
+    this.userSignal()?.signInDetails?.loginId || ''
+  );
+
+  public readonly company = computed(() => 
+    this.sessionDataSignal()?.tokens?.idToken?.payload?.['custom:Company'] as string || ''
+  );
+
+  public readonly hasPolicy = computed(() => 
+    this.sessionDataSignal()?.tokens?.idToken?.payload?.['custom:hasPolicy'] === '1'
+  );
+
+  public readonly idToken = computed(() => 
+    this.sessionDataSignal()?.tokens?.idToken?.toString() || ''
+  );
+
+  public readonly accessToken = computed(() => 
+    this.sessionDataSignal()?.tokens?.accessToken?.toString() || ''
+  );
+
+  // Computed signal to replace the session getter
+  public readonly session = computed(() => this.sessionDataSignal());
+
+  readonly user = this.userSignal.asReadonly();
 
   constructor() {
 
     console.log('[AuthService]: instance created');
 
-    this.user.pipe(
-      distinctUntilChanged()
-    ).subscribe((user) => {
+    // Replace subscription with effect
+    effect(() => {
+      const user = this.userSignal();
       this.fetchSession();
       if (user) this.fetchAttributes();
     });
 
-    // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
+    // Keep the Hub listener as-is since it's external integration
     Hub.listen('auth', (data: HubCapsule<string, AuthHubEventData>) => {
-
       const { payload } = data;
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
         this.fetchUser();
       }
-
     });
 
     this.fetchUser();
-
   }
  
   fetchSession(
@@ -77,7 +99,8 @@ export class AuthService {
                            session.tokens &&
                            session.userSub;
 
-        this.sessionData.next(hasSession ? session : null);
+        // Update signal instead of BehaviorSubject
+        this.sessionDataSignal.set(hasSession ? session : null);
 
         if (this.timeOutId) { clearTimeout(this.timeOutId); }
 
@@ -90,10 +113,10 @@ export class AuthService {
         console.log(session);
         
         console.log('%c[AuthService]: access token:', titleStyle);
-        console.log(this.accessToken);
+        console.log(this.accessToken());
 
         console.log('%c[AuthService]: id token:', titleStyle);
-        console.log(this.idToken);
+        console.log(this.idToken());
 
         console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
 
@@ -115,7 +138,8 @@ export class AuthService {
       },
       () => {
         console.log(`[AuthService]: can't retrieve session data`);
-        this.sessionData.next(null);
+        // Update signal instead of BehaviorSubject
+        this.sessionDataSignal.set(null);
       }
     );
 
@@ -127,11 +151,13 @@ export class AuthService {
       (user: GetCurrentUserOutput) => {
         console.log('[AuthService]: retrieved user data:');
         console.log(user);
-        this.user.next(user);
+        // Update signal instead of BehaviorSubject
+        this.userSignal.set(user);
       },
       () => {
         console.log(`[AuthService]: can't retrieve user data`);
-        this.user.next(null);
+        // Update signal instead of BehaviorSubject
+        this.userSignal.set(null);
       }
     );
 
@@ -143,66 +169,15 @@ export class AuthService {
       (attributes: FetchUserAttributesOutput) => {
         console.log('[AuthService]: retrieved user attributes:');
         console.log(attributes);
-        this.userAttributes.next(attributes);
+        // Update signal instead of BehaviorSubject
+        this.userAttributesSignal.set(attributes);
       },
       () => {
         console.log(`[AuthService]: can't retrieve user attributes`);
-        this.userAttributes.next(null);
+        // Update signal instead of BehaviorSubject
+        this.userAttributesSignal.set(null);
       }
     );
-
-  }
-
-  get userLoginId(): string {
-
-    return this.user
-               .getValue()
-              ?.signInDetails
-              ?.loginId || '';
-
-  }
-
-  get company(): string {
-
-    return this.session
-              ?.tokens
-              ?.idToken
-              ?.payload
-              ?.['custom:Company'] as string;
-
-  }
-
-  get hasPolicy(): boolean {
-
-    return this.session
-              ?.tokens
-              ?.idToken
-              ?.payload
-              ?.['custom:hasPolicy'] === '1';
-
-  }
-
-  get session(): Nullable<AuthSession> {
-
-    return this.sessionData.getValue();
-
-  }
-
-  get idToken(): string {
-
-    return this.session
-              ?.tokens
-              ?.idToken
-              ?.toString() || '';
-
-  }
-
-  get accessToken(): string {
-
-    return this.session
-              ?.tokens
-              ?.accessToken
-              ?.toString() || '';
 
   }
 

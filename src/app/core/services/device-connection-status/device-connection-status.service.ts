@@ -1,7 +1,6 @@
 import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
-
-import { Injectable } from '@angular/core';
-
+import { Injectable, signal, computed, effect } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MqttService } from '@services/mqtt/mqtt.service';
 import { AlarmPayload, BaseMqttMessage, ConnectionStatus, DeviceConfiguration, MqttMessageType } from '@models/.';
 import { DeviceService } from '@services/device/device.service';
@@ -11,49 +10,57 @@ import { DeviceErrorType, DeviceIncomingData } from '@shared-with-electron/.';
   providedIn: 'root'
 })
 export class DeviceConnectionStatusService {
+  
+  // Convert BehaviorSubject to signal
+  private readonly devicesConnectionStatusSignal = signal<Map<string, boolean>>(new Map());
+  
+  // Maintain backward compatibility with observable
+  public readonly devicesConnectionStatus$: Observable<Map<string, boolean>> = 
+    toObservable(this.devicesConnectionStatusSignal);
 
-  private readonly devicesConnectionStatus: BehaviorSubject<Map<string, boolean>> =
-    new BehaviorSubject<Map<string, boolean>>(new Map());
-    
-  public readonly devicesConnectionStatus$: Observable<Map<string, boolean>> =
-    this.devicesConnectionStatus.asObservable();
+  // Convert deviceService.error$ to signal for use in effects
+  private readonly deviceErrorSignal = this.deviceService.error;
 
   constructor(
     private readonly deviceService: DeviceService,
     private readonly mqttService: MqttService
   ) {
-
+    
+    // Keep the MQTT subscription as-is since it's external integration
+    // This maintains the exact same timing and behavior
     this.mqttService.onMessageOfType([
       MqttMessageType.ALARM,
       MqttMessageType.CONFIGURATION,
       MqttMessageType.ACKNOWLEGDE,
       MqttMessageType.CONNECTION_STATUS
     ]).subscribe((message: BaseMqttMessage<ConnectionStatus | AlarmPayload | DeviceConfiguration | void>) => {
-      const currentMap = this.devicesConnectionStatus.getValue();
+      const currentMap = this.devicesConnectionStatusSignal(); // Use signal instead of getValue()
       const newMap = new Map(currentMap);
+      
       if (message.type === MqttMessageType.CONNECTION_STATUS) {
         newMap.set(message.sn, (message.data as ConnectionStatus).connected);
       } else {
         newMap.set(message.sn, true);
       }
-      this.devicesConnectionStatus.next(newMap);
+      
+      this.devicesConnectionStatusSignal.set(newMap); // Use signal instead of next()
       console.log(`Received message via MQTT from device with SN: ${message.sn}; ` +
-                  `updating devices connection status map:`, newMap);
+        `updating devices connection status map:`, newMap);
     });
 
-    this.deviceService.error$.subscribe(
-      (message: Nullable<DeviceIncomingData>) => {
-        if (message && (message!.data as { error: DeviceErrorType }).error === DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT) {
-            const currentMap = this.devicesConnectionStatus.getValue();
-            const newMap = new Map(currentMap);
-            newMap.set(message.sn, false);
-            this.devicesConnectionStatus.next(newMap);
-            console.log(`Received error via USB from device with SN: ${message.sn}; ` +
-                        `updating devices connection status map:`, newMap);
-        }
+    // Replace the deviceService.error$ subscription with an effect
+    effect(() => {
+      const message = this.deviceErrorSignal();
+      
+      if (message && (message!.data as { error: DeviceErrorType }).error === DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT) {
+        const currentMap = this.devicesConnectionStatusSignal(); // Use signal instead of getValue()
+        const newMap = new Map(currentMap);
+        newMap.set(message.sn, false);
+        this.devicesConnectionStatusSignal.set(newMap); // Use signal instead of next()
+        console.log(`Received error via USB from device with SN: ${message.sn}; ` +
+          `updating devices connection status map:`, newMap);
       }
-    );
-
+    });
   }
 
   /**
@@ -65,8 +72,18 @@ export class DeviceConnectionStatusService {
     return this.devicesConnectionStatus$.pipe(
       map((statusMap: Map<string, boolean>) => statusMap.get(deviceSN) ?? false),
       distinctUntilChanged()
-    )
+    );
   }
 
+  /**
+   * Get connection status as a computed signal for a specific device
+   * @param deviceSN - Device serial number
+   * @returns Signal<boolean> - Connection status (defaults to false if not found)
+   */
+  getConnectionStatus(deviceSN: string) {
+    return computed(() => {
+      const statusMap = this.devicesConnectionStatusSignal();
+      return statusMap.get(deviceSN) ?? false;
+    });
+  }
 }
-
