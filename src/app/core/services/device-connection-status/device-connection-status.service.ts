@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
-import { MqttService } from '../mqtt/mqtt.service';
-import { AlarmPayload, BaseMqttMessage, ConnectionStatus, DeviceConfiguration, MqttMessageType } from '../../models';
-import { DeviceService } from '../device/device.service';
-import { DeviceErrorType, DeviceIncomingData } from '../../../../../app/shared';
+
+import { Injectable } from '@angular/core';
+
+import { MqttService } from '@services/mqtt/mqtt.service';
+import { AlarmPayload, BaseMqttMessage, ConnectionStatus, DeviceConfiguration, MqttMessageType } from '@models/.';
+import { DeviceService } from '@services/device/device.service';
+import { DeviceErrorType, DeviceIncomingData } from '@shared-with-electron/.';
 
 @Injectable({
   providedIn: 'root'

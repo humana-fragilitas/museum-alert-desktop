@@ -1,6 +1,20 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+      "baseUrl": "./src",
+      "paths": {
+        "@env/*": ["environments/*"],
+        "@guards/*": ["app/core/guards/*"],
+        "@interceptors/*": ["app/core/interceptors/*"],
+        "@resolvers/*": ["app/core/resolvers/*"],
+        "@services/*": ["app/core/services/*"],
+        "@models/*": ["app/core/models/*"],
+        "@pipes/*": ["app/shared/pipes/*"],
+        "@shared/*": ["app/shared/*"],
+        "@shared-with-electron/*": ["../app/shared/*"],
+        "@tokens/*": ["app/core/tokens/*"],
+        "@validators/*": ["app/shared/validators/*"]
+    },
     "strict": true,
     "outDir": "./dist/out-tsc",
     "module": "es2022",

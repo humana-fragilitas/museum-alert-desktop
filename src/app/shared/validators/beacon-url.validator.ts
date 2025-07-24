@@ -1,4 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
 import { urlValidator } from './url.validator';
 import { firstLevelDomainValidator } from './first-level-domain.validator';
 import { eddystoneUrlValidator } from './eddystone-encoded-url.validator';

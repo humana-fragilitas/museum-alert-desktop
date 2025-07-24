@@ -1,9 +1,11 @@
+import { catchError, map, Observable, of } from 'rxjs';
+
 import { HttpClient, HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { catchError, map, Observable, of, Subscription } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
-import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '../../models';
+
+import { APP_CONFIG } from '@env/environment';
+import { AuthService } from '@services/auth/auth.service';
+import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '@models/.';
 
 
 @Injectable({

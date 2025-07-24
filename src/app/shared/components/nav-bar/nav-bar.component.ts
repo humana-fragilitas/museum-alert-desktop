@@ -1,17 +1,21 @@
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { TranslatePipe } from '@ngx-translate/core';
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
-import { CompanyService } from '../../../core/services/company/company.service';
-import { AuthService } from '../../../core/services/auth/auth.service';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { RouterModule } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { CompanyService } from '@services/company/company.service';
+import { AuthService } from '@services/auth/auth.service';
+
 
 @Component({
   selector: 'app-nav-bar',
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss'],
-  imports: [ 
+  imports: [
     CommonModule,
     RouterModule,
     TranslatePipe,
@@ -19,9 +23,10 @@ import { TranslatePipe } from '@ngx-translate/core';
   ]
 })
 export class NavBarComponent implements OnInit {
-
-  readonly isFetchingCompany$ = this.companyService.isFetchingCompany$;
-  readonly userAttributes$ = this.authService.userAttributes$;
+  
+  // Convert observables to signals
+  readonly isFetchingCompany = toSignal(this.companyService.isFetchingCompany$);
+  readonly userAttributes = toSignal(this.authService.userAttributes$);
 
   constructor(
     private readonly companyService: CompanyService,
@@ -36,5 +41,4 @@ export class NavBarComponent implements OnInit {
   signOut() {
     this.authenticatorService.signOut();
   }
-
 }

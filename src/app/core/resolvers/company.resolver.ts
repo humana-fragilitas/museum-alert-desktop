@@ -1,12 +1,13 @@
-// src/app/core/resolvers/company.resolver.ts
-import { Injectable } from '@angular/core';
-import { Resolve } from '@angular/router';
 import { Observable, catchError, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { CompanyService } from '../services/company/company.service';
-import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '../models';
+
+import { Injectable } from '@angular/core';
+import { Resolve } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorService } from '../services/error/error.service';
+
+import { CompanyService } from '@services/company/company.service';
+import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '@models/.';
+import { ErrorService } from '@services/error/error.service';
 
 
 @Injectable({

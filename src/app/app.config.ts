@@ -1,32 +1,26 @@
-// app/app.config.ts
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { Amplify } from 'aws-amplify';
+
+import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { ApplicationConfig, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { HttpClient } from '@angular/common/http';
 
-// Routes
 import { routes } from './app.routes';
+import { authTokenInterceptor } from '@interceptors/auth-token.interceptor';
+import { ElectronService } from '@services/electron/electron.service';
+import { AuthService } from '@services/auth/auth.service';
+import { CompanyService } from '@services/company/company.service';
+import { RedirectService } from '@services/redirect/redirect.service';
+import { MqttService } from '@services/mqtt/mqtt.service';
+import { PolicyService } from '@services/policy/policy.service';
+import { APP_CONFIG } from '@env/environment';
+import { NotificationService } from '@services/notification/notification.service';
 
-// Interceptors
-import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
-
-// Translation
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-
-// Services for early instantiation
-import { ElectronService } from './core/services/electron/electron.service';
-import { AuthService } from './core/services/auth/auth.service';
-import { CompanyService } from './core/services/company/company.service';
-import { RedirectService } from './core/services/redirect/redirect.service';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { MqttService } from './core/services/mqtt/mqtt.service';
-import { PolicyService } from './core/services/policy/policy.service';
-import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { Amplify } from 'aws-amplify';
-import { APP_CONFIG } from '../environments/environment';
-import { NotificationService } from './core/services/notification/notification.service';
 
 // AoT requires an exported function for factories
 export function httpLoaderFactory(http: HttpClient): TranslateHttpLoader {

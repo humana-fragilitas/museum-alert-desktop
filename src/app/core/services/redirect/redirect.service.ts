@@ -1,9 +1,12 @@
+import { combineLatest, distinctUntilChanged } from 'rxjs';
+
 import { Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../auth/auth.service';
 import { afterNextRender } from '@angular/core';
-import { DeviceService } from '../device/device.service';
-import { combineLatest, distinctUntilChanged } from 'rxjs';
+
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceService } from '@services/device/device.service';
+
 
 @Injectable({
   providedIn: 'root'

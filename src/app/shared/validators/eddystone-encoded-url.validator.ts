@@ -1,5 +1,6 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { validateEddystoneUrl } from '../helpers/eddystone-url.helper';
+
+import { validateEddystoneUrl } from '@shared/helpers/eddystone-url.helper';
 
 /**
  * Eddystone URL validator that checks if URL can be encoded within 18-byte limit

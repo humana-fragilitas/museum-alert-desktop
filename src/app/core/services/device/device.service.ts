@@ -1,19 +1,21 @@
-import { Injectable, Inject, NgZone } from '@angular/core';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { v4 as uuidv4 } from "uuid";
-import { WINDOW } from '../../tokens/window';
+import { v4 as uuidv4 } from 'uuid';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { PortInfo } from '@serialport/bindings-cpp';
+
+import { Injectable, Inject, NgZone } from '@angular/core';
+
+import { APP_CONFIG } from '@env/environment';
+import { WINDOW } from '@tokens/window';
 import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
          WiFiNetwork, 
          DeviceEvent,
-         DeviceOutgoingData} from '../../../../../app/shared/';
-import { PendingRequest } from '../../models';
-import { AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '../../models';
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
-import { USBCommandType } from '../../../../../app/shared/';
-import { titleStyle } from '../../../shared/helpers/console.helper';
+         DeviceOutgoingData,
+         DeviceErrorType,
+        USBCommandType } from '@shared-with-electron/.';
+import { PendingRequest, AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '@models/.';
+import { titleStyle } from '@shared/helpers/console.helper';
 
 
 export class USBCommandTimeoutException extends Error {
@@ -21,6 +23,19 @@ export class USBCommandTimeoutException extends Error {
     super(error);
     this.name = 'USBCommandTimeoutException';
   }
+}
+
+export class USBCommandDeviceException extends Error {
+
+  public readonly error: DeviceErrorType;
+
+  constructor(deviceError: { cid?: string, type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType } }) {
+    super(`USB Command Device Error: ${DeviceErrorType[deviceError.data.error]} (SN: ${deviceError.sn})`);
+    this.name = 'USBCommandDeviceException';
+    this.error = deviceError.data.error;
+  
+  }
+
 }
 
 @Injectable({
@@ -120,7 +135,7 @@ export class DeviceService {
        */
       if (correlationId && payload.type === DeviceMessageType.ERROR) {
         console.log(`[DeviceService]: processed error with correlation id: ${correlationId}`);
-        reject(payload);
+        reject(new USBCommandDeviceException(payload));
         return;
       } else {
         resolve(payload);

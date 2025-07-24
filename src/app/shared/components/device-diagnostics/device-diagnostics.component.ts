@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DeviceService } from '../../../core/services/device/device.service';
-import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
-import { CommonModule } from '@angular/common';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { Component, OnInit, signal, effect } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
+
+import { DeviceService } from '@services/device/device.service';
+import { FormatDistancePipe } from '@pipes/format-distance.pipe';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+
 
 @Component({
   selector: 'app-device-diagnostics',
@@ -18,24 +21,28 @@ import { TranslatePipe } from '@ngx-translate/core';
   ]
 })
 export class DeviceDiagnosticsComponent implements OnInit {
-  public flashOnChange = false;
+  
+  // Convert observable to signal
+  public readonly alarm = toSignal(this.deviceService.alarm$);
+  
+  // Convert flashOnChange to signal
+  public flashOnChange = signal<boolean>(false);
 
   constructor(public readonly deviceService: DeviceService) {
-
-    this.deviceService.alarm$
-      .pipe(takeUntilDestroyed())
-      .subscribe((alarm) => {
-        this.flashOnChange = true;
+    
+    // Replace subscription with effect for alarm changes
+    effect(() => {
+      const alarm = this.alarm();
+      if (alarm) {
+        this.flashOnChange.set(true);
         console.log('flashOnChange:', alarm);
-        setTimeout(() => this.flashOnChange = false, 1000);
-      });
-
-  }
-
-  ngOnInit(): void {
-
-    console.log('DeviceDiagnosticsComponent INIT');
+        setTimeout(() => this.flashOnChange.set(false), 1000);
+      }
+    });
     
   }
 
+  ngOnInit(): void {
+    console.log('DeviceDiagnosticsComponent INIT');
+  }
 }

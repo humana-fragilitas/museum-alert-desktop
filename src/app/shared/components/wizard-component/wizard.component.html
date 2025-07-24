@@ -1,72 +1,59 @@
-<ng-container *ngIf="isVisible">
-  
-  <ng-container *ngIf="isReady; else communicating">
+<ng-container *ngIf="isVisible()">
 
-    <mat-stepper linear #stepper>
-      
-      <mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.CHOOSE_WIFI_NETWORK' | translate">
-        <ng-template matStepContent>
-          <div class="wifi-step">
-            <app-wifi-credentials></app-wifi-credentials>
-          </div>
-        </ng-template>
-      </mat-step>
-
-      <mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.PROVISION_DEVICE' | translate">
-        <ng-template matStepContent>
-          <div class="provisioning-step">
-            <app-provisioning></app-provisioning>
-          </div>
-        </ng-template>
-      </mat-step>
-      
-      <mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.REGISTER_DEVICE' | translate">
-        <ng-template matStepContent>
-            <div class="registration-step">
-            <h3>
-              {{ 'COMPONENTS.WIZARD.DEVICE_REGISTRATION_MESSAGE' | translate }}
-            </h3>
-          </div>
-        </ng-template>
-      </mat-step>
-
-      <mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.REGISTRATION_DONE' | translate">
-        <ng-template matStepContent>
-          <div class="done-step">
-            <div class="device-summary">
-              <app-device-control></app-device-control>
-              <app-device-diagnostics></app-device-diagnostics>
-            </div>
-          </div>
-        </ng-template>
-      </mat-step>
-    </mat-stepper>
-
-</ng-container>
-
-<ng-template #communicating>
-
-  <ng-container *ngIf="hasFatalError; else waitMessage">
-    <div class="reset-container">
-      <h3 class="error-message">
-        {{ 'COMPONENTS.WIZARD.FATAL_ERROR_MESSAGE' | translate }}
-      </h3>
-      <button mat-raised-button color="primary" type="button" (click)="reset()" class="reset-button" [disabled]="isRequestingReset">
-        <span class="button-content">
-          {{ 'COMMON.ACTIONS.RESET' | translate }}
-        <mat-progress-spinner *ngIf="isRequestingReset" mode="indeterminate" diameter="16"></mat-progress-spinner>
-      </span>
-      </button>
-      
-    </div>
-  </ng-container>
-
-  <ng-template #waitMessage>
-    <h3 class="wait-message">
-      {{ 'COMPONENTS.WIZARD.WAIT_FOR_COMMUNICATION_MESSAGE' | translate }}
-    </h3>
-  </ng-template>
-
+<ng-container *ngIf="isReady(); else communicating">
+<mat-stepper linear #stepper>
+<mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.CHOOSE_WIFI_NETWORK' | translate">
+<ng-template matStepContent>
+<div class="wifi-step">
+<app-wifi-credentials></app-wifi-credentials>
+</div>
 </ng-template>
-
-
+</mat-step>
+<mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.PROVISION_DEVICE' | translate">
+<ng-template matStepContent>
+<div class="provisioning-step">
+<app-provisioning></app-provisioning>
+</div>
+</ng-template>
+</mat-step>
+<mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.REGISTER_DEVICE' | translate">
+<ng-template matStepContent>
+<div class="registration-step">
+<h3>
+ {{ 'COMPONENTS.WIZARD.DEVICE_REGISTRATION_MESSAGE' | translate }}
+</h3>
+</div>
+</ng-template>
+</mat-step>
+<mat-step [editable]="false" [label]="'COMPONENTS.WIZARD.REGISTRATION_DONE' | translate">
+<ng-template matStepContent>
+<div class="done-step">
+<div class="device-summary">
+<app-device-control></app-device-control>
+<app-device-diagnostics></app-device-diagnostics>
+</div>
+</div>
+</ng-template>
+</mat-step>
+</mat-stepper>
+</ng-container>
+<ng-template #communicating>
+<ng-container *ngIf="hasFatalError(); else waitMessage">
+<div class="reset-container">
+<h3 class="error-message">
+ {{ 'COMPONENTS.WIZARD.FATAL_ERROR_MESSAGE' | translate }}
+</h3>
+<button mat-raised-button color="primary" type="button" (click)="reset()" class="reset-button" [disabled]="isRequestingReset()">
+<span class="button-content">
+ {{ 'COMMON.ACTIONS.RESET' | translate }}
+<mat-progress-spinner *ngIf="isRequestingReset()" mode="indeterminate" diameter="16"></mat-progress-spinner>
+</span>
+</button>
+</div>
+</ng-container>
+<ng-template #waitMessage>
+<h3 class="wait-message">
+ {{ 'COMPONENTS.WIZARD.WAIT_FOR_COMMUNICATION_MESSAGE' | translate }}
+</h3>
+</ng-template>
+</ng-template>

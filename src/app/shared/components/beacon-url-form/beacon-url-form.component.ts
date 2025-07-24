@@ -1,14 +1,17 @@
+import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
+import { Observable, of } from 'rxjs';
+
 import { Component, ElementRef, Input, OnInit, ViewChild, computed, signal, effect } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { beaconUrlValidator } from '../../validators/beacon-url.validator';
-import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
-import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
-import { DialogService } from '../../../core/services/dialog/dialog.service';
-import { DialogType } from '../../../core/models/ui.models';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { beaconUrlValidator } from '@validators/beacon-url.validator';
+import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { DialogType } from '@models/ui.models';
+
 
 @Component({
   selector: 'app-beacon-url-form',
@@ -31,7 +34,7 @@ export class BeaconUrlFormComponent implements OnInit {
   private readonly isBeaconUrlSet = signal<boolean>(false);
 
   // 🔥 MIGRATED TO SIGNALS - Service observables converted to signals
-  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$, { initialValue: false });
+  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$);
   private readonly deviceProperties = toSignal(this.deviceConfigurationService.properties$);
 
   @Input()

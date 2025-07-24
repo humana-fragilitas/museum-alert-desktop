@@ -1,18 +1,22 @@
-import { Component, OnInit } from '@angular/core';
-import { DeviceAppState } from '../../../../../app/shared';
-import { MqttService } from '../../../core/services/mqtt/mqtt.service';
-import { ConnectionStatusComponent } from '../connection-status/connection-status.component';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DeviceConfigurationService } from '../../../core/services/device-configuration/device-configuration.service';
-import { BeaconUrlFormComponent } from '../beacon-url-form/beacon-url-form.component';
-import { DeviceService } from '../../../core/services/device/device.service';
-import { SettingsTableComponent } from '../settings-table/settings-table.component';
-import { DistanceSliderComponent } from '../distance-slider/distance-slider.component';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
-import { DeviceConnectionStatusService } from '../../../core/services/device-connection-status/device-connection-status.service';
-import { Observable, switchMap } from 'rxjs';
+
+import { Component, OnInit, OnDestroy, computed, signal, effect } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { CommonModule } from '@angular/common';
+
+import { DeviceAppState } from '@shared-with-electron/.';
+import { MqttService } from '@services/mqtt/mqtt.service';
+import { ConnectionStatusComponent } from '@shared/components/connection-status/connection-status.component';
+
+import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
+import { BeaconUrlFormComponent } from '@shared/components/beacon-url-form/beacon-url-form.component';
+import { DeviceService } from '@services/device/device.service';
+import { SettingsTableComponent } from '@shared/components/settings-table/settings-table.component';
+import { DistanceSliderComponent } from '@shared/components/distance-slider/distance-slider.component';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { DeviceConnectionStatusService } from '@services/device-connection-status/device-connection-status.service';
+
 
 @Component({
   selector: 'app-device-control',
@@ -20,7 +24,6 @@ import { Observable, switchMap } from 'rxjs';
   styleUrls: ['./device-control.component.scss'],
   imports: [
     CommonModule,
-    AsyncPipe,
     ConnectionStatusComponent,
     BeaconUrlFormComponent,
     SettingsTableComponent,
@@ -29,13 +32,20 @@ import { Observable, switchMap } from 'rxjs';
     ...COMMON_MATERIAL_IMPORTS
   ]
 })
-export class DeviceControlComponent implements OnInit {
-
+export class DeviceControlComponent implements OnInit, OnDestroy {
   public readonly deviceAppState = DeviceAppState;
-  public readonly isBusy$ = this.deviceConfigurationService.isBusy$;
-  public readonly settings$ = this.deviceConfigurationService.properties$;
-  public readonly serialNumber$ = this.deviceService.serialNumber$;
-  public sliderValue: number = 0;
+
+  // Convert observables to signals with proper initial values
+  public readonly isBusy = toSignal(this.deviceConfigurationService.isBusy$, { initialValue: false });
+  public readonly settings = toSignal(this.deviceConfigurationService.properties$, { initialValue: null });
+  public readonly serialNumber = toSignal(this.deviceService.serialNumber$, { initialValue: '' });
+
+  // Signal for connection status
+  private connectionStatus = signal<boolean>(false);
+  public readonly isConnected = computed(() => this.connectionStatus());
+  public sliderValue = signal<number>(0);
+
+  private connectionSubscription?: Subscription;
 
   constructor(
     public readonly mqttService: MqttService,
@@ -43,40 +53,54 @@ export class DeviceControlComponent implements OnInit {
     private deviceConfigurationService: DeviceConfigurationService,
     private deviceConnectionStatusService: DeviceConnectionStatusService
   ) {
+    // Replace subscription with effect for configuration changes
+    effect(() => {
+      const configuration = this.settings();
+      if (configuration) {
+        this.sliderValue.set(Number(configuration.distance));
+      }
+    });
 
-    this.deviceConfigurationService
-        .properties$
-        .pipe(takeUntilDestroyed())
-        .subscribe((configuration) => {
-          if (configuration) {
-            this.sliderValue = Number(configuration.distance);
-          }
-        });
+    // Handle connection status subscription with effect
+    effect(() => {
+      const sn = this.serialNumber();
+      
+      // Clean up previous subscription
+      if (this.connectionSubscription) {
+        this.connectionSubscription.unsubscribe();
+        this.connectionSubscription = undefined;
+      }
 
-    this.isConnected$
-        .pipe(takeUntilDestroyed())
-        .subscribe((connected) => {
-          if (connected) {
-            this.deviceConfigurationService
-                .loadSettings()
-                .finally();
-          }
-        });
+      if (sn) {
+        // Create new subscription when serial number changes
+        this.connectionSubscription = this.deviceConnectionStatusService
+          .onChange(sn)
+          .subscribe(connected => {
+            this.connectionStatus.set(connected);
+          });
+      } else {
+        this.connectionStatus.set(false);
+      }
+    });
 
-  };
+    // Replace subscription with effect for connection status changes
+    effect(() => {
+      const connected = this.isConnected();
+      if (connected) {
+        this.deviceConfigurationService
+          .loadSettings()
+          .finally();
+      }
+    });
+  }
 
   ngOnInit(): void {
-
     console.log('DeviceControlComponent INIT');
-
   }
 
-  get isConnected$(): Observable<boolean> {
-    return this.deviceService.serialNumber$.pipe(
-      switchMap(serialNumber => 
-        this.deviceConnectionStatusService.onChange(serialNumber)
-      )
-    );
+  ngOnDestroy(): void {
+    if (this.connectionSubscription) {
+      this.connectionSubscription.unsubscribe();
+    }
   }
-
 }

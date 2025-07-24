@@ -1,8 +1,10 @@
+import { map } from 'rxjs/operators';
+
 import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { map } from 'rxjs/operators';
-import { AuthService } from '../services/auth/auth.service';
+
+import { AuthService } from '@services/auth/auth.service';
 
 // Authenticated user trying to access private only route
 export const userSessionGuard: CanActivateFn = (route, state) => {

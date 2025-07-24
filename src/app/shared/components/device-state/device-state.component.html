@@ -1,7 +1,7 @@
-<mat-card *ngIf="usbConnectionStatus$ | async">
+<mat-card *ngIf="usbConnectionStatus()">
   <mat-card-header class="device-status">
     <h4>{{ 'COMPONENTS.DEVICE_STATE.LABEL' | translate }}</h4>
-    <mat-chip [ngSwitch]="deviceAppStatus$ | async"
+    <mat-chip [ngSwitch]="deviceAppStatus()"
               class="device-status-label">
       <span>{{ 'COMMON.LABELS.STATUS' | translate }}: </span>
       <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">
@@ -31,7 +31,7 @@
     </mat-chip>
   </mat-card-header>
   <mat-card-content>
-    <table *ngIf="portInfo$ | async as device" class="device-specs">
+    <table *ngIf="portInfo() as device" class="device-specs">
       <tr>
         <td class="device-spec-label">{{ 'COMMON.LABELS.PATH' | translate }}</td>
         <td class="device-spec-value">{{ device.path }}</td>
@@ -43,7 +43,7 @@
       <tr>
         <td class="device-spec-label">{{ 'COMMON.LABELS.SERIAL_NUMBER' | translate }}</td>
         <td class="device-spec-value">
-          <ng-container *ngIf="serialNumber$ | async as serialNumber; else loading">
+          <ng-container *ngIf="serialNumber() as serialNumber; else loading">
             {{ serialNumber }}
           </ng-container>
           <ng-template #loading>
@@ -59,7 +59,7 @@
   </mat-card-content>
 </mat-card>
 
-<mat-card *ngIf="!(usbConnectionStatus$ | async)">
+<mat-card *ngIf="!usbConnectionStatus()">
   <mat-card-content>
     <h3 [innerHTML]="'COMPONENTS.DEVICE_STATE.CALL_TO_ACTION' | translate"></h3>
   </mat-card-content>

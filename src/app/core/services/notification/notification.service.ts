@@ -1,9 +1,11 @@
+import { TranslateService } from '@ngx-translate/core';
+
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { DeviceService } from '../device/device.service';
-import { DeviceErrorType, DeviceIncomingData, DeviceMessageType } from '../../../../../app/shared';
-import { ErrorService } from '../error/error.service';
-import { TranslateService } from '@ngx-translate/core';
+
+import { DeviceService } from '@services/device/device.service';
+import { DeviceErrorType, DeviceIncomingData, DeviceMessageType } from '@shared-with-electron/.';
+import { ErrorService } from '@services/error/error.service';
 
 
 @Injectable({

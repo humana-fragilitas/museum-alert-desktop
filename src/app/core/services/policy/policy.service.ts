@@ -1,14 +1,16 @@
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { AuthSession } from 'aws-amplify/auth';
+import { firstValueFrom } from 'rxjs';
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { AuthSession } from 'aws-amplify/auth';
-import { AuthService } from '../auth/auth.service';
-import { firstValueFrom } from 'rxjs';
-import { ApiResult, ErrorApiResponse, SuccessApiResponse } from '../../models/api.models';
-import { AttachPolicyResponse } from '../../models/policy.models';
-import { ErrorService } from '../error/error.service';
-import { DialogType } from '../../models/ui.models';
+
+import { APP_CONFIG } from '@env/environment';
+import { AuthService } from '@services/auth/auth.service';
+import { ApiResult, ErrorApiResponse, SuccessApiResponse, AttachPolicyResponse } from '@models/.';
+import { ErrorService } from '@services/error/error.service';
+import { DialogType } from '@models/ui.models';
+
 
 @Injectable({
   providedIn: 'root'

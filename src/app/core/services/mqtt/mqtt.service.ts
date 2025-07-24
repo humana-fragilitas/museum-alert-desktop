@@ -1,22 +1,20 @@
-import { Injectable } from '@angular/core';
-import { APP_CONFIG } from '../../../../environments/environment';
-
 import { AuthSession } from 'aws-amplify/auth';
-
+import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import mqtt from 'mqtt';
 
-import { SigV4Service } from '../sig-v4/sig-v4.service';
-import { AuthService } from '../auth/auth.service';
-import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
-import { DeviceService } from '../device/device.service';
-import { PendingRequest } from '../../models';
-import { BaseMqttMessage,
+import { Injectable } from '@angular/core';
+
+import { APP_CONFIG } from '@env/environment';
+import { SigV4Service } from '@services/sig-v4/sig-v4.service';
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceService } from '@services/device/device.service';
+import { PendingRequest,
+         BaseMqttMessage,
          MqttMessage,
          MqttCommandType,
          MqttMessageType,
          DeviceConfiguration,
-         AlarmPayload
-       } from '../../models';
+         AlarmPayload } from '@models/.';
 
 
 @Injectable({

@@ -1,12 +1,14 @@
-import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth/auth.service';
-import { APP_CONFIG } from '../../../environments/environment';
 import { catchError, Observable, throwError } from 'rxjs';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { DialogService } from '../services/dialog/dialog.service';
-import { DialogType } from '../models/ui.models';
-import { HttpStatusCode } from '../models/api.models';
+
+import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+
+import { DialogService } from '@services/dialog/dialog.service';
+import { DialogType } from '@models/ui.models';
+import { HttpStatusCode } from '@models/api.models';
+import { AuthService } from '@services/auth/auth.service';
+import { APP_CONFIG } from '@env/environment';
 
 // Custom error class to distinguish handled 401s
 export class AuthenticationExpiredError extends Error {

@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
-
-import { APP_CONFIG } from '../../../../environments/environment';
-
 import { HmacSHA256, SHA256, enc } from 'crypto-js';
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc';
-
 import WordArray = CryptoJS.lib.WordArray;
 import { AuthSession } from 'aws-amplify/auth';
+
+import { Injectable } from '@angular/core';
+
+import { APP_CONFIG } from '@env/environment';
+
 
 @Injectable({
   providedIn: 'root'

@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import { DeviceErrorType } from '../../../../../app/shared';
-import { DialogService } from '../dialog/dialog.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
-import { DialogPayload, DialogResult, DialogType, ErrorApiResponse } from '../../models';
 import { MatDialogConfig } from '@angular/material/dialog';
-import { USBCommandTimeoutException } from '../device/device.service';
+
+import { DeviceErrorType } from '@shared-with-electron/.';
+import { DialogService } from '@services/dialog/dialog.service';
+import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
+import { DialogPayload, DialogResult, ErrorApiResponse } from '@models/.';
+import { USBCommandTimeoutException } from '@services/device/device.service';
+
 
 type ErrorsMap = {
   [key in keyof typeof DeviceErrorType as string]: string;

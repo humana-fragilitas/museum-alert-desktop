@@ -1,13 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
-import { DeviceService } from '../../../../app/core/services/device/device.service';
-import { DeviceAppState, DeviceErrorType, DeviceIncomingData, USBCommandType, WiFiCredentials, WiFiNetwork } from '../../../../../app/shared';
-import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ErrorService } from '../../../core/services/error/error.service';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import { DeviceService } from '@services/device/device.service';
+import { DeviceAppState, USBCommandType, WiFiCredentials, WiFiNetwork } from '@shared-with-electron/.';
+import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { ErrorService } from '@services/error/error.service';
+
 
 @Component({
   selector: 'app-wifi-credentials',
@@ -21,69 +24,101 @@ import { ErrorService } from '../../../core/services/error/error.service';
     ...FORM_MATERIAL_IMPORTS
   ]
 })
-export class WiFiCredentialsComponent implements OnInit, OnDestroy {
+export class WiFiCredentialsComponent implements OnInit {
   
-  public isSendingCredentials = false;
-  public isRefreshingWiFiNetworks = false;
-  public wiFiNetworks: WiFiNetwork[] = [];
+  // Convert properties to signals
+  public isSendingCredentials = signal<boolean>(false);
+  public isRefreshingWiFiNetworks = signal<boolean>(false);
+  public wiFiNetworks = signal<WiFiNetwork[]>([]);
 
   credentialsForm = new FormGroup({
     ssid: new FormControl({ value: '', disabled: true }, [Validators.required]),
     password: new FormControl({ value: '', disabled: true }, [Validators.required])
   });
 
-  private wiFiNetworksSubscription!: Subscription;
-  private errorSubscription!: Subscription;
+  // Convert observables to signals
+  private wiFiNetworksSignal = toSignal(this.deviceService.wiFiNetworks$, { initialValue: [] });
+  private errorSignal = toSignal(this.deviceService.error$);
+  private appStatusSignal = toSignal(this.deviceService.deviceAppStatus$);
+
+  // Convert getter to computed signal
+  isBusy = computed(() => {
+    const sending = this.isSendingCredentials();
+    const refreshing = this.isRefreshingWiFiNetworks();
+    const appStatus = this.appStatusSignal();
+    const scanningNetworks = this.wiFiNetworks().length === 0 && !refreshing; // Only consider scanning if not manually refreshing
+    
+    console.log('isBusy computed - sending:', sending, 'refreshing:', refreshing, 'appStatus:', appStatus, 'expected:', DeviceAppState.CONFIGURE_WIFI, 'scanningNetworks:', scanningNetworks);
+    
+    return sending ||
+           refreshing ||
+           scanningNetworks ||
+           appStatus !== DeviceAppState.CONFIGURE_WIFI;
+  });
+
+  // Add a separate computed for spinner visibility to debug
+  showSubmitSpinner = computed(() => {
+    const result = this.isSendingCredentials();
+    console.log('showSubmitSpinner computed:', result);
+    return result;
+  });
 
   constructor(
     private deviceService: DeviceService,
     private snackBar: MatSnackBar,
     private translate: TranslateService,
     private errorService: ErrorService
-  ) {}
-
-  ngOnInit(): void {
-
-    console.log('[WiFiCredentialsComponent]: ngOnInit');
-
-    this.wiFiNetworksSubscription = this.deviceService.wiFiNetworks$.subscribe((networks) => {
-
-      this.wiFiNetworks = networks;
-
-      if (this.wiFiNetworks.length) {
-
-        this.credentialsForm.get('ssid')?.enable();
-        this.credentialsForm.get('password')?.enable();
-
-      } else {
-
-        this.credentialsForm.get('ssid')?.disable();
-        this.credentialsForm.get('password')?.disable();
-
-      }
-
+  ) {
+    
+    // Replace WiFi networks subscription with effect
+    effect(() => {
+      const networks = this.wiFiNetworksSignal();
+      this.wiFiNetworks.set(networks || []);
     });
 
-    //TO DO: this is not probably needed anymore: errors return a cid so that
-    //asyncSendData call observable is able to return such exception by itself
-    this.errorSubscription = this.deviceService.error$.subscribe(
-      (message: Nullable<DeviceIncomingData>) => {
-        if (message && (message!.data as { error: DeviceErrorType }).error != DeviceErrorType.INVALID_WIFI_CREDENTIALS) {
-          this.isSendingCredentials = false;
-        }
+    // Handle form control state based on network availability and busy state
+    effect(() => {
+      const networks = this.wiFiNetworks();
+      const busy = this.isBusy();
+      
+      console.log('Form control effect - networks:', networks.length, 'busy:', busy);
+      
+      // Enable form controls only when we have networks AND not busy
+      if (networks.length > 0 && !busy) {
+        this.credentialsForm.get('ssid')?.enable();
+        this.credentialsForm.get('password')?.enable();
+      } else {
+        this.credentialsForm.get('ssid')?.disable();
+        this.credentialsForm.get('password')?.disable();
       }
-    );
+    });
+
+    // Replace error subscription with effect
+    // This handles device errors that come through the error$ stream after sendUSBCommand completes
+    effect(() => {
+      const message = this.errorSignal();
+      if (message) {
+        console.log('Error received:', message);
+        console.log('Resetting isSendingCredentials from', this.isSendingCredentials(), 'to false');
+        // Reset loading state when any device error is received
+        this.isSendingCredentials.set(false);
+        console.log('isSendingCredentials after reset:', this.isSendingCredentials());
+      }
+    });
+
+
     
   }
 
-  ngOnDestroy(): void {
-    this.wiFiNetworksSubscription.unsubscribe();
-    this.errorSubscription.unsubscribe();
+  ngOnInit(): void {
+    console.log('[WiFiCredentialsComponent]: ngOnInit');
   }
 
   async onSubmit() {
 
-    this.isSendingCredentials = true;
+    console.log('Before submit - isSendingCredentials:', this.isSendingCredentials());
+    this.isSendingCredentials.set(true);
+    console.log('After setting - isSendingCredentials:', this.isSendingCredentials());
 
     console.log('[WiFiCredentialsComponent]: form submitted:', this.credentialsForm.value);
 
@@ -93,7 +128,9 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
         this.credentialsForm.value as WiFiCredentials
       );
       console.log('[WiFiCredentialsComponent]: data sent successfully');
+      // Note: Don't reset isSendingCredentials here - wait for device response via error$ stream
     } catch (exception: any) {
+      // This catch handles timeouts and immediate failures
       const translationTag = (exception.data) ?
         this.errorService.toTranslationTag(exception.data.error) :
           'ERRORS.APPLICATION.WIFI_CREDENTIALS_COMMAND_TIMED_OUT';
@@ -101,14 +138,16 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
         this.translate.instant(translationTag), 
         this.translate.instant('COMMON.ACTIONS.DISMISS')
       );
-      this.isSendingCredentials = false;
+      // Reset loading state for immediate failures (like timeouts)
+      console.log('Exception caught - resetting isSendingCredentials');
+      this.isSendingCredentials.set(false);
     }
 
   }
 
   async refreshWiFiNetworks() {
 
-    this.isRefreshingWiFiNetworks = true;
+    this.isRefreshingWiFiNetworks.set(true);
     this.credentialsForm.reset();
     console.log('[WiFiCredentialsComponent]: sending empty payload to refresh WiFi networks...');
 
@@ -121,15 +160,9 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
         this.translate.instant('COMMON.ACTIONS.DISMISS')
       );
     } finally {
-      this.isRefreshingWiFiNetworks = false;
+      this.isRefreshingWiFiNetworks.set(false);
     }
 
-  }
-
-  get isBusy(): boolean {
-    return this.isSendingCredentials ||
-           this.isRefreshingWiFiNetworks ||
-           this.deviceService.getAppStatus() !== DeviceAppState.CONFIGURE_WIFI;
   }
   
   hasError(field: string, error: string): boolean {
@@ -139,4 +172,4 @@ export class WiFiCredentialsComponent implements OnInit, OnDestroy {
 
   }
 
-} 
+}

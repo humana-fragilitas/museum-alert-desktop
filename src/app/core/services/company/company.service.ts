@@ -1,11 +1,12 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, EMPTY, finalize, Observable, switchMap, tap, throwError } from 'rxjs';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { AuthService } from '../auth/auth.service';
-import { SuccessApiResponse, ApiResult, ErrorApiResponse } from '../../models';
-import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '../../models';
 import { AuthSession } from 'aws-amplify/auth';
+import { BehaviorSubject, catchError, EMPTY, finalize, Observable, switchMap, tap, throwError } from 'rxjs';
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+
+import { APP_CONFIG } from '@env/environment';
+import { AuthService } from '@services/auth/auth.service';
+import { SuccessApiResponse, ApiResult, ErrorApiResponse, CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '@models/.';
 
 
 @Injectable({

@@ -1,44 +1,45 @@
 <form [formGroup]="companyNameForm" (ngSubmit)="onSubmit()">
-
   <mat-form-field appearance="fill" class="company-name">
     <mat-label>{{ 'COMPONENTS.COMPANY_FORM.LABEL' | translate }}</mat-label>
     <input matInput id="company-name" type="text" formControlName="companyName" #companyName>
-      <mat-error *ngIf="(getErrorMessage() | async) && companyNameForm.get('companyName')?.touched">
-        <strong>{{getErrorMessage() | async}}</strong>
-      </mat-error>
+    <mat-error *ngIf="(getErrorMessage() | async) && companyNameForm.get('companyName')?.touched">
+      <strong>{{getErrorMessage() | async}}</strong>
+    </mat-error>
   </mat-form-field>
-
-    <div class="button-cta">
-
-      <button *ngIf="!isCompanyNameSet || isEditable"
-              mat-raised-button color="primary"
-              type="submit"
-              [disabled]="companyNameForm.invalid || isBusy">
-        <span class="button-content">
-          {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
-          <mat-progress-spinner *ngIf="isBusy" mode="indeterminate" diameter="16"></mat-progress-spinner>
-        </span>
-      </button>
-
-      <button *ngIf="isEditable"
-        mat-raised-button color="secondary"
-        [disabled]="isBusy"
-        (click)="cancel()">
-        <span class="button-content">
-          {{ 'COMMON.ACTIONS.CANCEL' | translate }}
-        </span>
-      </button>
-
-
+  
+  <div class="button-cta">
+    <!-- 🔥 FIXED: Matches original behavior - button stays visible, just disabled -->
+    <button *ngIf="showSubmitButton()"
+            mat-raised-button color="primary"
+            type="submit"
+            [disabled]="companyNameForm.invalid || isBusy()">
+      <span class="button-content">
+        {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
+        <mat-progress-spinner *ngIf="isBusy()" 
+                              mode="indeterminate" 
+                              diameter="16">
+        </mat-progress-spinner>
+      </span>
+    </button>
+    
+    <!-- 🔥 FIXED: Matches original behavior -->
+    <button *ngIf="showCancelButton()"
+            mat-raised-button color="secondary"
+            [disabled]="isBusy()"
+            (click)="cancel()">
+      <span class="button-content">
+        {{ 'COMMON.ACTIONS.CANCEL' | translate }}
+      </span>
+    </button>
   </div>
-
-  <button *ngIf="isCompanyNameSet && !isEditable"
+  
+  <!-- 🔥 FIXED: Matches original behavior -->
+  <button *ngIf="showEditButton()"
           mat-raised-button color="primary"
-          [disabled]="isBusy"
+          [disabled]="isBusy()"
           (click)="edit()">
     <span class="button-content">
       {{ 'COMMON.ACTIONS.EDIT' | translate }}
     </span>
   </button>
-
 </form>

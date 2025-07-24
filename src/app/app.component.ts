@@ -1,12 +1,15 @@
-import { Component } from '@angular/core';
-import { ElectronService } from './core/services/electron/electron.service';
-import { AuthService } from './core/services/auth/auth.service';
 import { TranslateService } from '@ngx-translate/core';
-import { APP_CONFIG } from '../environments/environment';
+
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { COMMON_MATERIAL_IMPORTS } from './shared/utils/material-imports';
-import { NavBarComponent } from './shared/components/nav-bar/nav-bar.component';
+
+import { Component } from '@angular/core';
+import { ElectronService } from '@services/electron/electron.service';
+import { AuthService } from '@services/auth/auth.service';
+import { APP_CONFIG } from '@env/environment';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { NavBarComponent } from '@shared/components/nav-bar/nav-bar.component';
+
 
 @Component({
   selector: 'app-root',

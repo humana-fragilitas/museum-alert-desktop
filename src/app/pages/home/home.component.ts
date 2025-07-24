@@ -1,10 +1,8 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
-
-import { AuthenticatorService, AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
-import { ProvisioningService } from '../../core/services/provisioning/provisioning.service';
-import { DeviceService } from '../../core/services/device/device.service';
-import { CommonModule } from '@angular/common';
+import { AmplifyAuthenticatorModule } from '@aws-amplify/ui-angular';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 
 @Component({

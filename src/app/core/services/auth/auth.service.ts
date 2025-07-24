@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { fetchAuthSession,
          FetchAuthSessionOptions,
@@ -6,10 +5,14 @@ import { fetchAuthSession,
          getCurrentUser,
          fetchUserAttributes,
          GetCurrentUserOutput,
-        FetchUserAttributesOutput } from 'aws-amplify/auth';
+         FetchUserAttributesOutput } from 'aws-amplify/auth';
 import { Hub, HubCapsule } from '@aws-amplify/core';
 import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
-import { titleStyle } from '../../../shared/helpers/console.helper';
+
+import { Injectable } from '@angular/core';
+
+import { titleStyle } from '@shared/helpers/console.helper';
+
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({

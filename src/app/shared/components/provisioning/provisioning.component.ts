@@ -1,20 +1,24 @@
-import { Component, OnInit } from '@angular/core';
-import { ProvisioningService } from '../../../core/services/provisioning/provisioning.service';
-import { DeviceService, USBCommandTimeoutException } from '../../../core/services/device/device.service';
-import { AuthService } from '../../../core/services/auth/auth.service';
-import { DeviceRegistryService } from '../../../core/services/device-registry/device-registry.service';
-import { DialogService } from '../../../core/services/dialog/dialog.service';
-import { CommonModule } from '@angular/common';
-import { CompanyService } from '../../../core/services/company/company.service';
-import { DeviceIncomingData, ProvisioningSettings, USBCommandType } from '../../../../../app/shared';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
-import { DialogType } from '../../../core/models/ui.models';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorService } from '../../../core/services/error/error.service';
-import { ApiResult, ProvisioningClaimResponse, Sensor } from '../../../core/models';
 import { firstValueFrom, map } from 'rxjs';
-import { SuccessApiResponse } from '../../../core/models';
+
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import { ProvisioningService } from '@services/provisioning/provisioning.service';
+import { DeviceService, USBCommandTimeoutException } from '@services/device/device.service';
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceRegistryService } from '@services/device-registry/device-registry.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { CompanyService } from '@services/company/company.service';
+import { DeviceIncomingData, ProvisioningSettings, USBCommandType } from '@shared-with-electron/.';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { DialogType } from '@models/ui.models';
+import { ErrorService } from '@services/error/error.service';
+import { ApiResult, ProvisioningClaimResponse, Sensor } from '@models/.';
+import { SuccessApiResponse } from '@models/.';
+
 
 @Component({
   selector: 'app-provisioning',
@@ -28,8 +32,11 @@ import { SuccessApiResponse } from '../../../core/models';
 })
 export class ProvisioningComponent implements OnInit {
 
-  isBusy: boolean = false;
-  company$ = this.companyService.company$;
+  // Convert property to signal
+  isBusy = signal<boolean>(false);
+  
+  // Convert observable to signal
+  company = toSignal(this.companyService.company$);
 
   constructor(
     private readonly authService: AuthService,
@@ -39,12 +46,10 @@ export class ProvisioningComponent implements OnInit {
     private readonly deviceRegistryService: DeviceRegistryService,
     private readonly companyService: CompanyService,
     private readonly errorService: ErrorService
-  ) {};
+  ) {}
 
   ngOnInit(): void {
-
     console.log('ProvisioningComponent INIT');
-
   }
 
   async provisionDevice() {
@@ -53,7 +58,7 @@ export class ProvisioningComponent implements OnInit {
 
     try {
 
-      this.isBusy = true;
+      this.isBusy.set(true);
       let sensor: Nullable<Sensor>;
 
       console.log(`[ProvisioningComponent]: step 1/3: checking if sensor has already been registered...`);
@@ -97,7 +102,7 @@ export class ProvisioningComponent implements OnInit {
 
     } finally {
 
-      this.isBusy = false;
+      this.isBusy.set(false);
 
     }
 
