@@ -2,7 +2,8 @@ import { AuthSession } from 'aws-amplify/auth';
 import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
 import mqtt from 'mqtt';
 
-import { Injectable } from '@angular/core';
+import { Injectable, effect } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { APP_CONFIG } from '@env/environment';
 import { SigV4Service } from '@services/sig-v4/sig-v4.service';
@@ -16,7 +17,6 @@ import { PendingRequest,
          DeviceConfiguration,
          AlarmPayload } from '@models/.';
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -25,11 +25,13 @@ export class MqttService {
   private pendingRequests: Record<string, PendingRequest<any>> = {};
   private client: mqtt.MqttClient | undefined;
   private currentSession: AuthSession | null = null;
-  private authSubscription: Subscription | undefined;
   private isConnecting = false;
   private isDisconnecting = false;
 
   public readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
+
+  // Convert AuthService sessionData$ to signal for use in effects
+  private readonly sessionDataSignal = this.authService.sessionData;
 
   constructor(
     private authService: AuthService,
@@ -72,7 +74,7 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
-          const currentSession = this.authService.session();
+          const currentSession = this.authService.sessionData();
           if (currentSession) {
             return this.sigV4Service.getSignedURL(currentSession);
           }
@@ -205,15 +207,15 @@ export class MqttService {
   }
 
   cleanup(): void {
-
-    this.authSubscription?.unsubscribe();
+    // Note: effects automatically cleanup when the service is destroyed
     this.disconnect();
     this.clearPendingRequests();
-
   }
 
   private initializeAuthSubscription(): void {
-    this.authSubscription = this.authService.sessionData$.subscribe((sessionData: Nullable<AuthSession>) => {
+    // Replace the subscription with an effect
+    effect(() => {
+      const sessionData = this.sessionDataSignal();
       this.handleSessionChange(sessionData);
     });
   }

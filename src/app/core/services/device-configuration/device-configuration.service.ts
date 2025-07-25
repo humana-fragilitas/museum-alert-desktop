@@ -13,10 +13,6 @@ export class DeviceConfigurationService {
   private readonly propertiesSignal = signal<Nullable<DeviceConfiguration>>(null);
   private readonly isBusySignal = signal<boolean>(false);
 
-  // Maintain backward compatibility with observables
-  public readonly properties$: Observable<Nullable<DeviceConfiguration>> = toObservable(this.propertiesSignal);
-  public readonly isBusy$: Observable<boolean> = toObservable(this.isBusySignal);
-
   readonly properties = this.propertiesSignal.asReadonly();
   readonly isBusy = this.isBusySignal.asReadonly();
 

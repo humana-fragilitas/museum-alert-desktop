@@ -2,7 +2,7 @@ import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthSession } from 'aws-amplify/auth';
 import { firstValueFrom } from 'rxjs';
 
-import { Injectable } from '@angular/core';
+import { Injectable, effect } from '@angular/core';
 import { HttpClient,
          HttpErrorResponse } from '@angular/common/http';
 
@@ -14,12 +14,16 @@ import { ApiResult,
          AttachPolicyResponse } from '@models/.';
 import { ErrorService } from '@services/error/error.service';
 import { DialogType } from '@models/ui.models';
-
+import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PolicyService {
+
+  // Convert AuthService sessionData$ to signal for use in effects
+  private readonly sessionDataSignal = this.authService.sessionData;
+
   constructor(
     private readonly httpClient: HttpClient, 
     private readonly authService: AuthService,
@@ -27,12 +31,11 @@ export class PolicyService {
     private readonly authenticatorService: AuthenticatorService
   ) {
 
-    this.authService.sessionData$.subscribe({
-      next: (session: Nullable<AuthSession>) => {
-        if (session && !this.authService.hasPolicy()) {
-          console.log(`[PolicyService]: authenticated user has no IoT policy attached`);
-          this.attachPolicyWithRetry(session);
-        }
+    effect(() => {
+      const session = this.sessionDataSignal();
+      if (session && !this.authService.hasPolicy()) {
+        console.log(`[PolicyService]: authenticated user has no IoT policy attached`);
+        this.attachPolicyWithRetry(session);
       }
     });
 
@@ -91,10 +94,10 @@ export class PolicyService {
 
     try {
       await attemptAttach();
-    } catch (error) {
+    } catch (exception) {
       console.error(
         `[PolicyService]: failed to attach IoT policy after ${maxRetries} attempts:`,
-        error
+        exception
       );
       this.errorService.showModal({
         data: {
@@ -103,6 +106,7 @@ export class PolicyService {
           message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
         },
         dialogConfig: { disableClose: true },
+        exception: exception as HttpErrorResponse | AuthenticationExpiredError,
         onClosed: () => {
           this.authenticatorService.signOut();
         }

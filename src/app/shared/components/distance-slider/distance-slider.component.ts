@@ -102,7 +102,7 @@ export class DistanceSliderComponent implements OnInit {
   ) {
 
     // Convert subscription to signal
-    const properties = toSignal(this.deviceConfigurationService.properties$);
+    const properties = this.deviceConfigurationService.properties;
     
     // Replace subscription with effect
     effect(() => {

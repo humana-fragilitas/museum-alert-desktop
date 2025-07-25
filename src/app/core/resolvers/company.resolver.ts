@@ -33,7 +33,8 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
             title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
             message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
           },
-          dialogConfig: { disableClose: true }
+          dialogConfig: { disableClose: true },
+          exception
         });
         return throwError(() => exception);
       })

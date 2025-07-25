@@ -25,8 +25,8 @@ import { AuthService } from '@services/auth/auth.service';
 export class NavBarComponent implements OnInit {
   
   // Convert observables to signals
-  readonly isFetchingCompany = toSignal(this.companyService.isFetchingCompany$);
-  readonly userAttributes = toSignal(this.authService.userAttributes$);
+  readonly isFetchingCompany = this.companyService.isFetchingCompany;
+  readonly userAttributes = this.authService.userAttributes;
 
   constructor(
     private readonly companyService: CompanyService,

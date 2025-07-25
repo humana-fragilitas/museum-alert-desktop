@@ -11,14 +11,8 @@ import { DeviceErrorType, DeviceIncomingData } from '@shared-with-electron/.';
 })
 export class DeviceConnectionStatusService {
   
-  // Convert BehaviorSubject to signal
   private readonly devicesConnectionStatusSignal = signal<Map<string, boolean>>(new Map());
-  
-  // Maintain backward compatibility with observable
-  public readonly devicesConnectionStatus$: Observable<Map<string, boolean>> = 
-    toObservable(this.devicesConnectionStatusSignal);
-
-  // Convert deviceService.error$ to signal for use in effects
+  private readonly devicesConnectionStatus$ = toObservable(this.devicesConnectionStatusSignal);
   private readonly deviceErrorSignal = this.deviceService.error;
 
   constructor(
@@ -26,15 +20,14 @@ export class DeviceConnectionStatusService {
     private readonly mqttService: MqttService
   ) {
     
-    // Keep the MQTT subscription as-is since it's external integration
-    // This maintains the exact same timing and behavior
     this.mqttService.onMessageOfType([
       MqttMessageType.ALARM,
       MqttMessageType.CONFIGURATION,
       MqttMessageType.ACKNOWLEGDE,
       MqttMessageType.CONNECTION_STATUS
     ]).subscribe((message: BaseMqttMessage<ConnectionStatus | AlarmPayload | DeviceConfiguration | void>) => {
-      const currentMap = this.devicesConnectionStatusSignal(); // Use signal instead of getValue()
+      
+      const currentMap = this.devicesConnectionStatusSignal();
       const newMap = new Map(currentMap);
       
       if (message.type === MqttMessageType.CONNECTION_STATUS) {
@@ -43,24 +36,24 @@ export class DeviceConnectionStatusService {
         newMap.set(message.sn, true);
       }
       
-      this.devicesConnectionStatusSignal.set(newMap); // Use signal instead of next()
+      this.devicesConnectionStatusSignal.set(newMap);
       console.log(`Received message via MQTT from device with SN: ${message.sn}; ` +
         `updating devices connection status map:`, newMap);
+
     });
 
-    // Replace the deviceService.error$ subscription with an effect
     effect(() => {
       const message = this.deviceErrorSignal();
-      
       if (message && (message!.data as { error: DeviceErrorType }).error === DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT) {
-        const currentMap = this.devicesConnectionStatusSignal(); // Use signal instead of getValue()
+        const currentMap = this.devicesConnectionStatusSignal();
         const newMap = new Map(currentMap);
         newMap.set(message.sn, false);
-        this.devicesConnectionStatusSignal.set(newMap); // Use signal instead of next()
+        this.devicesConnectionStatusSignal.set(newMap);
         console.log(`Received error via USB from device with SN: ${message.sn}; ` +
           `updating devices connection status map:`, newMap);
       }
     });
+
   }
 
   /**
@@ -86,4 +79,5 @@ export class DeviceConnectionStatusService {
       return statusMap.get(deviceSN) ?? false;
     });
   }
+
 }

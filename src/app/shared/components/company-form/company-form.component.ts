@@ -51,7 +51,7 @@ export class CompanyFormComponent implements OnInit {
   public readonly isCompanyNameSet = signal(true);
 
   // 🔥 MIGRATED TO SIGNALS - Service observable converted to signal
-  private readonly company = toSignal(this.companyService.company$);
+  private readonly company = this.companyService.company;
 
   // 🔥 COMPUTED SIGNALS - Derived state (matching original behavior)
   public readonly showSubmitButton = computed(() => 

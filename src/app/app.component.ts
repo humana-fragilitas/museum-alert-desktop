@@ -24,7 +24,7 @@ import { NavBarComponent } from '@shared/components/nav-bar/nav-bar.component';
 })
 export class AppComponent {
 
-  public readonly user$ = this.authService.user$;
+  public readonly user = this.authService.user;
 
   constructor(
     private electronService: ElectronService,

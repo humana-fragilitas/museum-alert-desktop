@@ -1,7 +1,5 @@
-import { AuthSession } from 'aws-amplify/auth';
-import { BehaviorSubject, catchError, EMPTY, finalize, Observable, switchMap, tap, throwError } from 'rxjs';
+import { catchError, EMPTY, finalize, Observable, tap, throwError } from 'rxjs';
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
@@ -17,8 +15,8 @@ export class CompanyService {
   private readonly isFetchingCompanySignal = signal<boolean>(false);
 
   // Maintain backward compatibility with observables
-  public readonly company$ = toObservable(this.companySignal);
-  public readonly isFetchingCompany$ = toObservable(this.isFetchingCompanySignal);
+  public readonly company = this.companySignal;
+  public readonly isFetchingCompany = this.isFetchingCompanySignal;
 
   // Convert getters to computed signals
   public readonly organization = this.companySignal.asReadonly();
@@ -28,7 +26,7 @@ export class CompanyService {
   });
 
   // Convert AuthService sessionData$ to signal for use in effects
-  private readonly sessionDataSignal = toSignal(this.authService.sessionData$, { initialValue: null });
+  private readonly sessionDataSignal = this.authService.sessionData;
 
   constructor(private httpClient: HttpClient, private authService: AuthService) {
     
