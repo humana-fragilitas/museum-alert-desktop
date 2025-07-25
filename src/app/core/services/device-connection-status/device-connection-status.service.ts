@@ -1,6 +1,6 @@
 import { distinctUntilChanged, map, Observable } from 'rxjs';
 
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, untracked } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 
 import { MqttService } from '@services/mqtt/mqtt.service';
@@ -47,13 +47,15 @@ export class DeviceConnectionStatusService {
 
     effect(() => {
       const message = this.deviceErrorSignal() as DeviceErrorMessage;
-      if (message && message!.data.error === DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT) {
-        const currentMap = this.devicesConnectionStatusSignal();
+      
+      if (message && message.data.error === DeviceErrorType.FAILED_SENSOR_DETECTION_REPORT) {
+        // Use untracked() to read the signal without creating a dependency
+        const currentMap = untracked(() => this.devicesConnectionStatusSignal());
         const newMap = new Map(currentMap);
         newMap.set(message.sn, false);
         this.devicesConnectionStatusSignal.set(newMap);
         console.log(`Received error via USB from device with SN: ${message.sn}; ` +
-                    `updating devices connection status map:`, newMap);
+          `updating devices connection status map:`, newMap);
       }
     });
 
