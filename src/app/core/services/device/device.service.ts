@@ -1,9 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { PortInfo } from '@serialport/bindings-cpp';
 
-import { Injectable, NgZone, signal, effect } from '@angular/core';
+import { Injectable, Inject, NgZone, signal, effect } from '@angular/core';
 
 import { APP_CONFIG } from '@env/environment';
+import { WINDOW } from '@tokens/window';
 import { DeviceIncomingData,
          DeviceAppState,
          DeviceMessageType,
@@ -11,12 +12,9 @@ import { DeviceIncomingData,
          DeviceEvent,
          DeviceOutgoingData,
          DeviceErrorType,
-         USBCommandType, 
-         DeviceErrorMessage } from '@shared-with-electron';
+        USBCommandType } from '@shared-with-electron';
 import { PendingRequest, AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '@models';
 import { titleStyle } from '@shared/helpers/console.helper';
-import { ElectronService } from '@services/electron/electron.service';
-
 
 export class USBCommandTimeoutException extends Error {
   constructor(public error: string) {
@@ -29,7 +27,7 @@ export class USBCommandDeviceException extends Error {
 
   public readonly error: DeviceErrorType;
 
-  constructor(deviceError: DeviceErrorMessage) {
+  constructor(deviceError: { cid?: string, type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType } }) {
     super(`USB Command Device Error: ${DeviceErrorType[deviceError.data.error]} (SN: ${deviceError.sn})`);
     this.name = 'USBCommandDeviceException';
     this.error = deviceError.data.error;
@@ -43,6 +41,7 @@ export class USBCommandDeviceException extends Error {
 export class DeviceService {
 
   private pendingRequests: Record<string, PendingRequest<DeviceIncomingData | void>> = {};
+
   private readonly serialNumberSignal = signal<string>('');
   private readonly portInfoSignal = signal<Nullable<PortInfo>>(null);
   private readonly deviceAppStatusSignal = signal<Nullable<DeviceAppState>>(DeviceAppState.STARTED);
@@ -53,59 +52,57 @@ export class DeviceService {
   private readonly errorSignal = signal<Nullable<DeviceIncomingData>>(null);
 
   readonly serialNumber = this.serialNumberSignal.asReadonly();
+  readonly wiFiNetworks = this.wiFiNetworksSignal.asReadonly();
+  readonly currentConfiguration = this.configurationSignal.asReadonly();
   readonly portInfo = this.portInfoSignal.asReadonly();
   readonly deviceAppStatus = this.deviceAppStatusSignal.asReadonly();
   readonly usbConnectionStatus = this.usbConnectionStatusSignal.asReadonly();
-  readonly wiFiNetworks = this.wiFiNetworksSignal.asReadonly();
-  readonly currentConfiguration = this.configurationSignal.asReadonly();
-  readonly alarm = this.alarmSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
+  readonly alarm = this.alarmSignal.asReadonly();
 
-  constructor(private electronService: ElectronService,
-              private ngZone: NgZone) {
+  constructor(@Inject(WINDOW) private win: Window,
+                              private ngZone: NgZone) {
 
     console.log('[DeviceService] instance created');
 
-    if (this.electronService.isElectron) {
+    if (win.electron) {
       
-      this.electronService.ipcRenderer.on(DeviceEvent.FOUND,
-        (_event: any, data: PortInfo) => {
-          this.ngZone.run(() => {
-            console.log('[DeviceService]: device found:', data);
-            this.portInfoSignal.set(data);
-          });
+      win.electron.ipcRenderer.on(DeviceEvent.FOUND, (data: PortInfo) => {
+        this.ngZone.run(() => {
+          console.log('[DeviceService]: device found:', data);
+          this.portInfoSignal.set(data); // Use signal instead of BehaviorSubject
         });
+      });
   
-      this.electronService.ipcRenderer.on(DeviceEvent.CONNECTION_STATUS_UPDATE,
-        (_event: any, data: boolean) => {
-          this.ngZone.run(() => {
-            console.log('[DeviceService]: received USB connection update from device:', data);
-            this.usbConnectionStatusSignal.set(data);
-          }); 
-        });
+      win.electron.ipcRenderer.on(DeviceEvent.CONNECTION_STATUS_UPDATE, (data: boolean) => {
+        this.ngZone.run(() => {
+          console.log('[DeviceService]: received USB connection update from device:', data);
+          this.usbConnectionStatusSignal.set(data); // Use signal instead of BehaviorSubject
+        }); 
+      });
 
-      this.electronService.ipcRenderer.on(DeviceEvent.INCOMING_DATA,
-        (_event: any, data: DeviceIncomingData) => {
-          this.ngZone.run(() => {
-            console.log('[DeviceService]: received data from device:', data);
-            this.parseIncomingData(data);
-          });
+      win.electron.ipcRenderer.on(DeviceEvent.INCOMING_DATA, (data: DeviceIncomingData) => {
+        this.ngZone.run(() => {
+          console.log('[DeviceService]: received data from device:', data);
+          this.parseIncomingData(data);
         });
-
+      });
     }
 
+    // Replace the subscription with an effect to maintain exact same behavior
     effect(() => {
       const status = this.usbConnectionStatusSignal();
+      // We need to track the previous value to implement distinctUntilChanged behavior
+      // This effect will automatically handle distinctUntilChanged since signals only emit when values change
       console.log('[DeviceService]: USB device connection status changed:', status);
       if (!status) this.reset();
     });
-
   }
 
-  parseIncomingData(payload: DeviceIncomingData) {
+  public parseIncomingData(payload: DeviceIncomingData) {
 
-    if (!this.serialNumberSignal() && payload.sn) {
-      this.serialNumberSignal.set(payload.sn);
+    if (!this.serialNumberSignal() && payload.sn) { // Use signal instead of getValue()
+      this.serialNumberSignal.set(payload.sn); // Use signal instead of BehaviorSubject
     }
 
     const correlationId = payload.cid;
@@ -130,27 +127,23 @@ export class DeviceService {
     switch (payload.type) {
       case DeviceMessageType.APP_STATE:
         console.log(`[DeviceService]: received app state via USB`, payload.data);
-        this.deviceAppStatusSignal.set(payload.data?.appState as DeviceAppState);
+        this.deviceAppStatusSignal.set(payload.data?.appState as DeviceAppState); // Use signal
         break;
       case DeviceMessageType.WIFI_NETWORKS_LIST:
         console.log(`[DeviceService]: received WiFi networks via USB`, payload.data);
-        this.wiFiNetworksSignal.set(payload.data as WiFiNetwork[]);
+        this.wiFiNetworksSignal.set(payload.data as WiFiNetwork[]); // Use signal
         break;
       case DeviceMessageType.ERROR:
         console.log(`[DeviceService]: received error response via USB with no correlation id:`,  payload.data);
-        this.errorSignal.set(payload);
+        this.errorSignal.set(payload); // Use signal
         break;
       case DeviceMessageType.ACKNOWLEDGMENT:
         console.log(`[DeviceService]: received acknowledgment via USB for request with correlation id: ${correlationId}`);
         break;
     }
-
   }
 
-  async sendUSBCommand(
-    type: USBCommandType,
-    payload: DeviceOutgoingData | null = null
-  ): Promise<DeviceIncomingData | void> {
+  public async sendUSBCommand(type: USBCommandType, payload: DeviceOutgoingData | null = null): Promise<DeviceIncomingData | void> {
 
     return new Promise<DeviceIncomingData | void>((resolve, reject) => {
 
@@ -174,9 +167,9 @@ export class DeviceService {
           payload
         });
 
-        if (this.electronService.isElectron) {
+        if (this.win.electron) {
           console.log(`[DeviceService]: sending data to device: ${jsonPayload}`);
-          this.electronService.ipcRenderer.send(DeviceEvent.OUTGOING_DATA, `<|${jsonPayload}|>`);
+          this.win.electron.ipcRenderer.send(DeviceEvent.OUTGOING_DATA, `<|${jsonPayload}|>`);
         } else {
           console.error('[DeviceService]: error while sending data to device: Electron object not available!');
         }
@@ -195,7 +188,8 @@ export class DeviceService {
 
   }
 
-  reset() {
+  public reset() {
+    // Use signals instead of BehaviorSubjects
     this.serialNumberSignal.set('');
     this.portInfoSignal.set(null);
     this.deviceAppStatusSignal.set(DeviceAppState.STARTED);
@@ -205,17 +199,25 @@ export class DeviceService {
     this.configurationSignal.set(null);
   }
 
-  generateCid(): string {
-    const deviceSN = this.serialNumberSignal();
+  public generateCid(): string {
+    const deviceSN = this.serialNumberSignal(); // Use signal instead of getValue()
     return `${deviceSN}-${uuidv4()}-${Date.now()}`;
   }
 
   onAlarm(message: Nullable<BaseMqttMessage<AlarmPayload>>) {
-    this.alarmSignal.set(message);
+    this.alarmSignal.set(message); // Use signal instead of BehaviorSubject
   }
 
   onConfiguration(message: Nullable<DeviceConfiguration>) {
-    this.configurationSignal.set(message);
+    this.configurationSignal.set(message); // Use signal instead of BehaviorSubject
   }
 
+  // Keep these methods for backward compatibility but also provide signal access
+  getSerialNumber(): string {
+    return this.serialNumberSignal(); // Use signal instead of getValue()
+  }
+
+  getAppStatus(): Nullable<DeviceAppState> {
+    return this.deviceAppStatusSignal(); // Use signal instead of getValue()
+  }
 }
