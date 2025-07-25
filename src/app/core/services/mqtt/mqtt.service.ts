@@ -1,9 +1,10 @@
 import { AuthSession } from 'aws-amplify/auth';
-import { BehaviorSubject, filter, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject,
+         filter,
+         Observable } from 'rxjs';
 import mqtt from 'mqtt';
 
 import { Injectable, effect } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { APP_CONFIG } from '@env/environment';
 import { SigV4Service } from '@services/sig-v4/sig-v4.service';
@@ -27,11 +28,9 @@ export class MqttService {
   private currentSession: AuthSession | null = null;
   private isConnecting = false;
   private isDisconnecting = false;
-
-  public readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
-
-  // Convert AuthService sessionData$ to signal for use in effects
   private readonly sessionDataSignal = this.authService.sessionData;
+
+  readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
 
   constructor(
     private authService: AuthService,
@@ -59,6 +58,7 @@ export class MqttService {
     this.isConnecting = true;
 
     try {
+
       const { identityId: clientId } = sessionData;
       const url = this.sigV4Service.getSignedURL(sessionData);
 
@@ -86,9 +86,11 @@ export class MqttService {
       this.setupClientEventHandlers(sessionData);
 
     } catch (error) {
+
       console.error('[MqttService]: failed to connect to MQTT broker:', error);
       this.isConnecting = false;
       throw error;
+
     }
 
   }
@@ -124,6 +126,7 @@ export class MqttService {
     } finally {
       this.isDisconnecting = false;
     }
+
   }
 
   private clearPendingRequests(): void {
@@ -165,7 +168,7 @@ export class MqttService {
     return new Promise<any>((resolve, reject) => {
 
       const company = this.authService.company();
-      const deviceSN = this.deviceService.getSerialNumber();
+      const deviceSN = this.deviceService.serialNumber();
       
       if (!company || !deviceSN) {
         reject(new Error('[MqttService]: missing company or device serial number'));
@@ -207,13 +210,11 @@ export class MqttService {
   }
 
   cleanup(): void {
-    // Note: effects automatically cleanup when the service is destroyed
     this.disconnect();
     this.clearPendingRequests();
   }
 
   private initializeAuthSubscription(): void {
-    // Replace the subscription with an effect
     effect(() => {
       const sessionData = this.sessionDataSignal();
       this.handleSessionChange(sessionData);

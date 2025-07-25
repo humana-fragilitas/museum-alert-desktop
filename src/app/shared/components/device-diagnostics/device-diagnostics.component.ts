@@ -1,7 +1,6 @@
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { Component, OnInit, signal, effect } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 
 import { DeviceService } from '@services/device/device.service';
@@ -22,20 +21,15 @@ import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 })
 export class DeviceDiagnosticsComponent implements OnInit {
   
-  // Convert observable to signal
-  public readonly alarm = this.deviceService.alarm;
-  
-  // Convert flashOnChange to signal
-  public flashOnChange = signal<boolean>(false);
+  readonly alarm = this.deviceService.alarm;
+  readonly flashOnChange = signal<boolean>(false);
 
   constructor(public readonly deviceService: DeviceService) {
     
-    // Replace subscription with effect for alarm changes
     effect(() => {
       const alarm = this.alarm();
       if (alarm) {
         this.flashOnChange.set(true);
-        console.log('flashOnChange:', alarm);
         setTimeout(() => this.flashOnChange.set(false), 1000);
       }
     });
@@ -45,4 +39,5 @@ export class DeviceDiagnosticsComponent implements OnInit {
   ngOnInit(): void {
     console.log('DeviceDiagnosticsComponent INIT');
   }
+
 }

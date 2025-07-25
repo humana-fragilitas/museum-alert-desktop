@@ -1,13 +1,25 @@
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe,
+         TranslateService } from '@ngx-translate/core';
 
-import { Component, OnInit, signal, computed, effect } from '@angular/core';
-import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component,
+         OnInit,
+         signal,
+         computed,
+         effect } from '@angular/core';
+import { FormGroup,
+         FormControl,
+         Validators,
+         ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { DeviceService } from '@services/device/device.service';
-import { DeviceAppState, USBCommandType, WiFiCredentials, WiFiNetwork } from '@shared-with-electron';
-import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { DeviceAppState,
+         USBCommandType,
+         WiFiCredentials,
+         WiFiNetwork } from '@shared-with-electron';
+import { COMMON_MATERIAL_IMPORTS,
+         FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { ErrorService } from '@services/error/error.service';
 
 
@@ -24,24 +36,15 @@ import { ErrorService } from '@services/error/error.service';
   ]
 })
 export class WiFiCredentialsComponent implements OnInit {
-  
-  // Convert properties to signals
-  public isSendingCredentials = signal<boolean>(false);
-  public isRefreshingWiFiNetworks = signal<boolean>(false);
-  public wiFiNetworks = signal<WiFiNetwork[]>([]);
 
-  credentialsForm = new FormGroup({
-    ssid: new FormControl({ value: '', disabled: true }, [Validators.required]),
-    password: new FormControl({ value: '', disabled: true }, [Validators.required])
-  });
-
-  // Convert observables to signals
   private wiFiNetworksSignal = this.deviceService.wiFiNetworks;
   private errorSignal = this.deviceService.error;
   private appStatusSignal = this.deviceService.deviceAppStatus;
-
-  // Convert getter to computed signal
-  isBusy = computed(() => {
+  
+  readonly isSendingCredentials = signal<boolean>(false);
+  readonly isRefreshingWiFiNetworks = signal<boolean>(false);
+  readonly wiFiNetworks = signal<WiFiNetwork[]>([]);
+  readonly isBusy = computed(() => {
     const sending = this.isSendingCredentials();
     const refreshing = this.isRefreshingWiFiNetworks();
     const appStatus = this.appStatusSignal();
@@ -54,12 +57,15 @@ export class WiFiCredentialsComponent implements OnInit {
            scanningNetworks ||
            appStatus !== DeviceAppState.CONFIGURE_WIFI;
   });
-
-  // Add a separate computed for spinner visibility to debug
-  showSubmitSpinner = computed(() => {
+  readonly showSubmitSpinner = computed(() => {
     const result = this.isSendingCredentials();
     console.log('showSubmitSpinner computed:', result);
     return result;
+  });
+
+  readonly credentialsForm = new FormGroup({
+    ssid: new FormControl({ value: '', disabled: true }, [Validators.required]),
+    password: new FormControl({ value: '', disabled: true }, [Validators.required])
   });
 
   constructor(
@@ -69,7 +75,6 @@ export class WiFiCredentialsComponent implements OnInit {
     private errorService: ErrorService
   ) {
     
-    // Replace WiFi networks subscription with effect
     effect(() => {
       const networks = this.wiFiNetworksSignal();
       this.wiFiNetworks.set(networks || []);
@@ -79,9 +84,6 @@ export class WiFiCredentialsComponent implements OnInit {
     effect(() => {
       const networks = this.wiFiNetworks();
       const busy = this.isBusy();
-      
-      console.log('Form control effect - networks:', networks.length, 'busy:', busy);
-      
       // Enable form controls only when we have networks AND not busy
       if (networks.length > 0 && !busy) {
         this.credentialsForm.get('ssid')?.enable();
@@ -92,8 +94,7 @@ export class WiFiCredentialsComponent implements OnInit {
       }
     });
 
-    // Replace error subscription with effect
-    // This handles device errors that come through the error$ stream after sendUSBCommand completes
+    // Handle device errors
     effect(() => {
       const message = this.errorSignal();
       if (message) {
@@ -105,8 +106,6 @@ export class WiFiCredentialsComponent implements OnInit {
       }
     });
 
-
-    
   }
 
   ngOnInit(): void {
@@ -127,7 +126,7 @@ export class WiFiCredentialsComponent implements OnInit {
         this.credentialsForm.value as WiFiCredentials
       );
       console.log('[WiFiCredentialsComponent]: data sent successfully');
-      // Note: Don't reset isSendingCredentials here - wait for device response via error$ stream
+      // Note: do not reset isSendingCredentials here - wait for device response via error stream
     } catch (exception: any) {
       // This catch handles timeouts and immediate failures
       const translationTag = (exception.data) ?

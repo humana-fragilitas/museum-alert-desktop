@@ -5,7 +5,9 @@ import { MatDialogConfig } from '@angular/material/dialog';
 import { DeviceErrorType } from '@shared-with-electron';
 import { DialogService } from '@services/dialog/dialog.service';
 import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
-import { DialogPayload, DialogResult, ErrorApiResponse } from '@models';
+import { DialogPayload,
+         DialogResult,
+         ErrorApiResponse } from '@models';
 import { USBCommandTimeoutException } from '@services/device/device.service';
 
 

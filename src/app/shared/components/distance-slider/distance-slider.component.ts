@@ -1,7 +1,11 @@
-import { Component, input, OnInit, signal, computed, effect } from '@angular/core';
+import { Component,
+         input,
+         OnInit,
+         signal,
+         computed,
+         effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { FormatDistancePipe } from '@pipes/format-distance.pipe';
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
@@ -22,14 +26,18 @@ import { DialogType } from '@models/ui.models';
 })
 export class DistanceSliderComponent implements OnInit {
 
-  // Convert @Input to input signals (Angular 19)
-  disabled = input<boolean>(false);
-
   private minDefaultValue = 5;
   private maxDefaultValue = 500;
-  public sliderValue = signal<number>(this.minDefaultValue);
-  
-  // Getter and setter for ngModel compatibility
+  private _minValue = signal<number>(this.minDefaultValue);
+  private _maxValue = signal<number>(this.maxDefaultValue);
+  private _value = signal<number>(this.minDefaultValue);
+
+  minValue = input<number>(this.minDefaultValue);
+  maxValue = input<number>(this.maxDefaultValue);
+  value = input<number>(this.minDefaultValue);
+  disabled = input<boolean>(false);
+  sliderValue = signal<number>(this.minDefaultValue);
+
   get sliderValueForModel(): number {
     return this.sliderValue();
   }
@@ -38,36 +46,22 @@ export class DistanceSliderComponent implements OnInit {
     this.sliderValue.set(value);
   }
   
-  // Convert backing fields to signals
-  private _minValue = signal<number>(this.minDefaultValue);
-  private _maxValue = signal<number>(this.maxDefaultValue);
-  private _value = signal<number>(this.minDefaultValue);
-
-  // Convert observable to signal
-  public readonly isBusy = this.deviceConfigurationService.isBusy;
-
-  // Input signals with simple default values (validation handled in effects)
-  minValue = input<number>(this.minDefaultValue);
-  maxValue = input<number>(this.maxDefaultValue);
-  value = input<number>(this.minDefaultValue);
-
-  // Computed signals for validated values
+  readonly isBusy = this.deviceConfigurationService.isBusy;
   validatedMinValue = computed(() => {
-    const value = this.minValue();
-    const maxVal = this._maxValue();
-    
-    if (value < 0) {
-      console.warn(`Distance slider minimum value cannot be negative, ` +
-        `using default ${this.minDefaultValue}`);
-      return this.minDefaultValue;
-    } else if (value >= maxVal) {
-      console.warn(`Distance slider minimum cannot be greater than or ` +
-        `equal to maximum value (${maxVal})`);
-      return Math.max(0, maxVal - 1);
-    } else {
-      return value;
-    }
-  });
+      const value = this.minValue();
+      const maxVal = this._maxValue();
+      if (value < 0) {
+        console.warn(`Distance slider minimum value cannot be negative, ` +
+          `using default ${this.minDefaultValue}`);
+        return this.minDefaultValue;
+      } else if (value >= maxVal) {
+        console.warn(`Distance slider minimum cannot be greater than or ` +
+          `equal to maximum value (${maxVal})`);
+        return Math.max(0, maxVal - 1);
+      } else {
+        return value;
+      }
+    });
 
   validatedMaxValue = computed(() => {
     const value = this.maxValue();
@@ -101,10 +95,8 @@ export class DistanceSliderComponent implements OnInit {
     private dialogService: DialogService
   ) {
 
-    // Convert subscription to signal
-    const properties = this.deviceConfigurationService.properties;
+    const properties = this.deviceConfigurationService.settings;
     
-    // Replace subscription with effect
     effect(() => {
       const configuration = properties();
       if (configuration) {
@@ -128,7 +120,7 @@ export class DistanceSliderComponent implements OnInit {
   async onSliderChange(event: Event) {
 
     const distance = Number((event.target as HTMLInputElement).value);
-    this._value.set(distance); // Update internal value signal
+    this._value.set(distance);
     this.sliderValue.set(Number(distance));
 
     console.log(`Setting minimum alarm distance to: ${distance} cm`);

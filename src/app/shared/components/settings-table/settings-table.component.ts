@@ -19,7 +19,6 @@ import { FormatDistancePipe } from '@pipes/format-distance.pipe';
 })
 export class SettingsTableComponent implements OnInit {
   
-  // Convert @Input to input signal (Angular 19)
   data = input<DeviceConfiguration | null>(null);
 
   ngOnInit(): void {

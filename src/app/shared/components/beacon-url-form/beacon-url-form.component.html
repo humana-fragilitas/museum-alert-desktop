@@ -8,36 +8,30 @@
   </mat-form-field>
   
   <div class="button-cta">
-    <!-- 🔥 UPDATED: Using signal directly -->
-    <button *ngIf="isEditMode$()"
+    <button *ngIf="isEditMode()"
             mat-raised-button color="primary"
             type="submit"
-            [disabled]="beaconUrlForm.invalid || !isEnabled$()">
+            [disabled]="beaconUrlForm.invalid || !isEnabled()">
       <span class="button-content">
         {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
-        <!-- 🔥 UPDATED: Using signals -->
-        <mat-progress-spinner *ngIf="isBusy() && isSubmitting$()" 
+        <mat-progress-spinner *ngIf="isBusy() && isSubmitting()" 
                               mode="indeterminate" 
                               diameter="16">
         </mat-progress-spinner>
       </span>
     </button>
-    
-    <!-- 🔥 UPDATED: Using signal directly -->
-    <button *ngIf="isEditMode$()"
+    <button *ngIf="isEditMode()"
             mat-raised-button color="secondary"
-            [disabled]="!isEnabled$()"
+            [disabled]="!isEnabled()"
             (click)="cancel()">
       <span class="button-content">
         {{ 'COMMON.ACTIONS.CANCEL' | translate }}
       </span>
     </button>
   </div>
-  
-  <!-- 🔥 UPDATED: Using signal directly -->
-  <button *ngIf="!isEditMode$()"
+  <button *ngIf="!isEditMode()"
           mat-raised-button color="primary"
-          [disabled]="!isEnabled$()"
+          [disabled]="!isEnabled()"
           (click)="edit()">
     <span class="button-content">
       {{ 'COMMON.ACTIONS.EDIT' | translate }}

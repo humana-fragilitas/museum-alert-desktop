@@ -1,12 +1,17 @@
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateModule,
+         TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { Amplify } from 'aws-amplify';
 
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { ApplicationConfig, importProvidersFrom, inject, provideAppInitializer } from '@angular/core';
+import { ApplicationConfig,
+         importProvidersFrom,
+         inject,
+         provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient,
+         withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { HttpClient } from '@angular/common/http';
 

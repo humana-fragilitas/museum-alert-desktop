@@ -5,8 +5,7 @@ import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpHandl
 import { inject } from '@angular/core';
 
 import { DialogService } from '@services/dialog/dialog.service';
-import { DialogType } from '@models/ui.models';
-import { HttpStatusCode } from '@models/api.models';
+import { DialogType, HttpStatusCode } from '@models';
 import { AuthService } from '@services/auth/auth.service';
 import { APP_CONFIG } from '@env/environment';
 
@@ -53,7 +52,7 @@ function addAuthToken(req: HttpRequest<unknown>, authService: AuthService): Http
 }
 
 function handle401Error(dialogService: DialogService, authenticatorService: AuthenticatorService) {
-
+  
   dialogService.openDialog({
     type: DialogType.ERROR,
     title: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_TITLE',

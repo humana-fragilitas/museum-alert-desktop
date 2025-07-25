@@ -1,6 +1,7 @@
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { Component, OnInit } from '@angular/core';
+import { Component,
+         OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { DeviceService } from '@services/device/device.service';
@@ -21,8 +22,6 @@ import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 export class DeviceStateComponent implements OnInit {
   
   readonly deviceAppState = DeviceAppState;
-  
-  // Convert observables to signals
   readonly usbConnectionStatus = this.deviceService.usbConnectionStatus;
   readonly deviceAppStatus = this.deviceService.deviceAppStatus;
   readonly portInfo = this.deviceService.portInfo;
@@ -33,4 +32,5 @@ export class DeviceStateComponent implements OnInit {
   ngOnInit(): void {
     console.log('DeviceStateComponent INIT');
   }
+
 }

@@ -1,4 +1,6 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl,
+         ValidationErrors,
+         ValidatorFn } from '@angular/forms';
 
 /**
  * Custom validator that checks if a URL has an allowed first-level domain

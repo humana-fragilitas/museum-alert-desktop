@@ -6,6 +6,11 @@ export type DeviceIncomingData =
   | { cid?: string, type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
   | { cid?: string, type: DeviceMessageType.ACKNOWLEDGMENT; sn: string, data?: undefined };
 
+export type DeviceErrorMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.ERROR }>;
+export type DeviceStateMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.APP_STATE }>;
+export type DeviceWiFiMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.WIFI_NETWORKS_LIST }>;
+export type DeviceAckMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.ACKNOWLEDGMENT }>;
+
 export interface WiFiNetwork {
     encryptionType: number;
     rssi: number;

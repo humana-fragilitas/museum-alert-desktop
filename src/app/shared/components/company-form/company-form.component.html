@@ -8,7 +8,7 @@
   </mat-form-field>
   
   <div class="button-cta">
-    <!-- 🔥 FIXED: Matches original behavior - button stays visible, just disabled -->
+
     <button *ngIf="showSubmitButton()"
             mat-raised-button color="primary"
             type="submit"
@@ -22,7 +22,6 @@
       </span>
     </button>
     
-    <!-- 🔥 FIXED: Matches original behavior -->
     <button *ngIf="showCancelButton()"
             mat-raised-button color="secondary"
             [disabled]="isBusy()"
@@ -31,9 +30,9 @@
         {{ 'COMMON.ACTIONS.CANCEL' | translate }}
       </span>
     </button>
+    
   </div>
   
-  <!-- 🔥 FIXED: Matches original behavior -->
   <button *ngIf="showEditButton()"
           mat-raised-button color="primary"
           [disabled]="isBusy()"
@@ -42,4 +41,5 @@
       {{ 'COMMON.ACTIONS.EDIT' | translate }}
     </span>
   </button>
+
 </form>

@@ -18,7 +18,6 @@ import { DeviceService } from '@services/device/device.service';
 })
 export class RedirectService {
 
-  // Create a computed signal that combines both values
   private readonly redirectState: Signal<{
     user: Signal<Nullable<AuthUser>>;
     isUsbConnected: Signal<boolean>;
@@ -36,8 +35,6 @@ export class RedirectService {
       isUsbConnected: this.deviceService.usbConnectionStatus
     }));
 
-    // Replace combineLatest subscription with effect
-    // The effect automatically handles distinctUntilChanged behavior since signals only emit when values change
     effect(() => {
       const { user, isUsbConnected } = this.redirectState();
       const currentUrl = this.router.url;

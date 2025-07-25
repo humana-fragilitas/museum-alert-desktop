@@ -1,12 +1,25 @@
-import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
-import { Observable, of } from 'rxjs';
+import { TranslatePipe,
+         TranslateService,
+         _ } from '@ngx-translate/core';
+import { Observable,
+         of } from 'rxjs';
 
-import { Component, ElementRef, Input, OnInit, ViewChild, computed, signal, effect } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component,
+         ElementRef,
+         Input,
+         OnInit,
+         ViewChild,
+         computed,
+         signal,
+         effect } from '@angular/core';
+import { FormControl,
+         FormGroup,
+         ReactiveFormsModule,
+         Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
 
-import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { COMMON_MATERIAL_IMPORTS,
+         FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { beaconUrlValidator } from '@validators/beacon-url.validator';
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
 import { DialogService } from '@services/dialog/dialog.service';
@@ -27,49 +40,38 @@ import { DialogType } from '@models/ui.models';
 })
 export class BeaconUrlFormComponent implements OnInit {
 
-  // 🔥 MIGRATED TO SIGNALS - Component State
-  private readonly isDisabled = signal<boolean>(false);
-  private readonly isSubmitting = signal<boolean>(false);
-  private readonly isEditMode = signal<boolean>(false);
-  private readonly isBeaconUrlSet = signal<boolean>(false);
+  private readonly isDisabledSignal = signal<boolean>(false);
+  private readonly isSubmittingSignal = signal<boolean>(false);
+  private readonly isEditModeSignal = signal<boolean>(false);
+  private readonly isBeaconUrlSetSignal = signal<boolean>(false);
+  private readonly devicePropertiesSignal = this.deviceConfigurationService.settings;
 
-  // 🔥 MIGRATED TO SIGNALS - Service observables converted to signals
-  public readonly isBusy = this.deviceConfigurationService.isBusy;
-  private readonly deviceProperties = this.deviceConfigurationService.properties;
-
-  @Input()
-  set disabled(value: boolean) {
-    this.isDisabled.set(value);
-  }
-
-  @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
-
-  // 🔥 COMPUTED SIGNALS - Replace complex observables with computed
-  public readonly isEnabled = computed(() => 
-    !this.isBusy() && !this.isDisabled()
+  readonly isBusy = this.deviceConfigurationService.isBusy;
+  readonly isEditMode = this.isEditModeSignal.asReadonly();
+  readonly isSubmitting = this.isSubmittingSignal.asReadonly();
+  readonly isEnabled = computed(() => 
+    !this.isBusy() && !this.isDisabledSignal()
   );
-
-  public readonly beaconUrlFieldIsDisabled = computed(() => {
-    const isEditMode = this.isEditMode();
-    const disabled = this.isDisabled();
+  readonly beaconUrlFieldIsDisabled = computed(() => {
+    const isEditMode = this.isEditModeSignal();
+    const disabled = this.isDisabledSignal();
     const busy = this.isBusy();
     console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
     return !isEditMode || disabled || busy;
   });
-
-  public readonly submitButtonVisible = computed(() => {
-    const isEditMode = this.isEditMode();
-    const disabled = this.isDisabled();
+  readonly submitButtonVisible = computed(() => {
+    const isEditMode = this.isEditModeSignal();
+    const disabled = this.isDisabledSignal();
     const busy = this.isBusy();
     console.log(`Is in edit mode: ${isEditMode}; disabled ${disabled}`);
     return isEditMode && !disabled && !busy;
   });
 
-  // 🔥 EXPOSE READONLY SIGNALS FOR TEMPLATE
-  public readonly isEditMode$ = this.isEditMode.asReadonly();
-  public readonly isSubmitting$ = this.isSubmitting.asReadonly();
-  public readonly isEnabled$ = this.isEnabled;
-  public readonly beaconUrlFieldIsDisabled$ = this.beaconUrlFieldIsDisabled;
+  @Input()
+  set disabled(value: boolean) {
+    this.isDisabledSignal.set(value);
+  }
+  @ViewChild('beaconUrl', { static: false }) beaconUrlInput!: ElementRef;
 
   public beaconUrlForm = new FormGroup({
     beaconUrl: new FormControl(
@@ -87,13 +89,13 @@ export class BeaconUrlFormComponent implements OnInit {
     private readonly dialogService: DialogService
   ) {
 
-    // 🔥 EFFECT - Handle device configuration changes
+    // Handle device configuration changes
     effect(() => {
-      const configuration = this.deviceProperties();
+      const configuration = this.devicePropertiesSignal();
       if (configuration) {
         this.beaconUrlForm.get('beaconUrl')?.setValue(configuration.beaconUrl || '');
         const hasBeaconUrl = !!configuration.beaconUrl;
-        this.isBeaconUrlSet.set(hasBeaconUrl);
+        this.isBeaconUrlSetSignal.set(hasBeaconUrl);
         if (hasBeaconUrl) {
           this.cancel();
         } else {
@@ -102,7 +104,7 @@ export class BeaconUrlFormComponent implements OnInit {
       }
     });
 
-    // 🔥 EFFECT - Handle form field enable/disable
+    //  Handle form field enable/disable
     effect(() => {
       const disabled = this.beaconUrlFieldIsDisabled();
       const beaconUrlField = this.beaconUrlForm.get('beaconUrl');
@@ -121,7 +123,7 @@ export class BeaconUrlFormComponent implements OnInit {
   async onSubmit() {
     console.log('[BeaconUrlFormComponent]: beacon url form submitted:', this.beaconUrlForm.value);
 
-    this.isSubmitting.set(true);
+    this.isSubmittingSignal.set(true);
     this.beaconUrlForm.get('beaconUrl')?.disable();
     const beaconUrl = this.beaconUrlForm.value.beaconUrl!;
 
@@ -136,12 +138,12 @@ export class BeaconUrlFormComponent implements OnInit {
         message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
       });
     } finally {
-      this.isSubmitting.set(false);
+      this.isSubmittingSignal.set(false);
     }
   }
 
   edit() {
-    this.isEditMode.set(true);
+    this.isEditModeSignal.set(true);
     setTimeout(() => {
       this.beaconUrlInput.nativeElement.focus();
       this.beaconUrlInput.nativeElement.select();
@@ -149,7 +151,7 @@ export class BeaconUrlFormComponent implements OnInit {
   }
 
   cancel() {
-    this.isEditMode.set(false);
+    this.isEditModeSignal.set(false);
     this.beaconUrlForm.get('beaconUrl')?.setValue(
       this.deviceConfigurationService.settings()?.beaconUrl || ''
     );
@@ -158,8 +160,8 @@ export class BeaconUrlFormComponent implements OnInit {
     }, 0);
   }
 
-  // 🚫 KEEP AS OBSERVABLE - Complex form validation logic
   get errorMessage$(): Observable<string> {
+    
     const control = this.beaconUrlForm.get('beaconUrl');
 
     if (control?.errors) {
@@ -194,5 +196,7 @@ export class BeaconUrlFormComponent implements OnInit {
       }
     }
     return of('');
+
   }
+
 }

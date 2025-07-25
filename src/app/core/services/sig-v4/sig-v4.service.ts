@@ -1,4 +1,6 @@
-import { HmacSHA256, SHA256, enc } from 'crypto-js';
+import { HmacSHA256,
+         SHA256,
+         enc } from 'crypto-js';
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc';
 import WordArray = CryptoJS.lib.WordArray;
@@ -13,8 +15,6 @@ import { APP_CONFIG } from '@env/environment';
   providedIn: 'root'
 })
 export class SigV4Service {
-
-  constructor() { }
 
   sign(key: string | WordArray, msg: string | WordArray): string {
     const hash = HmacSHA256(msg, key);
@@ -36,11 +36,11 @@ export class SigV4Service {
     const kRegion = HmacSHA256(regionName, kDate);
     const kService = HmacSHA256(serviceName, kRegion);
     const kSigning = HmacSHA256('aws4_request', kService);
-
     return kSigning;
   }
 
   getSignedURL(sessionData: AuthSession): string {
+
     const host = APP_CONFIG.aws.IoTCore.endpoint;
     const algorithm = APP_CONFIG.aws.algorithm;
     const service = APP_CONFIG.aws.IoTCore.service;
@@ -131,7 +131,7 @@ export class SigV4Service {
     baseUrl.search = queryParams.toString();
     const requestUrl = baseUrl.toString();
 
-    console.dir(requestUrl);
+    console.dir('[SigV4Service]: request url:', requestUrl);
 
     return requestUrl;
 

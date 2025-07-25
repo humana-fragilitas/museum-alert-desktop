@@ -4,7 +4,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { CompanyService } from '@services/company/company.service';
@@ -24,7 +23,6 @@ import { AuthService } from '@services/auth/auth.service';
 })
 export class NavBarComponent implements OnInit {
   
-  // Convert observables to signals
   readonly isFetchingCompany = this.companyService.isFetchingCompany;
   readonly userAttributes = this.authService.userAttributes;
 

@@ -1,10 +1,12 @@
 import { TranslateService } from '@ngx-translate/core';
 
-import { Injectable, effect } from '@angular/core';
+import { Injectable,
+         effect } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { DeviceService } from '@services/device/device.service';
-import { DeviceErrorType, DeviceMessageType } from '@shared-with-electron';
+import { DeviceErrorType,
+         DeviceMessageType } from '@shared-with-electron';
 import { ErrorService } from '@services/error/error.service';
 
 
@@ -13,7 +15,6 @@ import { ErrorService } from '@services/error/error.service';
 })
 export class NotificationService {
 
-  // Convert deviceService.error$ to signal for use in effects
   private readonly deviceErrorSignal = this.deviceService.error;
 
   constructor (
@@ -23,7 +24,6 @@ export class NotificationService {
     private readonly errorService: ErrorService
   ) {
     
-    // Replace the subscription with an effect
     effect(() => {
       const message = this.deviceErrorSignal();
       console.log('[NotificationService]: got new error:', message);

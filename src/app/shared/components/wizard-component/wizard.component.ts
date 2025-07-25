@@ -1,13 +1,22 @@
 import { Subject } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, AfterViewInit, computed, effect, signal } from '@angular/core';
+import { Component,
+         OnDestroy,
+         OnInit,
+         ViewChild,
+         ViewEncapsulation,
+         AfterViewInit,
+         computed,
+         effect,
+         signal } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { CommonModule } from '@angular/common';
 
 import { WiFiCredentialsComponent } from '@shared/components/wifi-credentials/wifi-credentials.component';
 import { DeviceService } from '@services/device/device.service';
-import { DeviceAppState, USBCommandType } from '@shared-with-electron';
+import { DeviceAppState,
+         USBCommandType } from '@shared-with-electron';
 import { ProvisioningComponent } from '@shared/components/provisioning/provisioning.component';
 import { DeviceControlComponent } from '@shared/components/device-control/device-control.component';
 import { DeviceDiagnosticsComponent } from '@shared/components/device-diagnostics/device-diagnostics.component';
@@ -29,21 +38,18 @@ import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
   encapsulation: ViewEncapsulation.None
 })
 export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
+
   private destroy$ = new Subject<void>();
-  
-  // Migrated to signals
   private usbConnectionStatus = signal<boolean>(false);
   private deviceAppStatus = signal<Nullable<DeviceAppState>>(null);
   
-  // Computed signals based on the original logic
-  isVisible = computed(() => this.usbConnectionStatus());
-  isReady = computed(() => {
+  readonly isVisible = this.usbConnectionStatus.asReadonly();
+  readonly isReady = computed(() => {
     const appStatus = this.deviceAppStatus();
     return appStatus != DeviceAppState.STARTED && appStatus != DeviceAppState.FATAL_ERROR;
   });
-  hasFatalError = computed(() => this.deviceAppStatus() == DeviceAppState.FATAL_ERROR);
-  
-  isRequestingReset = signal<boolean>(false);
+  readonly hasFatalError = computed(() => this.deviceAppStatus() == DeviceAppState.FATAL_ERROR);
+  readonly isRequestingReset = signal<boolean>(false);
   
   @ViewChild('stepper') stepper!: MatStepper;
   
@@ -52,10 +58,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     public deviceService: DeviceService
   ) {
-    // Move both effects to constructor (injection context)
-    
-    // Effect to handle stepper state changes when deviceAppStatus changes
-    // This preserves the original behavior from the subscription
+
     effect(() => {
       const appStatus = this.deviceAppStatus();
       this.latestAppStatus = appStatus;
@@ -64,12 +67,9 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Effect to sync with device service signals
     effect(() => {
       const isConnected = this.deviceService.usbConnectionStatus();
       const appStatus = this.deviceService.deviceAppStatus();
-      
-      // Update signals instead of properties
       this.usbConnectionStatus.set(isConnected);
       this.deviceAppStatus.set(appStatus);
     });
@@ -136,4 +136,5 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isRequestingReset.set(false);
     });
   }
+  
 }

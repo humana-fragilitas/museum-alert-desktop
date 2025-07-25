@@ -1,30 +1,26 @@
-import { BehaviorSubject, Observable } from 'rxjs';
 import { Injectable, signal, computed } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
+
 import { MqttService } from '@services/mqtt/mqtt.service';
 import { MqttCommandType, DeviceConfiguration, BaseMqttMessage } from '@models';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceConfigurationService {
   
-  // Convert BehaviorSubjects to signals
   private readonly propertiesSignal = signal<Nullable<DeviceConfiguration>>(null);
   private readonly isBusySignal = signal<boolean>(false);
 
-  readonly properties = this.propertiesSignal.asReadonly();
   readonly isBusy = this.isBusySignal.asReadonly();
-
-  // Computed signal to replace the getter
-  public readonly settings = computed(() => this.propertiesSignal());
+  readonly settings = this.propertiesSignal.asReadonly();
 
   constructor(private readonly mqttService: MqttService) {
     console.log('[DeviceConfigurationService]: instance created');
   }
 
   async loadSettings(maxRetries: number = 3, baseDelay: number = 1000): Promise<DeviceConfiguration> {
-    this.isBusySignal.set(true); // Use signal instead of BehaviorSubject
+    this.isBusySignal.set(true);
     let attempt = 0;
 
     const attemptLoad = async (): Promise<DeviceConfiguration> => {
@@ -32,22 +28,24 @@ export class DeviceConfigurationService {
         const configuration = await this.mqttService.sendCommand<BaseMqttMessage<DeviceConfiguration>>(
           MqttCommandType.GET_CONFIGURATION
         );
-        this.propertiesSignal.set(configuration.data); // Use signal instead of BehaviorSubject
+        this.propertiesSignal.set(configuration.data);
         console.log('[DeviceConfigurationService]: received device configuration:', configuration);
         return configuration.data;
       } catch (error) {
         attempt++;
-        console.error(`[DeviceConfigurationService]: error getting device configuration (attempt ${attempt}/${maxRetries}):`, error);
+        console.error(`[DeviceConfigurationService]: error getting device configuration `+
+                      `(attempt ${attempt}/${maxRetries}):`, error);
         
         if (attempt >= maxRetries) {
-          throw error; // Re-throw after max retries
+          // Re-throw after max retries
+          throw error;
         }
 
         // Exponential backoff: wait longer between each retry
         const delay = baseDelay * Math.pow(2, attempt - 1);
         console.log(`[DeviceConfigurationService]: retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
-        return attemptLoad(); // Recursive retry
+        return attemptLoad();
       }
     };
 
@@ -57,26 +55,29 @@ export class DeviceConfigurationService {
       console.error('[DeviceConfigurationService]: failed to load settings after all retries:', error);
       throw error;
     } finally {
-      this.isBusySignal.set(false); // Use signal instead of BehaviorSubject
+      this.isBusySignal.set(false);
     }
+
   }
 
   async saveSettings(configuration: DeviceConfiguration): Promise<DeviceConfiguration> {
-    this.isBusySignal.set(true); // Use signal instead of BehaviorSubject
+
+    this.isBusySignal.set(true);
     
     try {
       const result = await this.mqttService.sendCommand<BaseMqttMessage<DeviceConfiguration>>(
         MqttCommandType.SET_CONFIGURATION,
         { ...configuration }
       );
-      this.propertiesSignal.set(result.data); // Use signal instead of BehaviorSubject
+      this.propertiesSignal.set(result.data);
       return result.data;
     } catch(error) {
       console.error('[DeviceConfigurationService]: failed to save settings:', error);
       throw error;
     } finally {
-      this.isBusySignal.set(false); // Use signal instead of BehaviorSubject
+      this.isBusySignal.set(false);
     }
+
   }
 
 }

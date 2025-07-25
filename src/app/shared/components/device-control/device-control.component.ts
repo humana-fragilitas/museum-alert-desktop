@@ -36,19 +36,16 @@ import { DeviceConnectionStatusService } from '@services/device-connection-statu
   ]
 })
 export class DeviceControlComponent implements OnInit, OnDestroy {
-  public readonly deviceAppState = DeviceAppState;
-
-  // Convert observables to signals with proper initial values
-  public readonly isBusy = this.deviceConfigurationService.isBusy;
-  public readonly settings = this.deviceConfigurationService.properties;
-  public readonly serialNumber = this.deviceService.serialNumber;
-
-  // Signal for connection status
+  
   private connectionStatus = signal<boolean>(false);
-  public readonly isConnected = computed(() => this.connectionStatus());
-  public sliderValue = signal<number>(0);
-
   private connectionSubscription?: Subscription;
+
+  readonly deviceAppState = DeviceAppState;
+  readonly isBusy = this.deviceConfigurationService.isBusy;
+  readonly settings = this.deviceConfigurationService.settings;
+  readonly serialNumber = this.deviceService.serialNumber;
+  readonly isConnected = computed(() => this.connectionStatus());
+  sliderValue = signal<number>(0);
 
   constructor(
     public readonly mqttService: MqttService,
@@ -56,7 +53,7 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
     private deviceConfigurationService: DeviceConfigurationService,
     private deviceConnectionStatusService: DeviceConnectionStatusService
   ) {
-    // Replace subscription with effect for configuration changes
+
     effect(() => {
       const configuration = this.settings();
       if (configuration) {
@@ -64,18 +61,15 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Handle connection status subscription with effect
+
     effect(() => {
       const sn = this.serialNumber();
-      
-      // Clean up previous subscription
       if (this.connectionSubscription) {
         this.connectionSubscription.unsubscribe();
         this.connectionSubscription = undefined;
       }
 
       if (sn) {
-        // Create new subscription when serial number changes
         this.connectionSubscription = this.deviceConnectionStatusService
           .onChange(sn)
           .subscribe(connected => {
@@ -86,7 +80,6 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Replace subscription with effect for connection status changes
     effect(() => {
       const connected = this.isConnected();
       if (connected) {
@@ -95,6 +88,7 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
           .finally();
       }
     });
+    
   }
 
   ngOnInit(): void {
@@ -106,4 +100,5 @@ export class DeviceControlComponent implements OnInit, OnDestroy {
       this.connectionSubscription.unsubscribe();
     }
   }
+
 }

@@ -29,10 +29,12 @@ export class DeviceRegistryService {
     }).pipe(
       map((response: HttpResponse<ApiResult<Sensor>>) => {
         const result = response.body as SuccessApiResponse<Sensor>;
-        console.log(`[DeviceRegistryService]: found device with name `+
+        console.log(`[DeviceRegistryService]: found device with name ` +
                     `${result.data?.thingName}: ${JSON.stringify(response.body)}`);
         console.log(`[DeviceRegistryService]: device associated company ` +
-                    `${ (company === result.data?.company) ? 'matches with user\'s organization' : 'does not match with user\'s organization' }`);  
+                    `${ (company === result.data?.company) ?
+                      'matches with user\'s organization' :
+                      'does not match with user\'s organization' }`);  
         return result.data;
       }),
       catchError((exception: HttpErrorResponse) => {
@@ -40,7 +42,8 @@ export class DeviceRegistryService {
           console.log(`[DeviceRegistryService]: device with name ${thingName} not found (404)`);
           return of(null);
         } else {
-          console.error(`[DeviceRegistryService]: error checking device existence:`, exception.error as ErrorApiResponse);
+          console.error(`[DeviceRegistryService]: error checking device existence:`,
+            exception.error as ErrorApiResponse);
           throw exception;
         }
       })

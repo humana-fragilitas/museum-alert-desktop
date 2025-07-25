@@ -1,5 +1,9 @@
-import { finalize, Observable, of } from 'rxjs';
-import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
+import { finalize,
+         Observable,
+         of } from 'rxjs';
+import { TranslatePipe,
+         TranslateService,
+         _ } from '@ngx-translate/core';
 
 import { 
   Component,
@@ -17,14 +21,17 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { CompanyService } from '@services/company/company.service';
-import { ApiResult, DialogType, ErrorApiResponse, UpdateCompanyRequest, UpdateCompanyResponse } from '@models';
-import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
-import { DialogService } from '@services/dialog/dialog.service';
+import { ApiResult,
+         DialogType,
+         ErrorApiResponse,
+         UpdateCompanyRequest,
+         UpdateCompanyResponse } from '@models';
+import { COMMON_MATERIAL_IMPORTS,
+         FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { ErrorService } from '@services/error/error.service';
 
 
@@ -43,28 +50,22 @@ import { ErrorService } from '@services/error/error.service';
 })
 export class CompanyFormComponent implements OnInit {
 
-  @ViewChild('companyName', { static: false }) companyNameInput!: ElementRef;
-
-  // 🔥 MIGRATED TO SIGNALS - Component State
-  public readonly isBusy = signal(false);
-  public readonly isEditable = signal(false);
-  public readonly isCompanyNameSet = signal(true);
-
-  // 🔥 MIGRATED TO SIGNALS - Service observable converted to signal
   private readonly company = this.companyService.company;
 
-  // 🔥 COMPUTED SIGNALS - Derived state (matching original behavior)
-  public readonly showSubmitButton = computed(() => 
+  readonly isBusy = signal(false);
+  readonly isEditable = signal(false);
+  readonly isCompanyNameSet = signal(true);
+  readonly showSubmitButton = computed(() => 
     !this.isCompanyNameSet() || this.isEditable()
   );
-
-  public readonly showEditButton = computed(() => 
+  readonly showEditButton = computed(() => 
     this.isCompanyNameSet() && !this.isEditable()
   );
-
-  public readonly showCancelButton = computed(() => 
+  readonly showCancelButton = computed(() => 
     this.isEditable()
   );
+
+  @ViewChild('companyName', { static: false }) companyNameInput!: ElementRef;
 
   companyNameForm = new FormGroup({
     companyName: new FormControl(
@@ -81,10 +82,9 @@ export class CompanyFormComponent implements OnInit {
   constructor(
     private companyService: CompanyService,
     private translateService: TranslateService,
-    private dialogService: DialogService,
     private readonly errorService: ErrorService
   ) {
-    // 🔥 EFFECT - Handle company data changes
+
     effect(() => {
       const company = this.company();
       if (company) {
@@ -106,6 +106,7 @@ export class CompanyFormComponent implements OnInit {
   }
 
   onSubmit() {
+
     console.log('[CompanyFormComponent]: company form submitted:', this.companyNameForm.value);
 
     this.isBusy.set(true);
@@ -135,6 +136,7 @@ export class CompanyFormComponent implements OnInit {
             });
           }
         });
+
   }
 
   edit() {
@@ -160,8 +162,8 @@ export class CompanyFormComponent implements OnInit {
            !!this.companyNameForm.get('companyName')?.touched;
   }
 
-  // 🚫 KEEP AS OBSERVABLE - Complex form validation with translation
   getErrorMessage(): Observable<string> {
+
     const control = this.companyNameForm.get('companyName');
 
     if (control?.errors) {
@@ -188,5 +190,7 @@ export class CompanyFormComponent implements OnInit {
     }
     
     return of('');
+
   }
+
 }

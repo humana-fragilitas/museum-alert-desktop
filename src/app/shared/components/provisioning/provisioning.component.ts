@@ -1,21 +1,30 @@
 import { TranslatePipe } from '@ngx-translate/core';
-import { firstValueFrom, map } from 'rxjs';
+import { firstValueFrom,
+         map } from 'rxjs';
 
-import { Component, OnInit, signal } from '@angular/core';
+import { Component,
+         OnInit,
+         signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ProvisioningService } from '@services/provisioning/provisioning.service';
-import { DeviceService, USBCommandTimeoutException } from '@services/device/device.service';
+import { DeviceService,
+         USBCommandTimeoutException } from '@services/device/device.service';
 import { AuthService } from '@services/auth/auth.service';
 import { DeviceRegistryService } from '@services/device-registry/device-registry.service';
 import { DialogService } from '@services/dialog/dialog.service';
 import { CompanyService } from '@services/company/company.service';
-import { DeviceIncomingData, ProvisioningSettings, USBCommandType } from '@shared-with-electron';
+import { DeviceIncomingData,
+         ProvisioningSettings,
+         USBCommandType } from '@shared-with-electron';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
-import { DialogType } from '@models/ui.models';
 import { ErrorService } from '@services/error/error.service';
-import { ApiResult, SuccessApiResponse, ProvisioningClaimResponse, Sensor } from '@models';
+import { ApiResult,
+         DialogType,
+         SuccessApiResponse,
+         ProvisioningClaimResponse,
+         Sensor } from '@models';
 
 
 @Component({
@@ -106,10 +115,8 @@ export class ProvisioningComponent implements OnInit {
   }
 
   private async checkIfSensorExists(): Promise<Nullable<Sensor>> {
-
-    const thingName = this.deviceService.getSerialNumber();
+    const thingName = this.deviceService.serialNumber();
     return firstValueFrom(this.deviceRegistryService.checkSensorExists(thingName));
-
   }
 
   private async createClaim(): Promise<Nullable<ProvisioningSettings>> {
@@ -134,11 +141,11 @@ export class ProvisioningComponent implements OnInit {
 
   }
 
-  private async sendProvisioningSettingsToDevice(claim: ProvisioningSettings): Promise<DeviceIncomingData | void> {
- 
+  private async sendProvisioningSettingsToDevice(
+    claim: ProvisioningSettings
+  ): Promise<DeviceIncomingData | void> {
       return this.deviceService
                  .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, claim);
-
   }
 
 }

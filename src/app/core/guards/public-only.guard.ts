@@ -1,8 +1,10 @@
 import { map } from 'rxjs/operators';
+
 import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { toObservable } from '@angular/core/rxjs-interop';
+
 import { AuthService } from '@services/auth/auth.service';
 
 

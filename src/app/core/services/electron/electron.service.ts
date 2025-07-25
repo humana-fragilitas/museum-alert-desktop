@@ -2,7 +2,9 @@ import { ipcRenderer, webFrame } from 'electron';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
 
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
+
+import { WINDOW } from '@tokens/window';
 
 
 @Injectable({
@@ -15,27 +17,27 @@ export class ElectronService {
   childProcess!: typeof childProcess;
   fs!: typeof fs;
 
-  constructor() {
+  constructor(@Inject(WINDOW) private win: Window) {
 
     // Conditional imports
     if (this.isElectron) {
 
-      this.ipcRenderer = (window as any).require('electron').ipcRenderer;
-      this.webFrame = (window as any).require('electron').webFrame;
+      this.ipcRenderer = (win as any).require('electron').ipcRenderer;
+      this.webFrame = (win as any).require('electron').webFrame;
 
-      this.fs = (window as any).require('fs');
+      this.fs = (win as any).require('fs');
 
-      this.childProcess = (window as any).require('child_process');
+      this.childProcess = (win as any).require('child_process');
       this.childProcess.exec('node -v', (error, stdout, stderr) => {
         if (error) {
-          console.error(`error: ${error.message}`);
+          console.error(`[ElectronService]: error: ${error.message}`);
           return;
         }
         if (stderr) {
-          console.error(`stderr: ${stderr}`);
+          console.error(`[ElectronService]: stderr: ${stderr}`);
           return;
         }
-        console.log(`stdout:\n${stdout}`);
+        console.log(`[ElectronService]: stdout:\n${stdout}`);
       });
 
       /**
@@ -55,7 +57,7 @@ export class ElectronService {
   }
 
   get isElectron(): boolean {
-    return !!(window && window.process && window.process.type);
+    return !!(this.win && this.win.process && this.win.process.type);
   }
 
 }

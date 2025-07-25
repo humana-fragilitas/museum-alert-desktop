@@ -1,7 +1,7 @@
 import { TranslatePipe } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 
-import { Component, OnInit, OnDestroy, input, computed, effect, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, input, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
@@ -19,22 +19,17 @@ import { DeviceConnectionStatusService } from '@services/device-connection-statu
   ]
 })
 export class ConnectionStatusComponent implements OnInit, OnDestroy {
-  // Convert @Input to input signal (Angular 19)
-  deviceSN = input<string>('');
-  
-  // Signal to hold the connection status
+
   private connectionStatusSignal = signal<boolean>(false);
-  
-  // Public computed signal for template use
-  public isConnected = computed(() => this.connectionStatusSignal());
-  
   private subscription?: Subscription;
 
-  constructor(
-    private readonly deviceConnectionStatusService: DeviceConnectionStatusService
-  ) {
-    // Use effect to handle subscription management
+  deviceSN = input<string>('');
+  readonly isConnected =this.connectionStatusSignal.asReadonly();
+  
+  constructor(private readonly deviceConnectionStatusService: DeviceConnectionStatusService) {
+
     effect(() => {
+
       const sn = this.deviceSN();
       
       // Clean up previous subscription
@@ -54,7 +49,9 @@ export class ConnectionStatusComponent implements OnInit, OnDestroy {
         // Reset to false when no device SN
         this.connectionStatusSignal.set(false);
       }
+
     });
+
   }
 
   ngOnInit(): void {
@@ -62,7 +59,6 @@ export class ConnectionStatusComponent implements OnInit, OnDestroy {
   }
   
   ngOnDestroy(): void {
-    // Clean up subscription on component destroy
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
