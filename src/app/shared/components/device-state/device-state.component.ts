@@ -2,10 +2,9 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { DeviceService } from '@services/device/device.service';
-import { DeviceAppState } from '@shared-with-electron/.';
+import { DeviceAppState } from '@shared-with-electron';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 
 

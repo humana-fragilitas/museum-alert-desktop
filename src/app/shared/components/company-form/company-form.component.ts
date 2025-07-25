@@ -22,7 +22,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { CompanyService } from '@services/company/company.service';
-import { ApiResult, DialogType, ErrorApiResponse, UpdateCompanyRequest, UpdateCompanyResponse } from '@models/.';
+import { ApiResult, DialogType, ErrorApiResponse, UpdateCompanyRequest, UpdateCompanyResponse } from '@models';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { DialogService } from '@services/dialog/dialog.service';
 import { ErrorService } from '@services/error/error.service';
@@ -131,8 +131,7 @@ export class CompanyFormComponent implements OnInit {
                 type: DialogType.ERROR,
                 title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
                 message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
-              },
-              dialogConfig: { disableClose: true }
+              }
             });
           }
         });

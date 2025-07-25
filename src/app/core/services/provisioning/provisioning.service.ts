@@ -7,7 +7,7 @@ import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
 import { DeviceService } from '@services/device/device.service';
 import { ApiResult,
-         ProvisioningClaimResponse } from '@models/.';
+         ProvisioningClaimResponse } from '@models';
 
 
 @Injectable({

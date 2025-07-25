@@ -11,7 +11,7 @@ import { AuthService } from '@services/auth/auth.service';
 import { ApiResult,
          ErrorApiResponse,
          SuccessApiResponse,
-         AttachPolicyResponse } from '@models/.';
+         AttachPolicyResponse } from '@models';
 import { ErrorService } from '@services/error/error.service';
 import { DialogType } from '@models/ui.models';
 import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
@@ -105,7 +105,6 @@ export class PolicyService {
           title: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_TITLE',
           message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
         },
-        dialogConfig: { disableClose: true },
         exception: exception as HttpErrorResponse | AuthenticationExpiredError,
         onClosed: () => {
           this.authenticatorService.signOut();

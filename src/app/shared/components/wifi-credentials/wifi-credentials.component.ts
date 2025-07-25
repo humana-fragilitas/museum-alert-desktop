@@ -4,10 +4,9 @@ import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { DeviceService } from '@services/device/device.service';
-import { DeviceAppState, USBCommandType, WiFiCredentials, WiFiNetwork } from '@shared-with-electron/.';
+import { DeviceAppState, USBCommandType, WiFiCredentials, WiFiNetwork } from '@shared-with-electron';
 import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { ErrorService } from '@services/error/error.service';
 

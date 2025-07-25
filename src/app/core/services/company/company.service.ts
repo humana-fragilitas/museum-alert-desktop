@@ -3,7 +3,7 @@ import { Injectable, signal, computed, effect } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
-import { SuccessApiResponse, ApiResult, ErrorApiResponse, CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '@models/.';
+import { SuccessApiResponse, ApiResult, ErrorApiResponse, CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '@models';
 
 @Injectable({
   providedIn: 'root'

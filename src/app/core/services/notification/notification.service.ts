@@ -4,7 +4,7 @@ import { Injectable, effect } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { DeviceService } from '@services/device/device.service';
-import { DeviceErrorType, DeviceMessageType } from '@shared-with-electron/.';
+import { DeviceErrorType, DeviceMessageType } from '@shared-with-electron';
 import { ErrorService } from '@services/error/error.service';
 
 

@@ -4,7 +4,6 @@ import { firstValueFrom, map } from 'rxjs';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ProvisioningService } from '@services/provisioning/provisioning.service';
 import { DeviceService, USBCommandTimeoutException } from '@services/device/device.service';
@@ -12,12 +11,11 @@ import { AuthService } from '@services/auth/auth.service';
 import { DeviceRegistryService } from '@services/device-registry/device-registry.service';
 import { DialogService } from '@services/dialog/dialog.service';
 import { CompanyService } from '@services/company/company.service';
-import { DeviceIncomingData, ProvisioningSettings, USBCommandType } from '@shared-with-electron/.';
+import { DeviceIncomingData, ProvisioningSettings, USBCommandType } from '@shared-with-electron';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { DialogType } from '@models/ui.models';
 import { ErrorService } from '@services/error/error.service';
-import { ApiResult, ProvisioningClaimResponse, Sensor } from '@models/.';
-import { SuccessApiResponse } from '@models/.';
+import { ApiResult, SuccessApiResponse, ProvisioningClaimResponse, Sensor } from '@models';
 
 
 @Component({
@@ -96,8 +94,7 @@ export class ProvisioningComponent implements OnInit {
           type: DialogType.ERROR,
           title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
           message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
-        },
-        dialogConfig: { disableClose: true }
+        }
       });
 
     } finally {

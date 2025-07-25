@@ -2,7 +2,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Injectable, signal, computed } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MqttService } from '@services/mqtt/mqtt.service';
-import { MqttCommandType, DeviceConfiguration, BaseMqttMessage } from '@models/.';
+import { MqttCommandType, DeviceConfiguration, BaseMqttMessage } from '@models';
 
 @Injectable({
   providedIn: 'root'

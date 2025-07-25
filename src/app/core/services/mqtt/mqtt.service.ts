@@ -15,7 +15,7 @@ import { PendingRequest,
          MqttCommandType,
          MqttMessageType,
          DeviceConfiguration,
-         AlarmPayload } from '@models/.';
+         AlarmPayload } from '@models';
 
 @Injectable({
   providedIn: 'root'

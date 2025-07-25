@@ -58,7 +58,7 @@ function handle401Error(dialogService: DialogService, authenticatorService: Auth
     type: DialogType.ERROR,
     title: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_TITLE',
     message: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_MESSAGE'
-  }, { disableClose: true }).subscribe(() => {
+  }).subscribe(() => {
     authenticatorService.signOut();
   });
 

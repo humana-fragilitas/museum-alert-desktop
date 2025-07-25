@@ -3,7 +3,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Component, input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { DeviceConfiguration } from '@models/.';
+import { DeviceConfiguration } from '@models';
 import { FormatDistancePipe } from '@pipes/format-distance.pipe';
 
 

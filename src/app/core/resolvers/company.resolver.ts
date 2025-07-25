@@ -6,7 +6,7 @@ import { Resolve } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { CompanyService } from '@services/company/company.service';
-import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '@models/.';
+import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '@models';
 import { ErrorService } from '@services/error/error.service';
 
 
@@ -33,7 +33,6 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
             title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
             message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
           },
-          dialogConfig: { disableClose: true },
           exception
         });
         return throwError(() => exception);

@@ -134,7 +134,7 @@ export class BeaconUrlFormComponent implements OnInit {
         type: DialogType.ERROR,
         title: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE',
         message: 'ERRORS.APPLICATION.DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE'
-      }, { disableClose: true });
+      });
     } finally {
       this.isSubmitting.set(false);
     }

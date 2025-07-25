@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 
 import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
-import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '@models/.';
+import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '@models';
 
 
 @Injectable({

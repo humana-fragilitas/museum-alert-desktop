@@ -7,10 +7,9 @@ import { Component,
          computed,
          signal,
          effect } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 
-import { DeviceAppState } from '@shared-with-electron/.';
+import { DeviceAppState } from '@shared-with-electron';
 import { MqttService } from '@services/mqtt/mqtt.service';
 import { ConnectionStatusComponent } from '@shared/components/connection-status/connection-status.component';
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';

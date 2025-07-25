@@ -1,5 +1,10 @@
 @use '@angular/material' as mat;
 
+mat-icon {
+  font-family: 'Material Icons';
+  line-height: 1em;
+}
+
 // Customize the entire app. Change :root to your selector if you want to scope the styles.
 :root {
   @include mat.slider-overrides((

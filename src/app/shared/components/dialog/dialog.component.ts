@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { DialogPayload, DialogType } from '@models/.';
+import { DialogPayload, DialogType } from '@models';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 
 

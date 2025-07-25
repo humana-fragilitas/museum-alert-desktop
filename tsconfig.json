@@ -8,10 +8,11 @@
         "@interceptors/*": ["app/core/interceptors/*"],
         "@resolvers/*": ["app/core/resolvers/*"],
         "@services/*": ["app/core/services/*"],
+        "@models": ["app/core/models"],
         "@models/*": ["app/core/models/*"],
         "@pipes/*": ["app/shared/pipes/*"],
         "@shared/*": ["app/shared/*"],
-        "@shared-with-electron/*": ["../app/shared/*"],
+        "@shared-with-electron": ["../app/shared"],
         "@tokens/*": ["app/core/tokens/*"],
         "@validators/*": ["app/shared/validators/*"]
     },

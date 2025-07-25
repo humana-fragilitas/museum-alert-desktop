@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 
 import { DialogComponent } from '@shared/components/dialog/dialog.component';
-import { DialogPayload, DialogResult } from '@models/.'
+import { DialogPayload, DialogResult } from '@models'
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class DialogService {
 
   private readonly defaultConfiguration: MatDialogConfig = {
     width: '400px',
-    disableClose: false,
+    disableClose: true,
     autoFocus: true,
     restoreFocus: true
   };

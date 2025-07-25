@@ -12,8 +12,8 @@ import { DeviceIncomingData,
          DeviceEvent,
          DeviceOutgoingData,
          DeviceErrorType,
-        USBCommandType } from '@shared-with-electron/.';
-import { PendingRequest, AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '@models/.';
+        USBCommandType } from '@shared-with-electron';
+import { PendingRequest, AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '@models';
 import { titleStyle } from '@shared/helpers/console.helper';
 
 export class USBCommandTimeoutException extends Error {

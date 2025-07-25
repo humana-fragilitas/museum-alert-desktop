@@ -1,10 +1,10 @@
-import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
+import { distinctUntilChanged, map, Observable } from 'rxjs';
 import { Injectable, signal, computed, effect } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { MqttService } from '@services/mqtt/mqtt.service';
-import { AlarmPayload, BaseMqttMessage, ConnectionStatus, DeviceConfiguration, MqttMessageType } from '@models/.';
+import { AlarmPayload, BaseMqttMessage, ConnectionStatus, DeviceConfiguration, MqttMessageType } from '@models';
 import { DeviceService } from '@services/device/device.service';
-import { DeviceErrorType, DeviceIncomingData } from '@shared-with-electron/.';
+import { DeviceErrorType } from '@shared-with-electron';
 
 @Injectable({
   providedIn: 'root'

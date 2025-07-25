@@ -1,4 +1,4 @@
-import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { Subject } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, AfterViewInit, computed, effect, signal } from '@angular/core';
@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 
 import { WiFiCredentialsComponent } from '@shared/components/wifi-credentials/wifi-credentials.component';
 import { DeviceService } from '@services/device/device.service';
-import { DeviceAppState, USBCommandType } from '@shared-with-electron/.';
+import { DeviceAppState, USBCommandType } from '@shared-with-electron';
 import { ProvisioningComponent } from '@shared/components/provisioning/provisioning.component';
 import { DeviceControlComponent } from '@shared/components/device-control/device-control.component';
 import { DeviceDiagnosticsComponent } from '@shared/components/device-diagnostics/device-diagnostics.component';

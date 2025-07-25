@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { DeviceAppState } from '@shared-with-electron/.';
+import { DeviceAppState } from '@shared-with-electron';
 import { DeviceStateComponent } from '@shared/components/device-state/device-state.component';
 import { WizardComponent } from '@shared/components/wizard-component/wizard.component';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
