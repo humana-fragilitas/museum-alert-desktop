@@ -55,10 +55,11 @@ export class DeviceRegistryService {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/things`;
     
-    return this.httpClient.get<ListThingsResponse>(apiUrl).pipe(
-      map((response: ListThingsResponse) => {
-        console.log(`[DeviceRegistryService]: found ${response.things.length} devices for company ${response.company}`);
-        return response.things;
+    return this.httpClient.get<ApiResult<ListThingsResponse>>(apiUrl).pipe(
+      map((response: ApiResult<ListThingsResponse>) => {
+        const list = (response as SuccessApiResponse<ListThingsResponse>).data;
+        console.log(`[DeviceRegistryService]: found ${list.things.length} devices for company ${list.company}`);
+        return list.things;
       }),
       catchError((exception: HttpErrorResponse) => {
         if (exception.status === HttpStatusCode.NOT_FOUND) {
