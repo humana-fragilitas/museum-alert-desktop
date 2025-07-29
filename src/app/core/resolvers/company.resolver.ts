@@ -8,6 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { CompanyService } from '@services/company/company.service';
 import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '@models';
 import { ErrorService } from '@services/error/error.service';
+import { DialogService } from '@services/dialog/dialog.service';
 
 
 @Injectable({
@@ -17,6 +18,7 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
 
   constructor(
     private companyService: CompanyService,
+    private dialogService: DialogService,
     private errorService: ErrorService
   ) {}
 
@@ -27,15 +29,24 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
       }),
       catchError((exception: HttpErrorResponse) => {
         console.error('[CompanyResolver]: failed to resolve company data:', exception.error as ErrorApiResponse);
-        this.errorService.showModal({
-          data: {
-            type: DialogType.ERROR,
-            title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
-            message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
-          },
-          exception
+
+        this.dialogService.openDialog({
+          exception,
+          title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
+          message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
         });
+
         return throwError(() => exception);
+
+        // this.errorService.showModal({
+        //   data: {
+        //     type: DialogType.ERROR,
+        //     title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
+        //     message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
+        //   },
+        //   exception
+        // });
+        // return throwError(() => exception);
       })
     );
   }

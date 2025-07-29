@@ -33,6 +33,7 @@ import { ApiResult,
 import { COMMON_MATERIAL_IMPORTS,
          FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { ErrorService } from '@services/error/error.service';
+import { DialogService } from '@services/dialog/dialog.service';
 
 
 @Component({
@@ -82,8 +83,8 @@ export class CompanyFormComponent implements OnInit {
   constructor(
     private companyService: CompanyService,
     private translateService: TranslateService,
-    private readonly errorService: ErrorService
-  ) {
+    private readonly errorService: ErrorService,
+    private readonly dialogService: DialogService) {
 
     effect(() => {
       const company = this.company();
@@ -126,14 +127,22 @@ export class CompanyFormComponent implements OnInit {
           error: (exception: HttpErrorResponse) => {
             console.error('[CompanyFormComponent]: there was an error while attempting to update company', exception.error as ErrorApiResponse);
             this.cancel();
-            this.errorService.showModal({
+
+            this.dialogService.openDialog({
               exception,
-              data: {
-                type: DialogType.ERROR,
-                title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
-                message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
-              }
+              title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
+              message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
             });
+
+            // this.errorService.showModal({
+            //   exception,
+            //   data: {
+            //     type: DialogType.ERROR,
+            //     title: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_TITLE',
+            //     message: 'ERRORS.APPLICATION.COMPANY_UPDATE_FAILED_MESSAGE'
+            //   }
+            // });
+
           }
         });
 

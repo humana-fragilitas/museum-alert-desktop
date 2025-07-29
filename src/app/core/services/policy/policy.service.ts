@@ -16,6 +16,7 @@ import { ApiResult,
 import { ErrorService } from '@services/error/error.service';
 import { DialogType } from '@models/ui.models';
 import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
+import { DialogService } from '@services/dialog/dialog.service';
 
 
 @Injectable({
@@ -29,6 +30,7 @@ export class PolicyService {
     private readonly httpClient: HttpClient, 
     private readonly authService: AuthService,
     private readonly errorService: ErrorService,
+    private readonly dialogService: DialogService,
     private readonly authenticatorService: AuthenticatorService
   ) {
 
@@ -163,22 +165,31 @@ export class PolicyService {
 
     try {
       await attemptAttach();
-    } catch (exception) {
+    } catch (exception: any) {
       console.error(
         `[PolicyService]: failed to attach IoT policy after ${maxRetries} attempts:`,
         exception
       );
-      this.errorService.showModal({
-        data: {
-          type: DialogType.ERROR,
-          title: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_TITLE',
-          message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
-        },
-        exception: exception as HttpErrorResponse | AuthenticationExpiredError,
-        onClosed: () => {
-          this.authenticatorService.signOut();
-        }
+      this.dialogService.openDialog({
+        exception,
+        title: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_TITLE',
+        message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
+      })?.subscribe(() => {
+        this.authenticatorService.signOut();
       });
+
+
+      // this.errorService.showModal({
+      //   data: {
+      //     type: DialogType.ERROR,
+      //     title: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_TITLE',
+      //     message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
+      //   },
+      //   exception: exception as HttpErrorResponse | AuthenticationExpiredError,
+      //   onClosed: () => {
+      //     this.authenticatorService.signOut();
+      //   }
+      // });
     }
     
   }

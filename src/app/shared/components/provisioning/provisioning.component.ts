@@ -97,13 +97,20 @@ export class ProvisioningComponent implements OnInit {
     } catch(exception) {
 
       console.log(`[ProvisioningComponent]: an error occurred while provisioning device`);
-      this.errorService.showModal({
+
+      // this.errorService.showModal({
+      //   exception: exception as HttpErrorResponse | USBCommandTimeoutException,
+      //   data: {
+      //     type: DialogType.ERROR,
+      //     title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
+      //     message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
+      //   }
+      // });
+
+      this.dialogService.openDialog({
         exception: exception as HttpErrorResponse | USBCommandTimeoutException,
-        data: {
-          type: DialogType.ERROR,
-          title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
-          message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
-        }
+        title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
+        message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
       });
 
     } finally {

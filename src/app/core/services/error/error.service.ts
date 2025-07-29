@@ -20,7 +20,7 @@ interface ShowModalConfig {
   exception?: HttpErrorResponse | AuthenticationExpiredError | USBCommandTimeoutException;
   data: DialogPayload;
   dialogConfig?: MatDialogConfig;
-  onClosed?: (result?: DialogResult) => void;
+  onClosed?: (result?: DialogResult | null) => void;
 }
 
 @Injectable({
@@ -49,39 +49,39 @@ export class ErrorService {
     return tag || "ERRORS.DEVICE.UNKNOWN_ERROR";
   }
 
-  showModal(config: ShowModalConfig): void {
+  // showModal(config: ShowModalConfig): void {
 
-    const { 
-      exception, 
-      data, 
-      dialogConfig, 
-      onClosed
-    } = config;
+  //   const { 
+  //     exception, 
+  //     data, 
+  //     dialogConfig, 
+  //     onClosed
+  //   } = config;
 
-    // Skip authentication errors by default (unless explicitly overridden)
-    if (exception instanceof AuthenticationExpiredError) {
-      console.log(`[ErrorService]: skipping error modal: error is of type 'AuthenticationExpiredError':`, exception);
-      return;
-    }
+  //   // Skip authentication errors by default (unless explicitly overridden)
+  //   if (exception instanceof AuthenticationExpiredError) {
+  //     console.log(`[ErrorService]: skipping error modal: error is of type 'AuthenticationExpiredError':`, exception);
+  //     return;
+  //   }
 
-    // Log the error type
-    if (exception) {
-      console.error('[ErrorService]: showing error modal for error:', exception.error as ErrorApiResponse);
-    } else {
-      console.error('[ErrorService]: showing generic error modal');
-    }
+  //   // Log the error type
+  //   if (exception) {
+  //     console.error('[ErrorService]: showing error modal for error:', exception.error as ErrorApiResponse);
+  //   } else {
+  //     console.error('[ErrorService]: showing generic error modal');
+  //   }
 
-    // Open the dialog
-    const dialogObservable = this.dialogService.openDialog(data, dialogConfig);
+  //   // Open the dialog
+  //   const dialogObservable = this.dialogService.openDialog(data, dialogConfig);
 
-    // Subscribe to dialog close event if callback provided
-    if (onClosed) {
-      dialogObservable.subscribe({
-        next: (result) => onClosed(result),
-        error: (error) => console.error('[ErrorService]: dialog close error:', error)
-      });
-    }
+  //   // Subscribe to dialog close event if callback provided
+  //   if (onClosed) {
+  //     dialogObservable.subscribe({
+  //       next: (result) => onClosed(result),
+  //       error: (error) => console.error('[ErrorService]: dialog close error:', error)
+  //     });
+  //   }
     
-  }
+  // }
 
 }
