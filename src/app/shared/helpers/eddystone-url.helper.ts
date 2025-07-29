@@ -26,10 +26,10 @@ export interface UrlEncodingDebugInfo {
  * Gets the URL scheme prefix according to Eddystone-URL specification
  */
 export function getUrlSchemePrefix(url: string): number {
-  if (url.startsWith("http://www.")) return 0x00;
-  if (url.startsWith("https://www.")) return 0x01;
-  if (url.startsWith("http://")) return 0x02;
-  if (url.startsWith("https://")) return 0x03;
+  if (url.startsWith('http://www.')) return 0x00;
+  if (url.startsWith('https://www.')) return 0x01;
+  if (url.startsWith('http://')) return 0x02;
+  if (url.startsWith('https://')) return 0x03;
   return 0x03; // Default to https://
 }
 
@@ -111,11 +111,11 @@ export function encodeUrl(url: string, debug: boolean = false): UrlEncodingResul
   };
 
   if (debug) {
-    console.log("=== URL ENCODING DEBUG ===");
+    console.log('=== URL ENCODING DEBUG ===');
     console.log(`Original URL: ${url} (length: ${url.length})`);
   }
 
-  let encoded = "";
+  let encoded = '';
   let workingUrl = url;
 
   // Get scheme prefix
@@ -128,13 +128,13 @@ export function encodeUrl(url: string, debug: boolean = false): UrlEncodingResul
   }
 
   // Remove scheme
-  if (workingUrl.startsWith("http://www.")) {
+  if (workingUrl.startsWith('http://www.')) {
     workingUrl = workingUrl.substring(11);
-  } else if (workingUrl.startsWith("https://www.")) {
+  } else if (workingUrl.startsWith('https://www.')) {
     workingUrl = workingUrl.substring(12);
-  } else if (workingUrl.startsWith("http://")) {
+  } else if (workingUrl.startsWith('http://')) {
     workingUrl = workingUrl.substring(7);
-  } else if (workingUrl.startsWith("https://")) {
+  } else if (workingUrl.startsWith('https://')) {
     workingUrl = workingUrl.substring(8);
   }
 
@@ -151,7 +151,7 @@ export function encodeUrl(url: string, debug: boolean = false): UrlEncodingResul
   debugInfo.afterCompressionLength = workingUrl.length;
 
   if (debug) {
-    let compressionDisplay = "";
+    let compressionDisplay = '';
     for (let i = 0; i < workingUrl.length; i++) {
       const charCode = workingUrl.charCodeAt(i);
       if (charCode >= 32 && charCode <= 126) {
@@ -167,16 +167,16 @@ export function encodeUrl(url: string, debug: boolean = false): UrlEncodingResul
   debugInfo.finalLength = encoded.length;
 
   // Generate hex representation
-  let hexString = "";
+  let hexString = '';
   for (let i = 0; i < encoded.length; i++) {
-    hexString += encoded.charCodeAt(i).toString(16).padStart(2, '0').toUpperCase() + " ";
+    hexString += encoded.charCodeAt(i).toString(16).padStart(2, '0').toUpperCase() + ' ';
   }
   debugInfo.finalEncodedHex = hexString.trim();
 
   if (debug) {
     console.log(`Final encoded length: ${encoded.length} bytes`);
     console.log(`Final encoded (hex): ${hexString}`);
-    console.log("=========================");
+    console.log('=========================');
   }
 
   const result: UrlEncodingResult = {

@@ -1,7 +1,7 @@
-import { HttpErrorResponse } from "@angular/common/http";
+import { HttpErrorResponse } from '@angular/common/http';
 
-import { AuthenticationExpiredError } from "@interceptors/auth-token.interceptor";
-import { USBCommandTimeoutException } from "@services/device/device.service";
+import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
+import { USBCommandTimeoutException } from '@services/device/device.service';
 
 
 export enum DialogType {
