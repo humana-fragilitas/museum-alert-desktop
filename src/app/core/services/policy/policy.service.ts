@@ -127,6 +127,8 @@ export class PolicyService {
           `attempt number: ${attempt}/${maxRetries}`
         );
 
+        // Switch to this when browsing the WEST-2 deployment
+        // const apiUrl = `${APP_CONFIG.aws.apiGateway}/iot/attach-policy`;
         const apiUrl = `${APP_CONFIG.aws.apiGateway}/user-policy`;
         
         // Convert Observable to Promise for consistent async/await pattern
