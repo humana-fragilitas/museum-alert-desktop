@@ -1,11 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { CompanyFormComponent } from '../../shared/components/company-form/company-form.component';
-import { CompanyService } from '../../core/services/company/company.service';
-import { CommonModule } from '@angular/common';
-import { AuthService } from '../../core/services/auth/auth.service';
-import { COMMON_MATERIAL_IMPORTS, FORM_MATERIAL_IMPORTS } from '../../shared/utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { Component,
+         OnInit } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
+import { CompanyFormComponent } from '@shared/components/company-form/company-form.component';
+import { CompanyService } from '@services/company/company.service';
+import { AuthService } from '@services/auth/auth.service';
+import { COMMON_MATERIAL_IMPORTS,
+         FORM_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 
 
 @Component({
@@ -26,7 +30,7 @@ export class ProfileComponent implements OnInit {
 
   public readonly displayedColumns: string[] = ['username', 'role', 'joined'];
   public readonly loginId = this.authService.userLoginId;
-  public readonly company$ = this.companyService.company$;
+  public readonly company = this.companyService.organization;
 
   constructor(
     private companyService: CompanyService,
@@ -34,7 +38,7 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    console.log('ProfileComponent INIT');
+    console.log('[ProfileComponent] ngOnInit');
   }
 
 }

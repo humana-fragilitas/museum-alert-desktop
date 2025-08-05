@@ -1,3 +1,5 @@
+// TO DO: simplify this models both here and in the corresponding lambda
+
 
 export interface CompanyMember {
   email: string;

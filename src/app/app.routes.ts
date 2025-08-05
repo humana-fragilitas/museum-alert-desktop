@@ -1,11 +1,13 @@
 // app/app.routes.ts
 import { Routes } from '@angular/router';
+
 import { HomeComponent } from './pages/home/home.component';
 import { DeviceComponent } from './pages/device/device.component';
 import { ProfileComponent } from './pages/profile/profile.component';
-import { CompanyResolver } from './core/resolvers/company.resolver';
-import { userSessionGuard } from './core/guards/user-session.guard';
-import { publicOnlyGuard } from './core/guards/public-only.guard';
+import { CompanyResolver } from '@resolvers/company.resolver';
+import { userSessionGuard } from '@guards/user-session.guard';
+import { publicOnlyGuard } from '@guards/public-only.guard';
+
 
 export const routes: Routes = [
   {

@@ -4,8 +4,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 
 import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
-import { APP_CONFIG } from './environments/environment';
-import { initializeConditionalConsole } from './app/shared/helpers/console.helper';
+import { APP_CONFIG } from '@env/environment';
+import { initializeConditionalConsole } from '@shared/helpers/console.helper';
 
 // Environment setup
 if (APP_CONFIG.production) {

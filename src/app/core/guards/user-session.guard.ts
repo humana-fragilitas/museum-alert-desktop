@@ -1,20 +1,27 @@
+import { map } from 'rxjs/operators';
+
 import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { map } from 'rxjs/operators';
-import { AuthService } from '../services/auth/auth.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+
+import { AuthService } from '@services/auth/auth.service';
+
 
 export const userSessionGuard: CanActivateFn = (route, state) => {
+
   const authService = inject(AuthService);
   const router = inject(Router);
   
-  return authService.user$.pipe(
+  return toObservable(authService.user).pipe(
     map(user => {
       if (user) {
-        console.log('User session valid, allowing access');
+        console.log(`[userSessionGuard]: authenticated user is allowed to browse ` +
+          `private only route '${state.url}'`);
         return true;
       } else {
-        console.log('No valid user session, redirecting to index');
+        console.log(`[userSessionGuard]: authenticated user is not allowed to browse ` +
+          `private only route '${state.url}'; redirecting to /index`);
         router.navigate(['/index']);
         return false;
       }

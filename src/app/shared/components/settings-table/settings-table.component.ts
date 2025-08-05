@@ -1,10 +1,12 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { DeviceConfiguration } from '../../../core/models';
-import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
 import { TranslatePipe } from '@ngx-translate/core';
- 
+
+import { Component, input, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { DeviceConfiguration } from '@models';
+import { FormatDistancePipe } from '@pipes/format-distance.pipe';
+
+
 @Component({
   selector: 'app-settings-table',
   templateUrl: './settings-table.component.html',
@@ -16,13 +18,10 @@ import { TranslatePipe } from '@ngx-translate/core';
   ]
 })
 export class SettingsTableComponent implements OnInit {
-
-  @Input() data$!: Observable<DeviceConfiguration | null>;
+  
+  data = input<DeviceConfiguration | null>(null);
 
   ngOnInit(): void {
-
     console.log('SettingsTableComponent INIT');
-    
   }
-  
 }

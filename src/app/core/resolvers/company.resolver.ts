@@ -1,40 +1,54 @@
-// src/app/core/resolvers/company.resolver.ts
+import { Observable, catchError, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
 import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
-import { Observable, of, catchError, throwError } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { CompanyService } from '../services/company/company.service';
-import { CompanyWithUserContext, DialogType } from '../models';
-import { NotificationService } from '../services/notification/notification.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { DialogService } from '../services/dialog/dialog.service';
+
+import { CompanyService } from '@services/company/company.service';
+import { ApiResult, CompanyWithUserContext, DialogType, ErrorApiResponse } from '@models';
+import { ErrorService } from '@services/error/error.service';
+import { DialogService } from '@services/dialog/dialog.service';
+
 
 @Injectable({
   providedIn: 'root'
 })
-export class CompanyResolver implements Resolve<CompanyWithUserContext | null> {
+export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWithUserContext>>> {
 
   constructor(
     private companyService: CompanyService,
-    private notificationService: NotificationService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private errorService: ErrorService
   ) {}
 
-  resolve(): Observable<CompanyWithUserContext | null> {
-    return this.companyService.get().pipe(
-      map((response: CompanyWithUserContext | null) => {
-        console.log('Company data resolved:', response);
-        return response;
+  resolve(): Observable<ApiResult<CompanyWithUserContext>> {
+    return this.companyService.fetch().pipe(
+      tap((response: ApiResult<CompanyWithUserContext>) => {
+        console.log('[CompanyResolver]: resolved company data:', response);
       }),
-      catchError((error: HttpErrorResponse) => {
-        console.error('Failed to resolve company data:', error);
-          this.dialogService.openDialog({
-            type: DialogType.ERROR,
-            title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
-            message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
-          }, { disableClose: true });
-        return throwError(() => error);
+      catchError((exception: HttpErrorResponse) => {
+        console.error('[CompanyResolver]: failed to resolve company data:', exception.error as ErrorApiResponse);
+
+        this.dialogService.openDialog({
+          exception,
+          title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
+          message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
+        });
+
+        return throwError(() => exception);
+
+        // this.errorService.showModal({
+        //   data: {
+        //     type: DialogType.ERROR,
+        //     title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
+        //     message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
+        //   },
+        //   exception
+        // });
+        // return throwError(() => exception);
       })
     );
   }
+  
 }

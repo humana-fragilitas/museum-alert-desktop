@@ -1,12 +1,13 @@
-import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth/auth.service';
-import { APP_CONFIG } from '../../../environments/environment';
 import { catchError, Observable, throwError } from 'rxjs';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { DialogService } from '../services/dialog/dialog.service';
-import { DialogType } from '../models/ui.models';
-import { HttpStatusCode } from '../models/api.models';
+
+import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+
+import { DialogService } from '@services/dialog/dialog.service';
+import { DialogType, HttpStatusCode } from '@models';
+import { AuthService } from '@services/auth/auth.service';
+import { APP_CONFIG } from '@env/environment';
 
 // Custom error class to distinguish handled 401s
 export class AuthenticationExpiredError extends Error {
@@ -33,18 +34,13 @@ export const authTokenInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
       return throwError(() => error);
     })
   );
+
 };
 
-function addAuthToken(req: HttpRequest<any>, authService: AuthService): HttpRequest<any> {
+function addAuthToken(req: HttpRequest<unknown>, authService: AuthService): HttpRequest<unknown> {
 
-  const idToken = authService.sessionData
-    .value
-    ?.tokens
-    ?.idToken
-    ?.toString();
-  
+  const idToken = authService.idToken();                     
   const allowedBasePath = APP_CONFIG.aws.apiGateway;
-  
   if (req.url.startsWith(allowedBasePath) && idToken) {
     const reqWithHeader = req.clone({
       headers: req.headers.set('Authorization', idToken),
@@ -61,7 +57,7 @@ function handle401Error(dialogService: DialogService, authenticatorService: Auth
     type: DialogType.ERROR,
     title: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_TITLE',
     message: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_MESSAGE'
-  }, { disableClose: true }).subscribe(() => {
+  }).subscribe(() => {
     authenticatorService.signOut();
   });
 

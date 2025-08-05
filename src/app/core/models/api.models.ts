@@ -10,6 +10,8 @@ export interface ErrorApiResponse {
   details?: any; // Optional additional details
 }
 
+export type ApiResult<T> = SuccessApiResponse<T> | ErrorApiResponse;
+
 // Source: https://gist.github.com/scokmen/f813c904ef79022e84ab2409574d1b45
 export enum HttpStatusCode {
 

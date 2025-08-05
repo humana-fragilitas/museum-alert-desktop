@@ -1,9 +1,12 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
-import { DeviceConnectionStatusService } from '../../../core/services/device-connection-status/device-connection-status.service';
+import { Subscription } from 'rxjs';
+
+import { Component, OnInit, OnDestroy, input, effect, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { DeviceConnectionStatusService } from '@services/device-connection-status/device-connection-status.service';
+
 
 @Component({
   selector: 'app-connection-status',
@@ -15,26 +18,49 @@ import { DeviceConnectionStatusService } from '../../../core/services/device-con
     ...COMMON_MATERIAL_IMPORTS
   ]
 })
-export class ConnectionStatusComponent implements OnInit, OnChanges {
+export class ConnectionStatusComponent implements OnInit, OnDestroy {
 
-  @Input() deviceSN: string = '';
+  private connectionStatusSignal = signal<boolean>(false);
+  private subscription?: Subscription;
+
+  deviceSN = input<string>('');
+  readonly isConnected =this.connectionStatusSignal.asReadonly();
   
-  public deviceConnectionStatus$!: Observable<boolean>;
-  
-  constructor(
-    private readonly deviceConnectionStatusService: DeviceConnectionStatusService
-  ) {}
+  constructor(private readonly deviceConnectionStatusService: DeviceConnectionStatusService) {
+
+    effect(() => {
+
+      const sn = this.deviceSN();
+      
+      // Clean up previous subscription
+      if (this.subscription) {
+        this.subscription.unsubscribe();
+        this.subscription = undefined;
+      }
+      
+      if (sn) {
+        // Create new subscription when deviceSN changes
+        this.subscription = this.deviceConnectionStatusService
+          .onChange(sn)
+          .subscribe(status => {
+            this.connectionStatusSignal.set(status);
+          });
+      } else {
+        // Reset to false when no device SN
+        this.connectionStatusSignal.set(false);
+      }
+
+    });
+
+  }
 
   ngOnInit(): void {
     console.log('ConnectionStatusComponent INIT');
-    
   }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['deviceSN'] && this.deviceSN) {
-      this.deviceConnectionStatus$ = this.deviceConnectionStatusService
-                                         .onChange(this.deviceSN);
+  
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
     }
   }
-
 }

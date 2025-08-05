@@ -2,20 +2,20 @@
 
   <mat-card-header class="device-status">
     <h4>{{ 'COMPONENTS.DEVICE_CONTROL.LABEL' | translate }}
-      <mat-spinner diameter="20" *ngIf="!(settings$ | async) || (isBusy$ | async)"></mat-spinner>
+      <mat-spinner diameter="20" *ngIf="!settings() || isBusy()"></mat-spinner>
     </h4>
-    <app-connection-status [deviceSN]="(serialNumber$ | async)!"></app-connection-status>
+    <app-connection-status [deviceSN]="serialNumber()"></app-connection-status>
   </mat-card-header>
 
   <mat-card-content>
 
-    <app-distance-slider [disabled]="!(isConnected$ | async)"></app-distance-slider>
+    <app-distance-slider [disabled]="!isConnected()"></app-distance-slider>
 
-    <app-beacon-url-form [disabled]="!(isConnected$ | async)"></app-beacon-url-form>
+    <app-beacon-url-form [disabled]="!isConnected()"></app-beacon-url-form>
 
     <app-settings-table
-      [data$]="settings$"
-      [style.visibility]="(settings$ | async) ? 'visible' : 'hidden'"></app-settings-table>
+      [data]="settings()"
+      [style.visibility]="settings() ? 'visible' : 'hidden'"></app-settings-table>
 
   </mat-card-content>
 

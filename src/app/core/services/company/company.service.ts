@@ -1,37 +1,43 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, finalize, map, Observable, of, tap, throwError } from 'rxjs';
-import { APP_CONFIG } from '../../../../environments/environment';
+import { catchError, EMPTY, finalize, Observable, tap, throwError } from 'rxjs';
+
+import { Injectable, signal, computed, effect } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { AuthService } from '../auth/auth.service';
-import { SuccessApiResponse } from '../../models';
-import { NotificationService } from '../notification/notification.service';
-import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '../../models';
+
+import { APP_CONFIG } from '@env/environment';
+import { AuthService } from '@services/auth/auth.service';
+import { SuccessApiResponse, ApiResult, ErrorApiResponse, CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole } from '@models';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class CompanyService {
+  
+  private readonly companySignal = signal<Nullable<CompanyWithUserContext>>(null);
+  private readonly isFetchingCompanySignal = signal<boolean>(false);
+  private readonly sessionDataSignal = this.authService.sessionData;
 
-  private readonly company = new BehaviorSubject<
-    Nullable<CompanyWithUserContext>
-  >(null);
-  private readonly isFetchingCompany = new BehaviorSubject<
-    boolean
-  >(false);
+  readonly company = this.companySignal;
+  readonly isFetchingCompany = this.isFetchingCompanySignal;
 
-  public readonly company$ = this.company.asObservable();
-  public readonly isFetchingCompany$ = this.isFetchingCompany.asObservable();
+  readonly organization = this.companySignal.asReadonly();
+  readonly isOwner = computed(() => {
+    const company = this.companySignal();
+    return company?.userRole === CompanyRole.OWNER;
+  });
 
-  constructor(
-    private httpClient: HttpClient,
-    private authService: AuthService,
-    private notificationService: NotificationService
-  ) {
-
-    this.authService.sessionData.subscribe((session) => {
+  constructor(private httpClient: HttpClient, private authService: AuthService) {
+    
+    effect(() => {
+      const session = this.sessionDataSignal();
       if (session) {
-        this.get().subscribe();
+        this.fetch().pipe(
+          catchError(exception => {
+            console.error('[CompanyService]: failed to load company data:',
+              exception.error as ErrorApiResponse);
+            return EMPTY;
+          })
+        ).subscribe();
       } else {
         this.clear();
       }
@@ -39,35 +45,26 @@ export class CompanyService {
 
   }
 
-  setName(company: UpdateCompanyRequest): Observable<
-    SuccessApiResponse<UpdateCompanyResponse>
-  > {
+  setName(company: UpdateCompanyRequest): Observable<ApiResult<UpdateCompanyResponse>> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
-    
-    return this.httpClient.put<
-      SuccessApiResponse<UpdateCompanyResponse>
-    >(apiUrl, { companyName: company.companyName }).pipe(
-      tap((response: SuccessApiResponse<UpdateCompanyResponse>) => {
-
-        // Preserve user context from current company data
-        const currentCompany = this.company.value;
-
+    return this.httpClient.put<ApiResult<UpdateCompanyResponse>>(apiUrl, { companyName: company.companyName }).pipe(
+      tap((response: ApiResult<UpdateCompanyResponse>) => {
+        const currentCompany = this.companySignal();
         if (currentCompany) {
           const updatedCompanyWithContext: CompanyWithUserContext = {
-            ...response.data.company,
+            ...(response as SuccessApiResponse<UpdateCompanyResponse>).data.company,
             userRole: currentCompany.userRole,
             userJoinedAt: currentCompany.userJoinedAt
           };
-          this.company.next(updatedCompanyWithContext);
+          this.companySignal.set(updatedCompanyWithContext);
         }
-
       }),
       catchError((exception: HttpErrorResponse) => {
-        console.error('Error updating company name:', exception);
+        console.error('[CompanyService]: error updating company name:',
+          exception.error as ErrorApiResponse);
         return throwError(() => exception);
       })
-
     );
 
   }
@@ -75,55 +72,30 @@ export class CompanyService {
   /**
    * Get company data (loads fresh from API)
    */
-  get(): Observable<Nullable<CompanyWithUserContext>> {
+  fetch(): Observable<ApiResult<CompanyWithUserContext>> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
+    this.isFetchingCompanySignal.set(true);
     
-    this.isFetchingCompany.next(true);
-
-    return this.httpClient.get<
-      SuccessApiResponse<CompanyWithUserContext>
-    >(apiUrl).pipe(
-
-      tap(
-        (response: SuccessApiResponse<CompanyWithUserContext>) => {
-          this.company.next(response.data);
+    return this.httpClient.get<ApiResult<CompanyWithUserContext>>(apiUrl).pipe(
+      tap((response: ApiResult<CompanyWithUserContext>) => {
+        if ('data' in response) {
+          this.companySignal.set(response.data);
         }
-      ),
-
-      map(
-        (response: SuccessApiResponse<CompanyWithUserContext>) => 
-          response.data
-      ),
-
+      }),
       catchError((exception: HttpErrorResponse) => {
-        console.error('Error fetching company:', exception);
+        console.error('[CompanyService]: error fetching company:', exception.error as ErrorApiResponse);
         return throwError(() => exception);
       }),
-
       finalize(() => {
-        this.isFetchingCompany.next(false);
+        this.isFetchingCompanySignal.set(false);
       })
-
     );
-
-  }
-
-  get currentCompany(): Nullable<CompanyWithUserContext> {
-    return this.company.value;
-  }
-
-  get isOwner(): boolean {
-    const company = this.currentCompany;
-    return company?.userRole === CompanyRole.OWNER;
+    
   }
 
   clear(): void {
-    this.company.next(null);
-  }
-
-  get hasCompanyData(): boolean {
-    return this.currentCompany !== null;
+    this.companySignal.set(null);
   }
 
 }

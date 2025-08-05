@@ -1,10 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DeviceService } from '../../../core/services/device/device.service';
-import { FormatDistancePipe } from '../../pipes/format-distance.pipe';
-import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { Component, OnInit, signal, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { DeviceService } from '@services/device/device.service';
+import { FormatDistancePipe } from '@pipes/format-distance.pipe';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+
 
 @Component({
   selector: 'app-device-diagnostics',
@@ -17,29 +19,25 @@ import { TranslatePipe } from '@ngx-translate/core';
     ...COMMON_MATERIAL_IMPORTS
   ]
 })
-export class DeviceDiagnosticsComponent implements OnInit, OnDestroy {
+export class DeviceDiagnosticsComponent implements OnInit {
+  
+  readonly alarm = this.deviceService.alarm;
+  readonly flashOnChange = signal<boolean>(false);
 
-  private alarmSubscription!: Subscription;
-  public flashOnChange = false;
-
-  constructor(
-    public readonly deviceService: DeviceService
-  ) {};
-
-  ngOnInit(): void {
-
-    console.log('DeviceDiagnosticsComponent INIT');
-
-    this.alarmSubscription = this.deviceService.alarm$.subscribe((alarm) => {  
-      this.flashOnChange = true;
-      console.log('flashOnChange:', alarm);
-        setTimeout(() => this.flashOnChange = false, 1000);
-      });
-
+  constructor(public readonly deviceService: DeviceService) {
+    
+    effect(() => {
+      const alarm = this.alarm();
+      if (alarm) {
+        this.flashOnChange.set(true);
+        setTimeout(() => this.flashOnChange.set(false), 1000);
+      }
+    });
+    
   }
 
-  ngOnDestroy(): void {
-    this.alarmSubscription?.unsubscribe();
+  ngOnInit(): void {
+    console.log('DeviceDiagnosticsComponent INIT');
   }
 
 }

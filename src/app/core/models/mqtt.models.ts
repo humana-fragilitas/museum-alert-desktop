@@ -10,7 +10,7 @@ export enum MqttMessageType {
   ALARM,
   CONNECTION_STATUS,
   CONFIGURATION,
-  ACK
+  ACKNOWLEGDE
 }
 
 // Incoming messages:
@@ -51,16 +51,12 @@ export interface BaseMqttMessage<T> {
   data: T;
 }
 
-// TO DO: is it needed?
-interface ResetCommand {
-  type: MqttMessageType
-}
-
 // Type mapping for each message type
 type MessageDataMap = {
   [MqttMessageType.ALARM]: AlarmPayload;
   [MqttMessageType.CONNECTION_STATUS]: ConnectionStatus;
   [MqttMessageType.CONFIGURATION]: DeviceConfiguration;
+  [MqttMessageType.ACKNOWLEGDE]: void;
 }
 
 // Final discriminated union type

@@ -1,10 +1,12 @@
-<app-nav-bar *ngIf="user$ | async"></app-nav-bar>
+<app-nav-bar *ngIf="user()"></app-nav-bar>
 
 <div class="container">
-
     <img src="assets/images/museum_alert_logo.svg" class="logo">
     <router-outlet></router-outlet>
-
 </div>
+
+<button (click)="cancelSession()">No Session Baby!</button>
+
+
 
 

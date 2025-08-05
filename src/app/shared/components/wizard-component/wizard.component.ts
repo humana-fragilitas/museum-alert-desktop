@@ -1,15 +1,26 @@
-import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation, AfterViewInit } from '@angular/core';
-import { WiFiCredentialsComponent } from '../wifi-credentials/wifi-credentials.component';
-import { DeviceService } from '../../../core/services/device/device.service';
-import { combineLatest, Subject, takeUntil } from 'rxjs';
-import { DeviceAppState, USBCommandType } from '../../../../../app/shared/models';
+import { Subject } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { Component,
+         OnDestroy,
+         OnInit,
+         ViewChild,
+         ViewEncapsulation,
+         AfterViewInit,
+         computed,
+         effect,
+         signal } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { CommonModule } from '@angular/common';
-import { ProvisioningComponent } from '../provisioning/provisioning.component';
-import { DeviceControlComponent } from '../device-control/device-control.component';
-import { DeviceDiagnosticsComponent } from '../device-diagnostics/device-diagnostics.component';
-import { COMMON_MATERIAL_IMPORTS } from '../../utils/material-imports';
-import { TranslatePipe } from '@ngx-translate/core';
+
+import { WiFiCredentialsComponent } from '@shared/components/wifi-credentials/wifi-credentials.component';
+import { DeviceService } from '@services/device/device.service';
+import { DeviceAppState,
+         USBCommandType } from '@shared-with-electron';
+import { ProvisioningComponent } from '@shared/components/provisioning/provisioning.component';
+import { DeviceControlComponent } from '@shared/components/device-control/device-control.component';
+import { DeviceDiagnosticsComponent } from '@shared/components/device-diagnostics/device-diagnostics.component';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 
 @Component({
   selector: 'app-wizard',
@@ -29,57 +40,56 @@ import { TranslatePipe } from '@ngx-translate/core';
 export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
-
-  isVisible: boolean = false;
-  isReady: boolean = false;
-  hasFatalError: boolean = false;
-  isRequestingReset: boolean = false;
-
+  private usbConnectionStatus = signal<boolean>(false);
+  private deviceAppStatus = signal<Nullable<DeviceAppState>>(null);
+  
+  readonly isVisible = this.usbConnectionStatus.asReadonly();
+  readonly isReady = computed(() => {
+    const appStatus = this.deviceAppStatus();
+    return appStatus != DeviceAppState.STARTED && appStatus != DeviceAppState.FATAL_ERROR;
+  });
+  readonly hasFatalError = computed(() => this.deviceAppStatus() == DeviceAppState.FATAL_ERROR);
+  readonly isRequestingReset = signal<boolean>(false);
+  
   @ViewChild('stepper') stepper!: MatStepper;
-
+  
   private latestAppStatus: Nullable<DeviceAppState> = null;
-
+  
   constructor(
     public deviceService: DeviceService
-  ) {}
+  ) {
+
+    effect(() => {
+      const appStatus = this.deviceAppStatus();
+      this.latestAppStatus = appStatus;
+      if (this.stepper) {
+        this.setStepperState(appStatus);
+      }
+    });
+
+    effect(() => {
+      const isConnected = this.deviceService.usbConnectionStatus();
+      const appStatus = this.deviceService.deviceAppStatus();
+      this.usbConnectionStatus.set(isConnected);
+      this.deviceAppStatus.set(appStatus);
+    });
+  }
 
   ngOnInit(): void {
     console.log('WizardComponent INIT');
-
-    combineLatest([
-      this.deviceService.usbConnectionStatus$,
-      this.deviceService.deviceAppStatus$
-    ])
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(([isConnected, appStatus]) => {
-        this.isVisible = isConnected;
-        this.isReady = (appStatus != DeviceAppState.STARTED &&
-                        appStatus != DeviceAppState.FATAL_ERROR);
-        this.hasFatalError = (appStatus == DeviceAppState.FATAL_ERROR);  
-
-        this.latestAppStatus = appStatus;
-        if (this.stepper) {
-          this.setStepperState(appStatus);
-        }
-      });
-
+    
     // TO DO: remove after testing
     // this.isReady = false;
     // this.isVisible = true;
     // this.hasFatalError = true;
-   
-
   }
 
   ngAfterViewInit(): void {
-
     if (this.latestAppStatus) {
       this.setStepperState(this.latestAppStatus);
     }
-
-     // TO DO: remove after testing
-    //  this.setStepperState(DeviceAppState.FATAL_ERROR);
-
+    // TO DO: remove after testing
+    // this.setStepperState(DeviceAppState.FATAL_ERROR);
   }
 
   ngOnDestroy(): void {
@@ -88,7 +98,6 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setStepperState(state: Nullable<DeviceAppState>) {
-
     switch (state) {
       case DeviceAppState.CONFIGURE_WIFI:
         this.onStep(0);
@@ -103,37 +112,29 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.onStep(3);
         break;
     }
-
   }
 
- onStep(index: number) {
-
-  const stepsArray = Array.from(this.stepper.steps);
-  const stepsArrayLength = stepsArray.length;
-
+  onStep(index: number) {
+    const stepsArray = Array.from(this.stepper.steps);
+    const stepsArrayLength = stepsArray.length;
     stepsArray.forEach((step, i, arr) => {
-
       const isDone = (i < index) || (index == (stepsArrayLength - 1));
       step.completed = isDone;
       step.editable = false;
       step.state = isDone ? 'done' : 'number';
       this.stepper.selectedIndex = i;
-      
     });
-
   }
 
   async reset() {
-
-    this.isRequestingReset = true
-    this.deviceService.asyncSendData(USBCommandType.HARD_RESET, null).then(() => {
-      this.isRequestingReset = false;
-    }).catch(() => {  
-      this.isRequestingReset = false;
+    this.isRequestingReset.set(true);
+    this.deviceService.sendUSBCommand(USBCommandType.HARD_RESET, null).then(() => {
+      this.isRequestingReset.set(false);
+    }).catch(() => {
+      this.isRequestingReset.set(false);
     }).finally(() => {
-      this.isRequestingReset = false;
+      this.isRequestingReset.set(false);
     });
-
   }
-
+  
 }

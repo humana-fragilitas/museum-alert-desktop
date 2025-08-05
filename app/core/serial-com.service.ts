@@ -1,12 +1,12 @@
-import {app, BrowserWindow, ipcMain, IpcMainEvent} from 'electron';
+import { BrowserWindow, ipcMain, IpcMainEvent} from 'electron';
 import { SerialPort } from 'serialport';
 import { PortInfo } from '@serialport/bindings-cpp';
 import { RegexParser } from '@serialport/parser-regex';
 import { DelimiterParser } from '@serialport/parser-delimiter';
-import { DeviceIncomingData, DeviceAppState, DeviceMessageType, DeviceOutgoingData } from '../shared/models';
+import { DeviceIncomingData, DeviceOutgoingData, DeviceEvent } from '../shared';
 import { Subject } from 'rxjs';
 
-// {"path":"/dev/tty.usbmodem3485187A35EC2","manufacturer":"Arduino","serialNumber":"3485187A35EC","locationId":"00100000","vendorId":"2341","productId":"0070"}
+
 class SerialCom {
 
     private serialPort?: SerialPort;
@@ -19,30 +19,22 @@ class SerialCom {
 
     constructor(private browserWindow: BrowserWindow) {
 
-        // Renderer to main process IPC communication
-        ipcMain.on('start-device-detection', () => {
-            this.startDeviceDetection();
-        });
-
-        ipcMain.on('close-serial-connection', () => {
-            this.closeConnection();
-        });
-
-        ipcMain.on('device-send-data', (event: IpcMainEvent, payload: DeviceOutgoingData) => {
+        // Renderer to main process communication
+        ipcMain.on(DeviceEvent.OUTGOING_DATA, (event: IpcMainEvent, payload: DeviceOutgoingData) => {
             this.sendDataToUSBDevice(payload);
         });
 
-        // Main to renderer process IPC communication
+        // Main process to renderer communication
         this.device.subscribe((device: PortInfo) => {
-            this.browserWindow.webContents.send('device-found', device);
+            this.browserWindow.webContents.send(DeviceEvent.FOUND, device);
         });
 
         this.deviceConnectionStatus.subscribe((status: boolean) => {
-            this.browserWindow.webContents.send('device-connection-status-update', status);
+            this.browserWindow.webContents.send(DeviceEvent.CONNECTION_STATUS_UPDATE, status);
         });
 
         this.deviceIncomingData.subscribe((data: DeviceIncomingData) => {   
-            this.browserWindow.webContents.send('device-incoming-data', data);
+            this.browserWindow.webContents.send(DeviceEvent.INCOMING_DATA, data);
         });
 
     }
@@ -56,21 +48,21 @@ class SerialCom {
                 SerialPort.list().then((devices) => {
                 
                     console.log(devices.length ?
-                        `Serial interfaces scanning found the following available ports: \n${JSON.stringify(devices)}` :
-                            "Serial interfaces scanning found no available ports");
+                        `[Main process: SerialCom]: serial interfaces scanning found the following available ports: \n${JSON.stringify(devices)}` :
+                            'serial interfaces scanning found no available ports');
                             
                     const device = devices.find((entry) => entry.manufacturer &&
                                                            entry.manufacturer.includes(manufacturer));
             
                     if (device) {
-                        console.log(`Found device: ${device.path} (${device.manufacturer})`);
+                        console.log(`[Main process: SerialCom]: found device: ${device.path} (${device.manufacturer})`);
                         clearInterval(interval);
                         resolve(device);
                     }
 
                 }).catch((err) => {
 
-                    console.error("Error while scanning available serial interfaces:", err);
+                    console.error('[Main process: SerialCom]: error while scanning available serial interfaces:', err);
 
                 });
 
@@ -86,45 +78,48 @@ class SerialCom {
         this.delimiterParser = this.serialPort.pipe(new DelimiterParser({delimiter: '\n' }));
         this.regexParser = this.delimiterParser.pipe(new RegexParser({ regex: /<\|(.*?)\|>/ }));
 
-        this.serialPort.on('open', () => {
-            console.log(`Opened serial connection with device ${device.path} (${device.manufacturer})`);
-            this.deviceConnectionStatus.next(true);
-        }).on('error', (err) => {
-            console.error(`Error while communicating via serial connection with device ${device.path} (${device.manufacturer}):`, err);
-            this.deviceConnectionStatus.next(false);
-        }).on('close', () => {      
-            console.log(`Closed serial connection with device ${device.path} (${device.manufacturer})`);
-            this.deviceConnectionStatus.next(false);
-        });
+        this.serialPort
+            .on('open', () => {
+                console.log(`[Main process: SerialCom]: opened serial connection with device ${device.path} (${device.manufacturer})`);
+                this.deviceConnectionStatus.next(true);
+            })
+            .on('error', (error) => {
+                console.error(`[Main process: SerialCom]: error while communicating via serial connection with device ${device.path} (${device.manufacturer}):`, error);
+                this.deviceConnectionStatus.next(false);
+            })
+            .on('close', () => {      
+                console.log(`[Main process: SerialCom]: closed serial connection with device ${device.path} (${device.manufacturer})`);
+                this.deviceConnectionStatus.next(false);
+            });
 
         this.delimiterParser.on('data', (data) => {
             const payload = data.toString().trim();     
-            console.log(`Received data via serial connection from DELIMITER PARSER: ${payload}`);  
+            console.log(`[Main process: SerialCom]: received data via serial connection from DELIMITER PARSER: ${payload}`);  
         });
 
         this.regexParser.on('data', (data) => {
             const payload = data.toString();
-            console.log(`Received data (non-log message) via serial connection from REGEX PARSER: ${payload}`);
+            console.log(`[Main process: SerialCom]: received data (non-log message) via serial connection from REGEX PARSER: ${payload}`);
             try {
                 const jsonPayload = JSON.parse(payload);
                 this.deviceIncomingData.next({ ...jsonPayload });
-            } catch(e) {
-                console.log("Data received via serial connection is not valid Json");
+            } catch(error) {
+                console.log('[Main process: SerialCom]: data received via serial connection is not valid Json: ', error);
             }
-            
         });
         
     }
 
+    // Note: this method is currently unused
     closeConnection(): void {
 
         try {
             if (this.serialPort?.isOpen) {
-            console.log('Closing existing serial connection...');
+            console.log('[Main process: SerialCom]: closing existing serial connection...');
             this.serialPort.close();
             }
         } catch (err) {
-            console.error('Error closing serial port:', err);
+            console.error('[Main process: SerialCom]: error closing serial port:', err);
         }
         this.serialPort?.removeAllListeners();
         this.delimiterParser?.removeAllListeners();
@@ -147,7 +142,7 @@ class SerialCom {
             const deviceStatusSubscription = this.deviceConnectionStatus.subscribe((status: boolean) => {
 
                 if (!status) {
-                    console.log('Device disconnected, restarting detection...');
+                    console.log('[Main process: SerialCom]: device disconnected, restarting detection...');
                     deviceStatusSubscription.unsubscribe();
                     setTimeout(() => {
                         this.startDeviceDetection();
@@ -167,9 +162,9 @@ class SerialCom {
         this.serialPort?.write(payload, (err) => {
 
             if (err) {
-                console.error('Error while sending data to device:', err);
+                console.error('[Main process: SerialCom]: error while sending data to device:', err);
             } else {
-                console.log(`Sent data to device: ${payload}`);
+                console.log(`[Main process: SerialCom]: sent data to device: ${payload}`);
             }
 
         });
@@ -178,7 +173,4 @@ class SerialCom {
 
 }
 
-export { SerialCom,
-         DeviceIncomingData,
-         DeviceAppState, 
-         DeviceMessageType };
+export default SerialCom;

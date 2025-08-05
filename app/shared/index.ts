@@ -1,10 +1,15 @@
-export type DeviceOutgoingData = WiFiCredentials | ProvisioningData | USBCommand;
+export type DeviceOutgoingData = WiFiCredentials | USBCommand | ProvisioningSettings;
 
 export type DeviceIncomingData =
   | { cid?: string, type: DeviceMessageType.APP_STATE; sn: string, data: DeviceStateUpdate }
   | { cid?: string, type: DeviceMessageType.WIFI_NETWORKS_LIST; sn: string, data: WiFiNetwork[] }
   | { cid?: string, type: DeviceMessageType.ERROR; sn: string, data: { error: DeviceErrorType }  }
-  | { cid?: string, type: DeviceMessageType; sn: string, data?: undefined };
+  | { cid?: string, type: DeviceMessageType.ACKNOWLEDGMENT; sn: string, data?: undefined };
+
+export type DeviceErrorMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.ERROR }>;
+export type DeviceStateMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.APP_STATE }>;
+export type DeviceWiFiMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.WIFI_NETWORKS_LIST }>;
+export type DeviceAckMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.ACKNOWLEDGMENT }>;
 
 export interface WiFiNetwork {
     encryptionType: number;
@@ -66,11 +71,19 @@ export interface WiFiCredentials {
     password: string;
 }
 
-export interface ProvisioningData {
-    tempCert: string;
-    tempKey: string;
+export interface ProvisioningSettings {
+    tempCertPem: string;
+    tempPrivateKey: string;
+    idToken: string;
 }
 
 export interface USBCommand {
     command: USBCommandType;
+}
+
+export enum DeviceEvent {
+    FOUND = 'device-found',
+    CONNECTION_STATUS_UPDATE = 'device-connection-status-update',
+    INCOMING_DATA = 'device-incoming-data',
+    OUTGOING_DATA = 'device-outgoing-data'
 }

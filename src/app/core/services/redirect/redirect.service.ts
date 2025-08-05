@@ -1,15 +1,27 @@
-import { Injectable, Injector, runInInjectionContext } from '@angular/core';
-import { Hub } from '@aws-amplify/core';
+import { AuthUser } from 'aws-amplify/auth';
+
+import { Injectable,
+         Injector,
+         runInInjectionContext,
+         computed,
+         effect,
+         Signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../auth/auth.service';
 import { afterNextRender } from '@angular/core';
-import { DeviceService } from '../device/device.service';
-import { combineLatest, distinctUntilChanged } from 'rxjs';
+
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceService } from '@services/device/device.service';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class RedirectService {
+
+  private readonly redirectState: Signal<{
+    user: Signal<Nullable<AuthUser>>;
+    isUsbConnected: Signal<boolean>;
+  }>;
 
   constructor(
     private authService: AuthService,
@@ -17,30 +29,28 @@ export class RedirectService {
     private router: Router,
     private injector: Injector
   ) {
+    
+    this.redirectState = computed(() => ({
+      user: this.authService.user,
+      isUsbConnected: this.deviceService.usbConnectionStatus
+    }));
 
-  combineLatest([
-      this.authService.user$,
-      this.deviceService.usbConnectionStatus$
-    ]).pipe(
-      distinctUntilChanged()
-    ).subscribe(([user, isUsbConnected]) => {
-
+    effect(() => {
+      const { user, isUsbConnected } = this.redirectState();
       const currentUrl = this.router.url;
-
       console.log('Redirect service: current url: ', currentUrl);
-      
       // Handle auth-based redirects (your original logic)
-      if (!user && currentUrl !== '/index') {
+      if (!user() && currentUrl !== '/index') {
         console.log('Session expired, redirecting to /index');
         this.navigateWithDelay(['/index']);
-      } 
+      }
       // Handle USB connection redirects (your new requirement)
-      else if (user && isUsbConnected && currentUrl !== '/device') {
+      else if (user() && isUsbConnected() && currentUrl !== '/device') {
         console.log('User authenticated and USB connected, redirecting to /device');
         this.navigateWithDelay(['/device']);
       }
       // Handle authenticated user without USB connection
-      else if (user && !isUsbConnected && currentUrl === '/index') {
+      else if (user() && !isUsbConnected() && currentUrl === '/index') {
         console.log('User authenticated but no USB connected, could redirect to profile or stay');
         this.navigateWithDelay(['/device']);
       }
@@ -49,11 +59,11 @@ export class RedirectService {
   }
 
   private navigateWithDelay(target: string[]): void {
-  runInInjectionContext(this.injector, () => {
-    afterNextRender(() => {
-      this.router.navigate(target);
+    runInInjectionContext(this.injector, () => {
+      afterNextRender(() => {
+        this.router.navigate(target);
+      });
     });
-  });
-}
+  }
 
 }

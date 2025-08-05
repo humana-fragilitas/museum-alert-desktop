@@ -39,7 +39,12 @@
             "styles": [
               "src/styles.scss",
               "node_modules/@aws-amplify/ui-angular/theme.css",
-              "@angular/material/prebuilt-themes/azure-blue.css"
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "@fontsource/roboto/300.css",
+              "@fontsource/roboto/400.css", 
+              "@fontsource/roboto/500.css",
+              "@fontsource/roboto/700.css",
+              "@fontsource/material-icons/index.css"
             ],
             "scripts": [],
             "customWebpackConfig": {

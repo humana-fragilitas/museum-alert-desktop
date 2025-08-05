@@ -144,7 +144,11 @@
       "COMPANY_UPDATE_FAILED_TITLE": "An Error Occurred",
       "COMPANY_UPDATE_FAILED_MESSAGE": "Cannot update company data. Please try again later.",
       "DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE": "An Error Occurred",
-      "DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE": "Did not receive a response from the device after sending the configuration update command; settings may not have been updated."
+      "DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE": "Did not receive a response from the device after sending the configuration update command; settings may not have been updated.",
+      "WIFI_CREDENTIALS_COMMAND_TIMED_OUT": "WiFi credentials command timed out; please retry.",
+      "WIFI_NETWORKS_REFRESH_COMMAND_TIMED_OUT": "WiFi networks refresh request timed out; please retry.",
+      "IOT_POLICY_ATTACHMENT_FAILED_TITLE": "An Error Occurred",
+      "IOT_POLICY_ATTACHMENT_FAILED_MESSAGE": "It was not possible to complete your registration; please log in again"
     }
   }
 }

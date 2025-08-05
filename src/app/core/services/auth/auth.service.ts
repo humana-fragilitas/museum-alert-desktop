@@ -1,17 +1,15 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { fetchAuthSession,
          FetchAuthSessionOptions,
          AuthSession,
          getCurrentUser,
          fetchUserAttributes,
          GetCurrentUserOutput,
-        FetchUserAttributesOutput } from 'aws-amplify/auth';
-import { Amplify } from 'aws-amplify';
-import { APP_CONFIG } from '../../../../environments/environment';
+         FetchUserAttributesOutput } from 'aws-amplify/auth';
 import { Hub, HubCapsule } from '@aws-amplify/core';
 import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
-import { titleStyle } from '../../../shared/helpers/console.helper';
+
+import { Injectable, signal, computed, effect } from '@angular/core';
+import { titleStyle } from '@shared/helpers/console.helper';
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({
@@ -20,152 +18,143 @@ import { titleStyle } from '../../../shared/helpers/console.helper';
 export class AuthService {
 
   private timeOutId: number = 0;
+  private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
+  private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
+  private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
 
-  // To be used only to retrieve authentication tokens and AWS credentials
-  readonly sessionData = new BehaviorSubject<Nullable<AuthSession>>(
-    null
+  readonly sessionData = this.sessionDataSignal.asReadonly();
+  readonly user = this.userSignal.asReadonly();
+  readonly userAttributes = this.userAttributesSignal.asReadonly();
+
+  readonly userLoginId = computed(() => 
+    this.userSignal()?.signInDetails?.loginId || ''
   );
-  // To be used to check if the user is authenticated
-  private readonly user = new BehaviorSubject<Nullable<GetCurrentUserOutput>>(null);
-  // To be used to retrieve user attributes (e.g.: email, company, etc.)
-  private readonly userAttributes = new BehaviorSubject<Nullable<FetchUserAttributesOutput>>(null);
-
-  public readonly sessionData$ = this.sessionData.asObservable();
-  public readonly user$ = this.user.asObservable();
-  public readonly userAttributes$ = this.userAttributes.asObservable();
+  readonly company = computed(() => 
+    this.sessionDataSignal()?.tokens?.idToken?.payload?.['custom:Company'] as string || ''
+  );
+  readonly hasPolicy = computed(() => 
+    this.sessionDataSignal()?.tokens?.idToken?.payload?.['custom:hasPolicy'] === '1'
+  );
+  readonly idToken = computed(() => 
+    this.sessionDataSignal()?.tokens?.idToken?.toString() || ''
+  );
+  readonly accessToken = computed(() => 
+    this.sessionDataSignal()?.tokens?.accessToken?.toString() || ''
+  );
 
   constructor() {
 
-    console.log('AuthService instance created');
+    console.log('[AuthService]: instance created');
 
-    Amplify.configure(APP_CONFIG.aws.amplify);
-
-    this.user.pipe(
-      distinctUntilChanged()
-    ).subscribe((user) => {
-
+    effect(() => {
+      const user = this.userSignal();
       this.fetchSession();
-
-      if (user) {
-        this.getUserAttributes();
-      }
-
+      if (user) this.fetchAttributes();
     });
 
-    // Ref.: https://aws-amplify.github.io/amplify-js/api/types/aws_amplify.utils._Reference_Types_.AuthHubEventData.html
     Hub.listen('auth', (data: HubCapsule<string, AuthHubEventData>) => {
       const { payload } = data;
-
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
-
-        this.getUser();
-
+        this.fetchUser();
       }
-
     });
 
-    this.getUser();
+    this.fetchUser();
 
   }
  
-  fetchSession(
-    options: FetchAuthSessionOptions = { forceRefresh: false }
-  ): void {
+  async fetchSession(options: FetchAuthSessionOptions = { forceRefresh: false }) { 
 
-    fetchAuthSession(options).then(
-      (session: AuthSession) => {
+    try {
 
-        /**
-         * Note: oddly, the fetchAuthSession() function returns the AuthSession
-         * object with all properties set to undefined when a session does
-         *  not exist.
-         */
+      const session =  await fetchAuthSession(options);
+      const hasSession = session.credentials &&
+                         session.identityId &&
+                         session.tokens &&
+                         session.userSub;
 
-        const hasSession = session.credentials &&
-                           session.identityId &&
-                           session.tokens &&
-                           session.userSub;
+      this.sessionDataSignal.set(hasSession ? session : null);
 
-        this.sessionData.next(hasSession ? session : null);
+      if (this.timeOutId) { clearTimeout(this.timeOutId); }
 
-        console.log('[AuthService]: session data:');
-        console.log(session);
-        
-        console.log('%cAccess token:', titleStyle);
-        console.log(session.tokens?.accessToken.toString());
-
-        console.log('%cId token:', titleStyle);
-        console.log(session.tokens?.idToken?.toString());
-
-        if (this.timeOutId) { clearTimeout(this.timeOutId); }
-
-        if (!hasSession) return;
-
-        console.log(`User session is set to expire at: ${session.credentials!.expiration}`);
-
-        const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
-            new Date().getTime()) - (1000 * 60);
-
-        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
-        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
-
-        console.log(`User session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
-
-        // Note: typings point to NodeJS.Timeout
-        this.timeOutId = Number(setTimeout(
-          () => this.fetchSession({ forceRefresh: true }),
-          sessionRefreshInterval
-        ));
-
-      },
-      () => {
-
-        console.log('[AuthService]: can\'t retrieve session data');
-        this.sessionData.next(null);
-
+      if (!hasSession) {
+          console.log('[AuthService]: no session data available');
+        return;
       }
-    );
+
+      console.log('[AuthService]: session data:');
+      console.log(session);
+
+      console.log('%c[AuthService]: access token:', titleStyle);
+      console.log(this.accessToken());
+
+      console.log('%c[AuthService]: id token:', titleStyle);
+      console.log(this.idToken());
+
+      console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
+
+      const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
+          new Date().getTime()) - (1000 * 60);
+
+      const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
+      const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
+
+      console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
+
+      // Note: typings point to NodeJS.Timeout
+      this.timeOutId = Number(setTimeout(
+        () => this.fetchSession({ forceRefresh: true }),
+        sessionRefreshInterval
+      ));
+
+    } catch (exception) {
+
+      console.log(`[AuthService]: can't retrieve session data`);
+      this.sessionDataSignal.set(null);
+
+    }
 
   }
 
-  getUser() {
+  async fetchUser() {
 
-    getCurrentUser().then(
-      (user: GetCurrentUserOutput) => {
-        console.log('[AuthService]: retrieved user data:');
-        console.log(user);
-        this.user.next(user);
-      },
-      () => {
-        console.log('[AuthService]: can\'t retrieve user data');
-        this.user.next(null);
-      }
-    );
+    try {
 
-  }
+      const user = await getCurrentUser();
+      console.log('[AuthService]: retrieved user data:', user);
+      this.userSignal.set(user);
 
-  getUserAttributes() {
+    } catch (exception) {
 
-    return fetchUserAttributes().then(
-      (attributes: FetchUserAttributesOutput) => {
-        console.log('[AuthService]: retrieved user attributes:');
-        console.log(attributes);
-        this.userAttributes.next(attributes);
-      },
-      () => {
-        console.log('[AuthService]: can\'t retrieve user attributes');
-        this.userAttributes.next(null);
-      }
-    );
+      console.log(`[AuthService]: can't retrieve user data`);
+      this.userSignal.set(null);
+
+    }
 
   }
 
-  get userLoginId(): string {
+  async fetchAttributes() {
 
-    return this.user.getValue()?.signInDetails?.loginId || '';
+    try {
 
+      const attributes = await fetchUserAttributes();
+      console.log('[AuthService]: retrieved user attributes:', attributes);
+      this.userAttributesSignal.set(attributes);
+
+    } catch (exception) {
+
+      console.log(`[AuthService]: can't retrieve user attributes`);
+      this.userAttributesSignal.set(null);
+
+    }
+
+  }
+
+  // TO DO: remove this after testing
+  cancelSession() {
+    this.sessionDataSignal.set(null);
   }
 
 }

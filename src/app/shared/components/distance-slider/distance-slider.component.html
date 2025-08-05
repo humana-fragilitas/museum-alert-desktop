@@ -1,13 +1,13 @@
-<span>{{ (minValue >= 100) ? minValue/100 : minValue }} {{ minValue >= 100 ? 'mt' : 'cm' }}</span>
+<span>{{ (validatedMinValue() >= 100) ? validatedMinValue()/100 : validatedMinValue() }} {{ validatedMinValue() >= 100 ? 'mt' : 'cm' }}</span>
 <mat-slider
-  [min]="minValue"
-  [max]="maxValue"
+  [min]="validatedMinValue()"
+  [max]="validatedMaxValue()"
   step="1"
   showTickMarks
   discrete
   [displayWith]="toReadableDistance.bind(this)"
-  [disabled]="(isBusy$ | async) || disabled"
+  [disabled]="isBusy() || disabled()"
   (change)="onSliderChange($event)">
-  <input matSliderThumb [(ngModel)]="sliderValue">
+  <input matSliderThumb [(ngModel)]="sliderValueForModel">
 </mat-slider>
-<span>{{ (maxValue >= 100) ? maxValue/100 : maxValue }} {{ maxValue >= 100 ? 'mt' : 'cm' }}</span>
+<span>{{ (validatedMaxValue() >= 100) ? validatedMaxValue()/100 : validatedMaxValue() }} {{ validatedMaxValue() >= 100 ? 'mt' : 'cm' }}</span>

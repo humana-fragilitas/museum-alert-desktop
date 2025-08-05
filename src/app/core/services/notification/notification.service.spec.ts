@@ -6,7 +6,7 @@ import { of, Subject } from 'rxjs';
 import { NotificationService } from './notification.service';
 import { DeviceService } from '../device/device.service';
 import { ErrorService } from '../error/error.service';
-import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../app/shared/models';
+import { DeviceErrorType, ErrorType, AppErrorType } from '../../../../../app/shared';
 import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
 
 // Mock types

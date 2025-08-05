@@ -1,4 +1,7 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl,
+         ValidationErrors,
+         ValidatorFn } from '@angular/forms';
+
 import { urlValidator } from './url.validator';
 import { firstLevelDomainValidator } from './first-level-domain.validator';
 import { eddystoneUrlValidator } from './eddystone-encoded-url.validator';
@@ -9,6 +12,7 @@ import { eddystoneUrlValidator } from './eddystone-encoded-url.validator';
  * This is a convenience validator that combines both checks
  */
 export function beaconUrlValidator(): ValidatorFn {
+  
   return (control: AbstractControl): ValidationErrors | null => {
     if (!control.value) {
       return null;
@@ -34,4 +38,5 @@ export function beaconUrlValidator(): ValidatorFn {
 
     return null; // All validations passed
   };
+
 }

@@ -6,7 +6,7 @@ import { CompanyResolver } from './company.resolver';
 import { CompanyService } from '../services/company/company.service';
 import { NotificationService } from '../services/notification/notification.service';
 import { CompanyRole, CompanyWithUserContext } from '../models';
-import { AppErrorType, ErrorType } from '../../../../app/shared/models';
+import { AppErrorType, ErrorType } from '../../../../app/shared';
 
 describe('CompanyResolver', () => {
   let resolver: CompanyResolver;

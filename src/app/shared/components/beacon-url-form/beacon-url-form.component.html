@@ -1,43 +1,40 @@
 <form [formGroup]="beaconUrlForm" (ngSubmit)="onSubmit()">
-
   <mat-form-field appearance="fill">
     <mat-label>{{ 'COMPONENTS.BEACON_URL_FORM.LABEL' | translate }}</mat-label>
     <input matInput type="text" formControlName="beaconUrl" #beaconUrl>
-      <mat-error *ngIf="(getErrorMessage() | async) && beaconUrlForm.get('beaconUrl')?.touched">
-        <strong>{{getErrorMessage() | async}}</strong>
-      </mat-error>
+    <mat-error *ngIf="(errorMessage$ | async) && beaconUrlForm.get('beaconUrl')?.touched">
+      <strong>{{errorMessage$ | async}}</strong>
+    </mat-error>
   </mat-form-field>
-
-    <div class="button-cta">
-
-      <button *ngIf="!(isBeaconUrlSet$ | async) || (isEditable$ | async)"
-              mat-raised-button color="primary"
-              type="submit"
-              [disabled]="beaconUrlForm.invalid || (isDisabled$ | async)">
-        <span class="button-content">
-          {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
-          <mat-progress-spinner *ngIf="(isBusy$ | async) && (isSubmitting$ | async)" mode="indeterminate" diameter="16"></mat-progress-spinner>
-        </span>
-      </button>
-
-      <button *ngIf="isEditable$ | async"
-        mat-raised-button color="secondary"
-        [disabled]="isDisabled$ | async"
-        (click)="cancel()">
-        <span class="button-content">
-          {{ 'COMMON.ACTIONS.CANCEL' | translate }}
-        </span>
-      </button>
-
+  
+  <div class="button-cta">
+    <button *ngIf="isEditMode()"
+            mat-raised-button color="primary"
+            type="submit"
+            [disabled]="beaconUrlForm.invalid || !isEnabled()">
+      <span class="button-content">
+        {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
+        <mat-progress-spinner *ngIf="isBusy() && isSubmitting()" 
+                              mode="indeterminate" 
+                              diameter="16">
+        </mat-progress-spinner>
+      </span>
+    </button>
+    <button *ngIf="isEditMode()"
+            mat-raised-button color="secondary"
+            [disabled]="!isEnabled()"
+            (click)="cancel()">
+      <span class="button-content">
+        {{ 'COMMON.ACTIONS.CANCEL' | translate }}
+      </span>
+    </button>
   </div>
-
-  <button *ngIf="(isBeaconUrlSet$ | async) && !(isEditable$ | async)"
+  <button *ngIf="!isEditMode()"
           mat-raised-button color="primary"
-          [disabled]="isDisabled$ | async"
+          [disabled]="!isEnabled()"
           (click)="edit()">
     <span class="button-content">
       {{ 'COMMON.ACTIONS.EDIT' | translate }}
     </span>
   </button>
-
 </form>
