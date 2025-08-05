@@ -18,6 +18,7 @@ import { titleStyle } from '@shared/helpers/console.helper';
 export class AuthService {
 
   private timeOutId: number = 0;
+  private isFetchingSession = false;
   private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
   private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
   private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
@@ -66,9 +67,17 @@ export class AuthService {
  
   async fetchSession(options: FetchAuthSessionOptions = { forceRefresh: false }) { 
 
+    // Prevent concurrent session fetches
+    if (this.isFetchingSession) {
+      console.log('[AuthService]: session fetch already in progress, skipping...');
+      return;
+    }
+
+    this.isFetchingSession = true;
+
     try {
 
-      const session =  await fetchAuthSession(options);
+      const session = await fetchAuthSession(options);
       const hasSession = session.credentials &&
                          session.identityId &&
                          session.tokens &&
@@ -76,10 +85,14 @@ export class AuthService {
 
       this.sessionDataSignal.set(hasSession ? session : null);
 
-      if (this.timeOutId) { clearTimeout(this.timeOutId); }
+      // Clear existing timeout
+      if (this.timeOutId) { 
+        clearTimeout(this.timeOutId); 
+        this.timeOutId = 0;
+      }
 
       if (!hasSession) {
-          console.log('[AuthService]: no session data available');
+        console.log('[AuthService]: no session data available');
         return;
       }
 
@@ -94,25 +107,38 @@ export class AuthService {
 
       console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
 
+      // Calculate refresh interval (1 minute before expiration)
       const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
           new Date().getTime()) - (1000 * 60);
 
-      const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
-      const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
+      // Only set timeout if interval is positive
+      if (sessionRefreshInterval > 0) {
+        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
+        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
 
-      console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
+        console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
 
-      // Note: typings point to NodeJS.Timeout
-      this.timeOutId = Number(setTimeout(
-        () => this.fetchSession({ forceRefresh: true }),
-        sessionRefreshInterval
-      ));
+        // Note: typings point to NodeJS.Timeout
+        this.timeOutId = Number(setTimeout(
+          () => {
+            console.log('[AuthService]: auto-refreshing session...');
+            this.fetchSession({ forceRefresh: true });
+          },
+          sessionRefreshInterval
+        ));
+      } else {
+        console.log('[AuthService]: session already expired or expiring soon, not setting refresh timeout');
+      }
 
     } catch (exception) {
 
-      console.log(`[AuthService]: can't retrieve session data`);
+      console.log(`[AuthService]: can't retrieve session data`, exception);
       this.sessionDataSignal.set(null);
+
+    } finally {
+
+      this.isFetchingSession = false;
 
     }
 
@@ -128,7 +154,7 @@ export class AuthService {
 
     } catch (exception) {
 
-      console.log(`[AuthService]: can't retrieve user data`);
+      console.log(`[AuthService]: can't retrieve user data`, exception);
       this.userSignal.set(null);
 
     }
@@ -145,11 +171,19 @@ export class AuthService {
 
     } catch (exception) {
 
-      console.log(`[AuthService]: can't retrieve user attributes`);
+      console.log(`[AuthService]: can't retrieve user attributes`, exception);
       this.userAttributesSignal.set(null);
 
     }
 
+  }
+
+  // Clean up resources
+  destroy() {
+    if (this.timeOutId) {
+      clearTimeout(this.timeOutId);
+      this.timeOutId = 0;
+    }
   }
 
   // TO DO: remove this after testing

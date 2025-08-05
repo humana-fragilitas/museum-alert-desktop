@@ -28,6 +28,8 @@ export class MqttService {
   private currentSession: AuthSession | null = null;
   private isConnecting = false;
   private isDisconnecting = false;
+  private connectionPromise: Promise<void> | null = null;
+  private disconnectionPromise: Promise<void> | null = null;
   private readonly sessionDataSignal = this.authService.sessionData;
 
   readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
@@ -46,14 +48,36 @@ export class MqttService {
 
   async connect(sessionData: AuthSession): Promise<void> {
 
+    // Check if user has policy
     if (!this.authService.hasPolicy()) {
       console.log('[MqttService]: user does not have an iot policy attached yet; skipping...');
-    }
-
-    if (this.isConnecting) {
-      console.log('[MqttService]: connection already in progress, skipping...');
       return;
     }
+
+    // If already connecting, return the existing promise
+    if (this.connectionPromise) {
+      console.log('[MqttService]: connection already in progress, waiting...');
+      return this.connectionPromise;
+    }
+
+    // If already connected to the same session, no need to reconnect
+    if (this.isConnected && this.currentSession?.identityId === sessionData.identityId) {
+      console.log('[MqttService]: already connected to the same session');
+      this.currentSession = sessionData; // Update session data for token refresh
+      return;
+    }
+
+    this.connectionPromise = this._connect(sessionData);
+    
+    try {
+      await this.connectionPromise;
+    } finally {
+      this.connectionPromise = null;
+    }
+
+  }
+
+  private async _connect(sessionData: AuthSession): Promise<void> {
 
     this.isConnecting = true;
 
@@ -82,14 +106,42 @@ export class MqttService {
         }
       });
 
-      // Only setup event handlers once per client instance
+      // Setup event handlers once per client instance
       this.setupClientEventHandlers(sessionData);
+
+      // Wait for connection to be established
+      await new Promise<void>((resolve, reject) => {
+        if (!this.client) {
+          reject(new Error('Client is undefined'));
+          return;
+        }
+
+        const onConnect = () => {
+          this.client?.off('error', onError);
+          resolve();
+        };
+
+        const onError = (error: Error) => {
+          this.client?.off('connect', onConnect);
+          reject(error);
+        };
+
+        this.client.once('connect', onConnect);
+        this.client.once('error', onError);
+      });
+
+      this.currentSession = sessionData;
+      console.log('[MqttService]: MQTT connection established successfully');
 
     } catch (error) {
 
       console.error('[MqttService]: failed to connect to MQTT broker:', error);
-      this.isConnecting = false;
+      this.cleanup();
       throw error;
+
+    } finally {
+
+      this.isConnecting = false;
 
     }
 
@@ -97,9 +149,29 @@ export class MqttService {
 
   async disconnect(): Promise<void> {
 
-    if (this.isDisconnecting || !this.client) {
+    // If already disconnecting, return the existing promise
+    if (this.disconnectionPromise) {
+      console.log('[MqttService]: disconnection already in progress, waiting...');
+      return this.disconnectionPromise;
+    }
+
+    // If not connected and not connecting, nothing to do
+    if (!this.client && !this.isConnecting) {
+      console.log('[MqttService]: no client to disconnect');
       return;
     }
+
+    this.disconnectionPromise = this._disconnect();
+    
+    try {
+      await this.disconnectionPromise;
+    } finally {
+      this.disconnectionPromise = null;
+    }
+
+  }
+
+  private async _disconnect(): Promise<void> {
 
     this.isDisconnecting = true;
 
@@ -107,24 +179,33 @@ export class MqttService {
       // Clear all pending requests
       this.clearPendingRequests();
 
-      // Remove all event listeners before disconnecting
-      this.removeClientEventHandlers();
+      if (this.client) {
+        // Remove all event listeners before disconnecting
+        this.removeClientEventHandlers();
 
-      // Disconnect client
-      if (this.client.connected) {
-        await new Promise<void>((resolve) => {
-          this.client!.end(true, {}, () => {
-            console.log('[MqttService]: MQTT client disconnected gracefully');
-            resolve();
+        // Disconnect client if connected
+        if (this.client.connected) {
+          await new Promise<void>((resolve) => {
+            this.client!.end(true, {}, () => {
+              console.log('[MqttService]: MQTT client disconnected gracefully');
+              resolve();
+            });
           });
-        });
+        }
+
+        this.client = undefined;
       }
 
-      this.client = undefined;
+      this.currentSession = null;
+
     } catch (error) {
+
       console.error('[MqttService]: error during MQTT disconnect:', error);
+
     } finally {
+
       this.isDisconnecting = false;
+
     }
 
   }
@@ -140,7 +221,6 @@ export class MqttService {
 
   get isConnected(): boolean {
     const connected = this.client?.connected || false;
-    console.log(`[MqttService]: MQTT connection status: ${connected}`);
     return connected;
   }
 
@@ -226,42 +306,40 @@ export class MqttService {
     console.log(`[MqttService]: session data changed, current connection status: `+ 
                 `${ this.isConnected ? 'connected' : 'disconnected' }`);
 
-    if (!sessionData) {
-      console.log('[MqttService]: no session data, disconnecting MQTT');
-      this.disconnect();
-      this.currentSession = null;
-      return;
-    }
+    try {
+      
+      if (!sessionData) {
+        console.log('[MqttService]: no session data, disconnecting MQTT');
+        await this.disconnect();
+        return;
+      }
 
-    // Check if this is just a token refresh for the same user
-    const isSameUser = this.currentSession?.identityId === sessionData.identityId;
-    const isConnectedAndSameUser = this.isConnected && isSameUser;
+      // Check if this is the same user (just a token refresh)
+      const isSameUser = this.currentSession?.identityId === sessionData.identityId;
 
-    if (isConnectedAndSameUser) {
-      console.log('[MqttService]: session refreshed for same user, updating credentials without reconnecting');
-      this.currentSession = sessionData;
-      // Update the transform function to use new credentials
-      return;
-    }
+      if (this.isConnected && isSameUser) {
+        console.log('[MqttService]: session refreshed for same user, updating credentials without reconnecting');
+        this.currentSession = sessionData;
+        return;
+      }
 
-    // Different user or not connected - need to reconnect
-    if (this.isConnected) {
-      console.log('[MqttService]: different user detected, reconnecting MQTT');
-      await this.reconnect(sessionData);
-    } else {
-      console.log('[MqttService]: not connected, establishing new MQTT connection');
+      // Different user or not connected - need to connect/reconnect
+      if (this.isConnected && !isSameUser) {
+        console.log('[MqttService]: different user detected, reconnecting MQTT');
+        await this.disconnect();
+        // Small delay to ensure clean disconnection
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      console.log('[MqttService]: establishing MQTT connection');
       await this.connect(sessionData);
+
+    } catch (error) {
+      
+      console.error('[MqttService]: error handling session change:', error);
+      
     }
 
-    this.currentSession = sessionData;
-
-  }
-
-  private async reconnect(sessionData: AuthSession): Promise<void> {
-    console.log('[MqttService]: reconnecting MQTT client...');
-    await this.disconnect();
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Brief delay
-    await this.connect(sessionData);
   }
 
   private setupMessageHandlers(): void {
@@ -290,7 +368,6 @@ export class MqttService {
 
     this.client.on('connect', () => {
       console.log('[MqttService]: MQTT broker connected successfully');
-      this.isConnecting = false;
       
       const company = sessionData.tokens?.idToken?.payload['custom:Company'];
       const topicToSubscribe = `companies/${company}/events`;
@@ -311,7 +388,6 @@ export class MqttService {
 
     this.client.on('error', (error) => {
       console.error('[MqttService]: MQTT client error:', error);
-      this.isConnecting = false;
     });
 
     this.client.on('disconnect', (packet) => {
@@ -320,7 +396,6 @@ export class MqttService {
 
     this.client.on('close', () => {
       console.log('[MqttService]: MQTT connection closed');
-      this.isConnecting = false;
     });
 
     this.client.on('reconnect', () => {
