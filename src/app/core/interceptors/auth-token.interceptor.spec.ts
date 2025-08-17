@@ -1,15 +1,20 @@
-import { TestBed } from '@angular/core/testing';
-import { HttpRequest, HttpResponse, HttpErrorResponse, HttpInterceptorFn, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, of, throwError } from 'rxjs';
-import { AuthService } from '../services/auth/auth.service';
-import { DialogService } from '../services/dialog/dialog.service';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { authTokenInterceptor, AuthenticationExpiredError } from './auth-token.interceptor';
+// auth-token.interceptor.spec.ts
 
-// TO DO: this has to be redone: the underlying service has changed!
+import { TestBed } from '@angular/core/testing';
+import { HttpClient, HttpErrorResponse, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { of, throwError } from 'rxjs';
+
+import { authTokenInterceptor, AuthenticationExpiredError } from './auth-token.interceptor';
+import { AuthService } from '@services/auth/auth.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { DialogType, HttpStatusCode } from '@models';
+import { APP_CONFIG } from '@env/environment';
 
 // Mock APP_CONFIG
-jest.mock('../../../environments/environment', () => ({
+jest.mock('@env/environment', () => ({
   APP_CONFIG: {
     aws: {
       apiGateway: 'https://api.example.com'
@@ -17,332 +22,399 @@ jest.mock('../../../environments/environment', () => ({
   }
 }));
 
-describe('authTokenInterceptor', () => {
+describe('AuthTokenInterceptor', () => {
+  let httpClient: HttpClient;
+  let httpTestingController: HttpTestingController;
   let authService: jest.Mocked<AuthService>;
-  let dialogService: jest.Mocked<DialogService>;
   let authenticatorService: jest.Mocked<AuthenticatorService>;
-  let mockNext: jest.Mock;
-  let interceptor: HttpInterceptorFn;
+  let dialogService: jest.Mocked<DialogService>;
 
-  const mockSessionData = {
-    tokens: {
-      idToken: {
-        toString: jest.fn().mockReturnValue('mock-id-token')
-      }
-    }
-  };
+  const mockIdToken = 'mock-jwt-token-12345';
+  const apiUrl = 'https://api.example.com/test';
+  const externalUrl = 'https://external-api.com/test';
 
   beforeEach(() => {
-    // Create mocks
-    authService = {
-      sessionData: new BehaviorSubject(mockSessionData)
-    } as any;
+    const authServiceMock = {
+      idToken: jest.fn().mockReturnValue('')
+    };
 
-    dialogService = {
-      showError: jest.fn().mockReturnValue(of(true))
-    } as any;
-
-    authenticatorService = {
+    const authenticatorServiceMock = {
       signOut: jest.fn()
-    } as any;
+    };
 
-    mockNext = jest.fn();
+    const dialogServiceMock = {
+      openDialog: jest.fn()
+    };
 
-    // Configure TestBed
     TestBed.configureTestingModule({
       providers: [
-        { provide: AuthService, useValue: authService },
-        { provide: DialogService, useValue: dialogService },
-        { provide: AuthenticatorService, useValue: authenticatorService }
+        provideHttpClient(withInterceptors([authTokenInterceptor])),
+        provideHttpClientTesting(),
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: AuthenticatorService, useValue: authenticatorServiceMock },
+        { provide: DialogService, useValue: dialogServiceMock }
       ]
     });
 
-    // Create interceptor instance
-    interceptor = (req, next) => 
-      TestBed.runInInjectionContext(() => authTokenInterceptor(req, next));
+    httpClient = TestBed.inject(HttpClient);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    authService = TestBed.inject(AuthService) as jest.Mocked<AuthService>;
+    authenticatorService = TestBed.inject(AuthenticatorService) as jest.Mocked<AuthenticatorService>;
+    dialogService = TestBed.inject(DialogService) as jest.Mocked<DialogService>;
+
+    // Setup default mock implementations
+    dialogService.openDialog.mockReturnValue(of({ confirmed: true }));
   });
 
   afterEach(() => {
+    httpTestingController.verify();
     jest.clearAllMocks();
   });
 
   describe('Token Addition', () => {
-    it('should add authorization token to requests matching allowed base path', (done) => {
-      const request = new HttpRequest('GET', 'https://api.example.com/users');
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should add Authorization header when request URL matches API gateway and token exists', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          expect(mockNext).toHaveBeenCalledTimes(1);
-          
-          // Verify the Authorization header was set
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBe('mock-id-token');
-          done();
-        },
-        error: done
-      });
+      httpClient.get(apiUrl).subscribe();
+
+      const req = httpTestingController.expectOne(apiUrl);
+      expect(req.request.headers.get('Authorization')).toBe(mockIdToken);
+      
+      req.flush({ data: 'test' });
     });
 
-    it('should not add authorization token to requests not matching allowed base path', (done) => {
-      const request = new HttpRequest('GET', 'https://other-api.example.com/users');
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should not add Authorization header when request URL does not match API gateway', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          done();
-        },
-        error: done
-      });
+      httpClient.get(externalUrl).subscribe();
+
+      const req = httpTestingController.expectOne(externalUrl);
+      expect(req.request.headers.get('Authorization')).toBeNull();
+      
+      req.flush({ data: 'test' });
     });
 
-    it('should handle requests when session data is null', (done) => {
-      authService.sessionData.next(null);
-      const request = new HttpRequest('GET', 'https://api.example.com/users');
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should not add Authorization header when no token is available', () => {
+      authService.idToken.mockReturnValue('');
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          done();
-        },
-        error: done
-      });
+      httpClient.get(apiUrl).subscribe();
+
+      const req = httpTestingController.expectOne(apiUrl);
+      expect(req.request.headers.get('Authorization')).toBeNull();
+      
+      req.flush({ data: 'test' });
     });
 
-    it('should handle requests when tokens are undefined', (done) => {
-      authService.sessionData.next({ tokens: undefined });
-      const request = new HttpRequest('GET', 'https://api.example.com/users');
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should not add Authorization header when token is empty string', () => {
+      authService.idToken.mockReturnValue('');
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          done();
-        },
-        error: done
-      });
+      httpClient.get(apiUrl).subscribe();
+
+      const req = httpTestingController.expectOne(apiUrl);
+      expect(req.request.headers.get('Authorization')).toBeNull();
+      
+      req.flush({ data: 'test' });
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle 401 errors by showing dialog and signing out', (done) => {
-      const request = new HttpRequest('GET', 'https://api.example.com/users');
-      const error401 = new HttpErrorResponse({
-        status: 401,
-        statusText: 'Unauthorized',
-        url: request.url
-      });
+  describe('401 Error Handling', () => {
+    it('should handle 401 error and show authentication expired dialog', (done) => {
+      authService.idToken.mockReturnValue(mockIdToken);
       
-      mockNext.mockReturnValue(throwError(() => error401));
-
-      interceptor(request, mockNext).subscribe({
-        next: () => {
-          done(new Error('Expected error but got success'));
-        },
+      httpClient.get(apiUrl).subscribe({
+        next: () => fail('Should have thrown an error'),
         error: (error) => {
           expect(error).toBeInstanceOf(AuthenticationExpiredError);
-          expect(error.originalError).toBe(error401);
-          expect(error.message).toBe('Authentication expired');
-          expect(authenticatorService.signOut).toHaveBeenCalled();
+          expect(error.originalError.status).toBe(HttpStatusCode.UNAUTHORIZED);
           done();
         }
       });
+
+      const req = httpTestingController.expectOne(apiUrl);
+      req.flush(
+        { message: 'Unauthorized' },
+        { status: HttpStatusCode.UNAUTHORIZED, statusText: 'Unauthorized' }
+      );
+
+      expect(dialogService.openDialog).toHaveBeenCalledWith({
+        type: DialogType.ERROR,
+        title: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_TITLE',
+        message: 'ERRORS.APPLICATION.AUTHENTICATION_EXPIRED_MESSAGE'
+      });
     });
 
-    it('should pass through non-401 errors unchanged', (done) => {
-      const request = new HttpRequest('GET', 'https://api.example.com/users');
-      const error500 = new HttpErrorResponse({
-        status: 500,
-        statusText: 'Internal Server Error',
-        url: request.url
-      });
+    it('should call signOut after dialog is closed on 401 error', (done) => {
+      authService.idToken.mockReturnValue(mockIdToken);
       
-      mockNext.mockReturnValue(throwError(() => error500));
+      httpClient.get(apiUrl).subscribe({
+        next: () => fail('Should have thrown an error'),
+        error: () => {
+          // Wait for async operations to complete
+          setTimeout(() => {
+            expect(authenticatorService.signOut).toHaveBeenCalled();
+            done();
+          }, 0);
+        }
+      });
 
-      interceptor(request, mockNext).subscribe({
-        next: () => {
-          done(new Error('Expected error but got success'));
-        },
+      const req = httpTestingController.expectOne(apiUrl);
+      req.flush(
+        { message: 'Unauthorized' },
+        { status: HttpStatusCode.UNAUTHORIZED, statusText: 'Unauthorized' }
+      );
+    });
+
+    it('should create AuthenticationExpiredError with original error', (done) => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      
+      httpClient.get(apiUrl).subscribe({
+        next: () => fail('Should have thrown an error'),
+        error: (caughtError) => {
+          expect(caughtError).toBeInstanceOf(AuthenticationExpiredError);
+          expect(caughtError.name).toBe('AuthenticationExpiredError');
+          expect(caughtError.message).toBe('Authentication expired');
+          expect(caughtError.originalError).toBeInstanceOf(HttpErrorResponse);
+          expect(caughtError.originalError.status).toBe(401);
+          done();
+        }
+      });
+
+      const req = httpTestingController.expectOne(apiUrl);
+      const errorResponse = { message: 'Token expired' };
+      req.flush(errorResponse, { status: 401, statusText: 'Unauthorized' });
+    });
+  });
+
+  describe('Other HTTP Errors', () => {
+    it('should pass through non-401 errors unchanged', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      
+      httpClient.get(apiUrl).subscribe({
+        next: () => fail('Should have thrown an error'),
         error: (error) => {
-          expect(error).toBe(error500);
+          expect(error).toBeInstanceOf(HttpErrorResponse);
+          expect(error.status).toBe(HttpStatusCode.INTERNAL_SERVER_ERROR);
           expect(error).not.toBeInstanceOf(AuthenticationExpiredError);
-          expect(authenticatorService.signOut).not.toHaveBeenCalled();
-          done();
         }
       });
+
+      const req = httpTestingController.expectOne(apiUrl);
+      req.flush(
+        { message: 'Server Error' },
+        { status: HttpStatusCode.INTERNAL_SERVER_ERROR, statusText: 'Internal Server Error' }
+      );
+
+      expect(dialogService.openDialog).not.toHaveBeenCalled();
+      expect(authenticatorService.signOut).not.toHaveBeenCalled();
     });
 
-    it('should handle 401 errors on non-API requests without adding token', (done) => {
-      const request = new HttpRequest('GET', 'https://other-api.example.com/users');
-      const error401 = new HttpErrorResponse({
-        status: 401,
-        statusText: 'Unauthorized',
-        url: request.url
-      });
+    it('should pass through 403 Forbidden errors unchanged', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
       
-      mockNext.mockReturnValue(throwError(() => error401));
-
-      interceptor(request, mockNext).subscribe({
-        next: () => {
-          done(new Error('Expected error but got success'));
-        },
+      httpClient.get(apiUrl).subscribe({
+        next: () => fail('Should have thrown an error'),
         error: (error) => {
-          expect(error).toBeInstanceOf(AuthenticationExpiredError);
-          expect(error.originalError).toBe(error401);
-          
-          // Verify no token was added to the original request
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          expect(authenticatorService.signOut).toHaveBeenCalled();
-          done();
+          expect(error).toBeInstanceOf(HttpErrorResponse);
+          expect(error.status).toBe(HttpStatusCode.FORBIDDEN);
+          expect(error).not.toBeInstanceOf(AuthenticationExpiredError);
         }
       });
+
+      const req = httpTestingController.expectOne(apiUrl);
+      req.flush(
+        { message: 'Forbidden' },
+        { status: HttpStatusCode.FORBIDDEN, statusText: 'Forbidden' }
+      );
+
+      expect(dialogService.openDialog).not.toHaveBeenCalled();
+      expect(authenticatorService.signOut).not.toHaveBeenCalled();
+    });
+
+    it('should pass through 404 Not Found errors unchanged', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      
+      httpClient.get(apiUrl).subscribe({
+        next: () => fail('Should have thrown an error'),
+        error: (error) => {
+          expect(error).toBeInstanceOf(HttpErrorResponse);
+          expect(error.status).toBe(HttpStatusCode.NOT_FOUND);
+        }
+      });
+
+      const req = httpTestingController.expectOne(apiUrl);
+      req.flush(
+        { message: 'Not Found' },
+        { status: HttpStatusCode.NOT_FOUND, statusText: 'Not Found' }
+      );
+
+      expect(dialogService.openDialog).not.toHaveBeenCalled();
     });
   });
 
-  describe('Integration Tests', () => {
-    it('should successfully process a complete request flow', (done) => {
-      const request = new HttpRequest('POST', 'https://api.example.com/data', { test: 'data' });
-      const response = new HttpResponse({ 
-        status: 200, 
-        body: { success: true },
-        headers: request.headers
-      });
+  describe('Successful Requests', () => {
+    it('should pass through successful requests with token', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      const mockResponse = { data: 'success', id: 123 };
       
-      mockNext.mockReturnValue(of(response));
-
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          
-          // Verify the request was modified correctly
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.url).toBe(request.url);
-          expect(capturedRequest.method).toBe(request.method);
-          expect(capturedRequest.body).toBe(request.body);
-          expect(capturedRequest.headers.get('Authorization')).toBe('mock-id-token');
-          
-          done();
-        },
-        error: done
+      httpClient.get(apiUrl).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
       });
+
+      const req = httpTestingController.expectOne(apiUrl);
+      expect(req.request.headers.get('Authorization')).toBe(mockIdToken);
+      req.flush(mockResponse);
+
+      expect(dialogService.openDialog).not.toHaveBeenCalled();
+      expect(authenticatorService.signOut).not.toHaveBeenCalled();
     });
 
-    it('should call both dialog service and sign out on 401 error', (done) => {
-      const request = new HttpRequest('GET', 'https://api.example.com/users');
-      const error401 = new HttpErrorResponse({
-        status: 401,
-        statusText: 'Unauthorized',
-        url: request.url
-      });
+    it('should pass through successful requests without token for external URLs', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      const mockResponse = { data: 'external success' };
       
-      mockNext.mockReturnValue(throwError(() => error401));
-
-      interceptor(request, mockNext).subscribe({
-        next: () => {
-          done(new Error('Expected error but got success'));
-        },
-        error: (error) => {
-          expect(error).toBeInstanceOf(AuthenticationExpiredError);
-          expect(authenticatorService.signOut).toHaveBeenCalled();
-          done();
-        }
+      httpClient.get(externalUrl).subscribe((response) => {
+        expect(response).toEqual(mockResponse);
       });
+
+      const req = httpTestingController.expectOne(externalUrl);
+      expect(req.request.headers.get('Authorization')).toBeNull();
+      req.flush(mockResponse);
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle empty URL', (done) => {
-      const request = new HttpRequest('GET', '');
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should handle empty API gateway configuration', () => {
+      // Mock empty API gateway config
+      jest.doMock('@env/environment', () => ({
+        APP_CONFIG: {
+          aws: {
+            apiGateway: ''
+          }
+        }
+      }));
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          done();
-        },
-        error: done
-      });
+      authService.idToken.mockReturnValue(mockIdToken);
+
+      httpClient.get(apiUrl).subscribe();
+
+      const req = httpTestingController.expectOne(apiUrl);
+      // Should not add header since API gateway is empty
+      expect(req.request.headers.get('Authorization')).toBeNull();
+      req.flush({ data: 'test' });
     });
 
-    it('should handle URL that partially matches base path', (done) => {
-      const request = new HttpRequest('GET', 'https://api.example.co'); // Missing 'm'
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should handle URL that partially matches API gateway', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      const partialMatchUrl = 'https://api.example.co/test'; // Note: .co instead of .com
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBeNull();
-          done();
-        },
-        error: done
-      });
+      httpClient.get(partialMatchUrl).subscribe();
+
+      const req = httpTestingController.expectOne(partialMatchUrl);
+      expect(req.request.headers.get('Authorization')).toBeNull();
+      req.flush({ data: 'test' });
     });
 
-    it('should preserve existing headers when adding authorization', (done) => {
-      const headers = new HttpHeaders({
-        'Content-Type': 'application/json',
-        'X-Custom-Header': 'test'
-      });
-      const request = new HttpRequest('GET', 'https://api.example.com/users', null, {
-        headers: headers
-      });
-      const response = new HttpResponse({ status: 200, body: {} });
-      
-      mockNext.mockReturnValue(of(response));
+    it('should handle request with existing Authorization header', () => {
+      authService.idToken.mockReturnValue(mockIdToken);
+      const existingToken = 'existing-token';
 
-      interceptor(request, mockNext).subscribe({
-        next: (result) => {
-          expect(result).toBe(response);
-          const capturedRequest = mockNext.mock.calls[0][0];
-          expect(capturedRequest.headers.get('Authorization')).toBe('mock-id-token');
-          expect(capturedRequest.headers.get('Content-Type')).toBe('application/json');
-          expect(capturedRequest.headers.get('X-Custom-Header')).toBe('test');
-          done();
-        },
-        error: done
-      });
+      httpClient.get(apiUrl, {
+        headers: { 'Authorization': existingToken }
+      }).subscribe();
+
+      const req = httpTestingController.expectOne(apiUrl);
+      // Should override existing Authorization header
+      expect(req.request.headers.get('Authorization')).toBe(mockIdToken);
+      req.flush({ data: 'test' });
     });
   });
 
-  describe('AuthenticationExpiredError', () => {
+  describe('AuthenticationExpiredError Class', () => {
     it('should create AuthenticationExpiredError with correct properties', () => {
       const originalError = new HttpErrorResponse({
+        error: 'Unauthorized',
         status: 401,
         statusText: 'Unauthorized'
       });
-      
+
       const authError = new AuthenticationExpiredError(originalError);
-      
+
+      expect(authError).toBeInstanceOf(Error);
+      expect(authError).toBeInstanceOf(AuthenticationExpiredError);
       expect(authError.name).toBe('AuthenticationExpiredError');
       expect(authError.message).toBe('Authentication expired');
       expect(authError.originalError).toBe(originalError);
-      expect(authError).toBeInstanceOf(Error);
-      expect(authError).toBeInstanceOf(AuthenticationExpiredError);
     });
+  });
+});
+
+// Integration test to ensure interceptor works with HttpClient
+describe('AuthTokenInterceptor Integration', () => {
+  let httpClient: HttpClient;
+  let httpTestingController: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([authTokenInterceptor])),
+        provideHttpClientTesting(),
+        {
+          provide: AuthService,
+          useValue: { idToken: () => 'integration-token' }
+        },
+        {
+          provide: AuthenticatorService,
+          useValue: { signOut: jest.fn() }
+        },
+        {
+          provide: DialogService,
+          useValue: { openDialog: () => of({ confirmed: true }) }
+        }
+      ]
+    });
+
+    httpClient = TestBed.inject(HttpClient);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  it('should work end-to-end with multiple requests', () => {
+    const responses: any[] = [];
+    const errors: any[] = [];
+
+    // Make multiple requests
+    httpClient.get('https://api.example.com/users').subscribe({
+      next: (res) => responses.push(res),
+      error: (err) => errors.push(err)
+    });
+
+    httpClient.post('https://api.example.com/data', { test: true }).subscribe({
+      next: (res) => responses.push(res),
+      error: (err) => errors.push(err)
+    });
+
+    httpClient.get('https://external.com/api').subscribe({
+      next: (res) => responses.push(res),
+      error: (err) => errors.push(err)
+    });
+
+    // Verify and respond to requests
+    const req1 = httpTestingController.expectOne('https://api.example.com/users');
+    expect(req1.request.headers.get('Authorization')).toBe('integration-token');
+    req1.flush({ users: [] });
+
+    const req2 = httpTestingController.expectOne('https://api.example.com/data');
+    expect(req2.request.headers.get('Authorization')).toBe('integration-token');
+    req2.flush({ data: 'created' });
+
+    const req3 = httpTestingController.expectOne('https://external.com/api');
+    expect(req3.request.headers.get('Authorization')).toBeNull();
+    req3.flush({ external: 'data' });
+
+    expect(responses).toHaveLength(3);
+    expect(errors).toHaveLength(0); 
   });
 });
