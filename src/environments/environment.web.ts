@@ -3,7 +3,7 @@
           production: false,
           environment: 'DEV',
           aws: {
-            apiGateway: 'https://30pyi8odpi.execute-api.eu-west-2.amazonaws.com/dev/',
+            apiGateway: 'https://30pyi8odpi.execute-api.eu-west-2.amazonaws.com/dev',
             region: 'eu-west-2',
             algorithm: 'AWS4-HMAC-SHA256',
             IoTCore: {

@@ -48,7 +48,7 @@ export class CompanyService {
   setName(company: UpdateCompanyRequest): Observable<ApiResult<UpdateCompanyResponse>> {
 
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/company`;
-    return this.httpClient.put<ApiResult<UpdateCompanyResponse>>(apiUrl, { companyName: company.companyName }).pipe(
+    return this.httpClient.patch<ApiResult<UpdateCompanyResponse>>(apiUrl, { companyName: company.companyName }).pipe(
       tap((response: ApiResult<UpdateCompanyResponse>) => {
         const currentCompany = this.companySignal();
         if (currentCompany) {

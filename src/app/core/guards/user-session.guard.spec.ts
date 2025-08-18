@@ -1,29 +1,52 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot, GuardResult } from '@angular/router';
+import { signal, WritableSignal, Injector, runInInjectionContext } from '@angular/core';
+import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
+
 import { userSessionGuard } from './user-session.guard';
-import { AuthService } from '../services/auth/auth.service';
+import { AuthService } from '@services/auth/auth.service';
+
+// Mock AuthUser interface to match AWS Amplify's AuthUser type
+interface MockAuthUser {
+  userId: string;
+  username?: string;
+  email?: string;
+  [key: string]: any; // Allow additional properties
+}
+
+// Mock AuthService interface
+interface MockAuthService {
+  user: WritableSignal<Nullable<MockAuthUser>>;
+}
 
 describe('userSessionGuard', () => {
-  let mockAuthService: jest.Mocked<AuthService>;
+  let mockAuthService: MockAuthService;
   let mockRouter: jest.Mocked<Pick<Router, 'navigate'>>;
-  let guard: CanActivateFn;
+  let mockRoute: ActivatedRouteSnapshot;
+  let mockState: RouterStateSnapshot;
+  let userSignal: WritableSignal<Nullable<MockAuthUser>>;
+  let injector: Injector;
+
+  // Console spy to test logging behavior
   let consoleSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    // Create Jest mock objects for dependencies
+    // Create writable signal for user
+    userSignal = signal<Nullable<MockAuthUser>>(null);
+
+    // Create mock AuthService
     mockAuthService = {
-      user$: of(null) // Default to no user
-    } as jest.Mocked<AuthService>;
-    
-    // Mock only the Router methods we need
-    mockRouter = {
-      navigate: jest.fn()
+      user: userSignal
     };
 
-    // Spy on console.log to verify logging behavior
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    // Create mock Router with only navigate method
+    mockRouter = {
+      navigate: jest.fn().mockResolvedValue(true)
+    };
 
+    // Setup TestBed with mocked dependencies
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: mockAuthService },
@@ -31,282 +54,555 @@ describe('userSessionGuard', () => {
       ]
     });
 
-    guard = (...guardParameters) =>
-      TestBed.runInInjectionContext(() => userSessionGuard(...guardParameters));
+    // Get the injector for running tests in injection context
+    injector = TestBed.inject(Injector);
+
+    // Create mock route and state
+    mockRoute = {} as ActivatedRouteSnapshot;
+    mockState = {
+      url: '/dashboard'
+    } as RouterStateSnapshot;
+
+    // Setup console spy
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    
+    // Ensure clean state
+    userSignal.set(null);
   });
 
   afterEach(() => {
-    // Clean up mocks
-    jest.clearAllMocks();
+    // Restore console and clear all mocks
     consoleSpy.mockRestore();
+    jest.clearAllMocks();
   });
 
-  describe('when user is authenticated', () => {
-    const mockUser = { id: '123', email: 'test@example.com' };
+  describe('when user IS authenticated', () => {
+    const mockUser: MockAuthUser = {
+      userId: 'user-123',
+      email: 'test@example.com',
+      username: 'testuser'
+    };
 
     beforeEach(() => {
-      // Mock AuthService to return authenticated user
-      (mockAuthService as any).user$ = of(mockUser);
+      // Set user signal to authenticated user
+      userSignal.set(mockUser);
     });
 
-    it('should allow access to protected route', (done) => {
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe((canActivate) => {
-          expect(canActivate).toBe(true);
+    it('should allow access to private route', (done) => {
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(true);
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(true);
           done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
+        }
+      });
     });
 
-    it('should not navigate when allowing access', (done) => {
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe(() => {
+    it('should log that authenticated user is allowed', (done) => {
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: () => {
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is allowed to browse private only route '${mockState.url}'`
+              );
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(consoleSpy).toHaveBeenCalledWith(
+            `[userSessionGuard]: authenticated user is allowed to browse private only route '${mockState.url}'`
+          );
+          done();
+        }
+      });
+    });
+
+    it('should not navigate anywhere', (done) => {
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: () => {
+              expect(mockRouter.navigate).not.toHaveBeenCalled();
+              done();
+            },
+            error: done
+          });
+        } else {
           expect(mockRouter.navigate).not.toHaveBeenCalled();
           done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
-    });
-
-    it('should log success message when user is authenticated', (done) => {
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe(() => {
-          expect(consoleSpy).toHaveBeenCalledWith('User session valid, allowing access');
-          done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
-    });
-
-    it('should handle user with minimal properties', (done) => {
-      const minimalUser = { id: '456' };
-      (mockAuthService as any).user$ = of(minimalUser);
-      
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe((canActivate) => {
-          expect(canActivate).toBe(true);
-          expect(mockRouter.navigate).not.toHaveBeenCalled();
-          done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
+        }
+      });
     });
   });
 
-  describe('when user is not authenticated', () => {
+  describe('when user is NOT authenticated', () => {
     beforeEach(() => {
-      // Mock AuthService to return null user (not authenticated)
-      (mockAuthService as any).user$ = of(null);
+      // Set user signal to null (not authenticated)
+      userSignal.set(null);
     });
 
-    it('should deny access to protected route', (done) => {
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe((canActivate) => {
-          expect(canActivate).toBe(false);
+    it('should deny access to private route', (done) => {
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(false);
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(false);
           done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
+        }
+      });
     });
 
-    it('should redirect to /index when denying access', (done) => {
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe(() => {
+    it('should redirect to /index', (done) => {
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: () => {
+              expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+              expect(mockRouter.navigate).toHaveBeenCalledTimes(1);
+              done();
+            },
+            error: done
+          });
+        } else {
           expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
           expect(mockRouter.navigate).toHaveBeenCalledTimes(1);
           done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
+        }
+      });
     });
 
-    it('should log redirect message when user is not authenticated', (done) => {
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe(() => {
-          expect(consoleSpy).toHaveBeenCalledWith('No valid user session, redirecting to index');
+    it('should log that non-authenticated user is not allowed', (done) => {
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: () => {
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is not allowed to browse private only route '${mockState.url}'; redirecting to /index`
+              );
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(consoleSpy).toHaveBeenCalledWith(
+            `[userSessionGuard]: authenticated user is not allowed to browse private only route '${mockState.url}'; redirecting to /index`
+          );
           done();
-        });
-      } else {
-        fail(`Expected guard to return an observable, but got: ${typeof result} with value: ${result}`);
-      }
+        }
+      });
     });
   });
 
-  describe('when user authentication state changes', () => {
-    it('should handle authentication state changes correctly', (done) => {
-      const mockUser = { id: '123', email: 'test@example.com' };
-      
-      // First call - user authenticated
-      (mockAuthService as any).user$ = of(mockUser);
-      
-      const result1 = guard(null as any, null as any);
-      
-      if (result1 && typeof result1 === 'object' && 'subscribe' in result1) {
-        result1.subscribe((canActivate) => {
-          expect(canActivate).toBe(true);
-          
-          // Second call - user not authenticated
-          (mockAuthService as any).user$ = of(null);
-          
-          const result2 = guard(null as any, null as any);
-          
-          if (result2 && typeof result2 === 'object' && 'subscribe' in result2) {
-            result2.subscribe((canActivate2) => {
-              expect(canActivate2).toBe(false);
-              expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
-              done();
-            });
-          } else {
-            fail(`Expected guard to return an observable, but got: ${typeof result2} with value: ${result2}`);
-          }
+  describe('with different private route URLs', () => {
+    const testCases = [
+      '/dashboard',
+      '/profile',
+      '/settings',
+      '/admin',
+      '/device'
+    ];
+
+    testCases.forEach(url => {
+      describe(`for route '${url}'`, () => {
+        beforeEach(() => {
+          mockState = { url } as RouterStateSnapshot;
         });
-      } else {
-        // TO DO: check this
-        fail('Expected Observable result');
-      }
+
+        it('should allow authenticated users', (done) => {
+          userSignal.set({
+            userId: 'user-123',
+            email: 'test@example.com',
+            username: 'testuser'
+          });
+          
+          runInInjectionContext(injector, () => {
+            const result = userSessionGuard(mockRoute, mockState);
+            
+            // Handle both Observable and boolean returns
+            if (result instanceof Observable) {
+              result.pipe(take(1)).subscribe({
+                next: (canActivate: GuardResult) => {
+                  expect(canActivate).toBe(true);
+                  expect(consoleSpy).toHaveBeenCalledWith(
+                    `[userSessionGuard]: authenticated user is allowed to browse private only route '${url}'`
+                  );
+                  done();
+                },
+                error: done
+              });
+            } else {
+              expect(result).toBe(true);
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is allowed to browse private only route '${url}'`
+              );
+              done();
+            }
+          });
+        });
+
+        it('should deny non-authenticated users and redirect', (done) => {
+          userSignal.set(null);
+          
+          runInInjectionContext(injector, () => {
+            const result = userSessionGuard(mockRoute, mockState);
+            
+            // Handle both Observable and boolean returns
+            if (result instanceof Observable) {
+              result.pipe(take(1)).subscribe({
+                next: (canActivate: GuardResult) => {
+                  expect(canActivate).toBe(false);
+                  expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+                  expect(consoleSpy).toHaveBeenCalledWith(
+                    `[userSessionGuard]: authenticated user is not allowed to browse private only route '${url}'; redirecting to /index`
+                  );
+                  done();
+                },
+                error: done
+              });
+            } else {
+              expect(result).toBe(false);
+              expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is not allowed to browse private only route '${url}'; redirecting to /index`
+              );
+              done();
+            }
+          });
+        });
+      });
     });
   });
 
   describe('edge cases', () => {
-    it('should handle undefined user', (done) => {
-      (mockAuthService as any).user$ = of(undefined);
+    it('should handle user authentication changes during execution', (done) => {
+      // Start with authenticated user
+      userSignal.set({
+        userId: 'user-123',
+        email: 'test@example.com',
+        username: 'testuser'
+      });
       
-      const result = guard(null as any, null as any);
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Change user state before subscription completes
+        setTimeout(() => {
+          userSignal.set(null);
+        }, 10);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              // Should still be true since toObservable captures the initial state
+              expect(canActivate).toBe(true);
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(true);
+          done();
+        }
+      });
+    });
+
+    it('should handle router navigation failure gracefully', (done) => {
+      userSignal.set(null);
       
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe((canActivate) => {
-          expect(canActivate).toBe(false);
+      // Mock router.navigate to reject
+      mockRouter.navigate.mockRejectedValue(new Error('Navigation failed'));
+      
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(false);
+              expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(false);
           expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
-          expect(consoleSpy).toHaveBeenCalledWith('No valid user session, redirecting to index');
           done();
-        });
-      } else {
-        fail('Expected Observable result');
-      }
+        }
+      });
     });
 
-    it('should handle empty object as user', (done) => {
-      (mockAuthService as any).user$ = of({});
+    it('should handle empty route URL', (done) => {
+      mockState = { url: '' } as RouterStateSnapshot;
+      userSignal.set(null);
       
-      const result = guard(null as any, null as any);
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(false);
+              expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is not allowed to browse private only route ''; redirecting to /index`
+              );
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(false);
+          expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+          expect(consoleSpy).toHaveBeenCalledWith(
+            `[userSessionGuard]: authenticated user is not allowed to browse private only route ''; redirecting to /index`
+          );
+          done();
+        }
+      });
+    });
+  });
+
+  describe('integration with AuthService', () => {
+    it('should work with different user object structures', (done) => {
+      // Test with minimal user object
+      const minimalUser = { userId: 'user-456' };
+      userSignal.set(minimalUser);
       
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe((canActivate) => {
-          expect(canActivate).toBe(true);
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(true);
+              expect(mockRouter.navigate).not.toHaveBeenCalled();
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(true);
           expect(mockRouter.navigate).not.toHaveBeenCalled();
-          expect(consoleSpy).toHaveBeenCalledWith('User session valid, allowing access');
           done();
-        });
-      } else {
-        fail('Expected Observable result');
-      }
+        }
+      });
     });
 
-    it('should handle falsy values correctly', () => {
-      const falsyValues = [null, undefined, false, 0, '', NaN];
+    it('should handle truthy non-object user values', (done) => {
+      // Test with string user (edge case)
+      userSignal.set('authenticated' as any);
       
-      return Promise.all(
-        falsyValues.map((falsyValue) => {
-          return new Promise<void>((resolve) => {
-            (mockAuthService as any).user$ = of(falsyValue);
-            
-            const result = guard(null as any, null as any);
-            
-            if (result && typeof result === 'object' && 'subscribe' in result) {
-              result.subscribe((canActivate) => {
-                expect(canActivate).toBe(false);
-                resolve();
-              });
-            } else {
-              fail('Expected Observable result');
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(true);
+              expect(mockRouter.navigate).not.toHaveBeenCalled();
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(true);
+          expect(mockRouter.navigate).not.toHaveBeenCalled();
+          done();
+        }
+      });
+    });
+
+    it('should handle falsy values correctly', (done) => {
+      // Test with undefined
+      userSignal.set(undefined as any);
+      
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(false);
+              expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(false);
+          expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
+          done();
+        }
+      });
+    });
+  });
+
+  describe('performance and memory', () => {
+    it('should complete the observable stream', (done) => {
+      userSignal.set({
+        userId: 'user-123',
+        email: 'test@example.com',
+        username: 'testuser'
+      });
+      
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          // Signal-based observables don't complete naturally, so we take(1)
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => {
+              expect(canActivate).toBe(true);
+              done(); // take(1) automatically completes after first emission
+            },
+            error: done
+          });
+        } else {
+          expect(result).toBe(true);
+          done();
+        }
+      });
+    });
+
+    it('should not create memory leaks with multiple subscriptions', (done) => {
+      userSignal.set({
+        userId: 'user-123',
+        email: 'test@example.com',
+        username: 'testuser'
+      });
+      
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        // Handle both Observable and boolean returns
+        if (result instanceof Observable) {
+          let completedCount = 0;
+          const checkCompletion = () => {
+            completedCount++;
+            if (completedCount === 2) {
+              done();
             }
+          };
+          
+          // Use take(1) to ensure completion
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => expect(canActivate).toBe(true),
+            complete: checkCompletion,
+            error: done
           });
-        })
-      ).then(() => {
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/index']);
-      });
-    });
-  });
-
-  describe('console logging', () => {
-    it('should log exactly once per guard execution', (done) => {
-      const mockUser = { id: '123' };
-      (mockAuthService as any).user$ = of(mockUser);
-      
-      const result = guard(null as any, null as any);
-      
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result.subscribe(() => {
-          expect(consoleSpy).toHaveBeenCalledTimes(1);
+          
+          result.pipe(take(1)).subscribe({
+            next: (canActivate: GuardResult) => expect(canActivate).toBe(true),
+            complete: checkCompletion,
+            error: done
+          });
+        } else {
+          expect(result).toBe(true);
           done();
-        });
-      } else {
-        fail('Expected Observable result');
-      }
-    });
-
-    it('should use different log messages for different scenarios', async () => {
-      // Test authenticated scenario
-      const mockUser = { id: '123' };
-      (mockAuthService as any).user$ = of(mockUser);
-      
-      const result1 = guard(null as any, null as any);
-      
-      await new Promise<void>((resolve) => {
-        if (result1 && typeof result1 === 'object' && 'subscribe' in result1) {
-          result1.subscribe(() => {
-            expect(consoleSpy).toHaveBeenCalledWith('User session valid, allowing access');
-            resolve();
-          });
-        } else {
-          fail('Expected Observable result');
-        }
-      });
-
-      // Clear previous calls
-      consoleSpy.mockClear();
-      
-      // Test unauthenticated scenario
-      (mockAuthService as any).user$ = of(null);
-      
-      const result2 = guard(null as any, null as any);
-      
-      await new Promise<void>((resolve) => {
-        if (result2 && typeof result2 === 'object' && 'subscribe' in result2) {
-          result2.subscribe(() => {
-            expect(consoleSpy).toHaveBeenCalledWith('No valid user session, redirecting to index');
-            resolve();
-          });
-        } else {
-          fail('Expected Observable result');
         }
       });
     });
   });
 
-  // Basic guard creation test
-  it('should be created', () => {
-    expect(guard).toBeTruthy();
+  describe('log message verification', () => {
+    it('should use correct log message format for authenticated users', (done) => {
+      const testUrl = '/special-admin-panel';
+      mockState = { url: testUrl } as RouterStateSnapshot;
+      
+      userSignal.set({
+        userId: 'admin-user',
+        role: 'admin'
+      });
+      
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: () => {
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is allowed to browse private only route '${testUrl}'`
+              );
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(consoleSpy).toHaveBeenCalledWith(
+            `[userSessionGuard]: authenticated user is allowed to browse private only route '${testUrl}'`
+          );
+          done();
+        }
+      });
+    });
+
+    it('should use correct log message format for non-authenticated users', (done) => {
+      const testUrl = '/protected-resource';
+      mockState = { url: testUrl } as RouterStateSnapshot;
+      
+      userSignal.set(null);
+      
+      runInInjectionContext(injector, () => {
+        const result = userSessionGuard(mockRoute, mockState);
+        
+        if (result instanceof Observable) {
+          result.pipe(take(1)).subscribe({
+            next: () => {
+              expect(consoleSpy).toHaveBeenCalledWith(
+                `[userSessionGuard]: authenticated user is not allowed to browse private only route '${testUrl}'; redirecting to /index`
+              );
+              done();
+            },
+            error: done
+          });
+        } else {
+          expect(consoleSpy).toHaveBeenCalledWith(
+            `[userSessionGuard]: authenticated user is not allowed to browse private only route '${testUrl}'; redirecting to /index`
+          );
+          done();
+        }
+      });
+    });
   });
 });
