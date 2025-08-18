@@ -1,8 +1,9 @@
-export const APP_CONFIG = {
+// Copy and paste in src/app/environments/environment.*.ts
+        export const APP_CONFIG = {
           production: false,
           environment: 'DEV',
           aws: {
-            apiGateway: 'https://12015ldfo4.execute-api.eu-west-2.amazonaws.com/dev',
+            apiGateway: 'https://30pyi8odpi.execute-api.eu-west-2.amazonaws.com/dev/',
             region: 'eu-west-2',
             algorithm: 'AWS4-HMAC-SHA256',
             IoTCore: {
@@ -12,9 +13,9 @@ export const APP_CONFIG = {
             amplify: {
               Auth: {
                 Cognito: {
-                  userPoolId: 'eu-west-2_7xgDz82Mo',
-                  userPoolClientId: '4hoonaa6jifkie7ekp9e9nt58d',
-                  identityPoolId: 'eu-west-2:7784d476-1c05-4144-8ae5-8f3e64ed7228',
+                  userPoolId: 'eu-west-2_rHTWtQJv4',
+                  userPoolClientId: '6fnob0mojsco76gmt4gnd4ultr',
+                  identityPoolId: 'eu-west-2:82cdd6eb-f806-48dd-9d71-8e0c1982f32a',
                   mandatorySignIn: true,
                   authenticationFlowType: 'USER_SRP_AUTH'
                 }
