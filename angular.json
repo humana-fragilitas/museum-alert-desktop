@@ -148,7 +148,6 @@
         "test": {
           "builder": "@angular-builders/jest:run",
           "options": {
-            "configPath": "./jest.config.js",
             "polyfills": ["src/polyfills-test.ts"],
             "tsConfig": "src/tsconfig.spec.json",
             "globalMocks": ["styleTransform", "matchMedia", "getComputedStyle"]
