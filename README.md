@@ -1,6 +1,7 @@
 [![Angular Logo](https://www.vectorlogo.zone/logos/angular/angular-icon.svg)](https://angular.io/) [![Electron Logo](https://www.vectorlogo.zone/logos/electronjs/electronjs-icon.svg)](https://electronjs.org/)
 
 ![Maintained][maintained-badge]
+[![CI](https://github.com/humana-fragilitas/museum-alert/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/humana-fragilitas/museum-alert/actions/workflows/ci.yml)
 [![Make a pull request][prs-badge]][prs]
 [![License][license-badge]](LICENSE.md)
 

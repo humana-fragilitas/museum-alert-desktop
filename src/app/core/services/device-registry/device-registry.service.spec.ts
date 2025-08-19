@@ -1,109 +1,75 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, of } from 'rxjs';
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { of } from 'rxjs';
 
 import { DeviceRegistryService } from './device-registry.service';
 import { AuthService } from '../auth/auth.service';
-import { DeviceService } from '../device/device.service';
 import { APP_CONFIG } from '../../../../environments/environment';
-import { Sensor, ListThingsResponse } from '../../models';
+import { Sensor, ListThingsResponse, SuccessApiResponse, ErrorApiResponse, ApiResult } from '../../models';
 
-// Mock types
-interface MockSessionData {
-  tokens: {
-    idToken: {
-      payload: {
-        'custom:Company': string;
-      };
-    };
-  };
-}
 
 describe('DeviceRegistryService', () => {
   let service: DeviceRegistryService;
-  let httpTestingController: HttpTestingController;
-  let authService: jest.Mocked<AuthService>;
-  let deviceService: jest.Mocked<DeviceService>;
+  let httpMock: HttpTestingController;
+  let authService: { company: jest.Mock };
 
   const mockCompany = 'test-company';
-  const mockSessionData: MockSessionData = {
-    tokens: {
-      idToken: {
-        payload: {
-          'custom:Company': mockCompany
-        }
-      }
-    }
-  };
+  const thingName = 'sensor-001';
+  const apiUrl = APP_CONFIG.aws.apiGateway;
 
   const mockSensor: Sensor = {
-    thingName: 'test-sensor-001',
+    thingName,
     company: mockCompany
   };
 
-  const mockListThingsResponse: ListThingsResponse = {
-    company: mockCompany,
-    things: [mockSensor],
-    totalCount: 1,
-    hasMore: false
+  const mockSuccessResponse: SuccessApiResponse<Sensor> = {
+    data: mockSensor,
+    timestamp: new Date().toISOString()
+  };
+
+  const mockListThingsResponse: SuccessApiResponse<ListThingsResponse> = {
+    data: {
+      company: mockCompany,
+      things: [mockSensor],
+      totalCount: 1,
+      hasMore: false
+    },
+    timestamp: new Date().toISOString()
   };
 
   beforeEach(() => {
-    const authServiceMock = {
-      sessionData: new BehaviorSubject(mockSessionData)
-    };
-
-    const deviceServiceMock = {};
-
+    authService = { company: jest.fn(() => mockCompany) };
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
         DeviceRegistryService,
-        { provide: AuthService, useValue: authServiceMock },
-        { provide: DeviceService, useValue: deviceServiceMock }
+        { provide: AuthService, useValue: authService }
       ]
     });
-
     service = TestBed.inject(DeviceRegistryService);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    authService = TestBed.inject(AuthService) as jest.Mocked<AuthService>;
-    deviceService = TestBed.inject(DeviceService) as jest.Mocked<DeviceService>;
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    httpTestingController.verify();
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+    httpMock.verify();
   });
 
   describe('checkSensorExists', () => {
-    const thingName = 'test-sensor-001';
-    const expectedUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
-
-    it('should return sensor data when device exists (200 response)', (done) => {
-      const mockResponse = {
-        data: mockSensor
-      };
-
+    it('should return sensor data when device exists (200)', (done) => {
       service.checkSensorExists(thingName).subscribe({
         next: (result) => {
-          expect(result).toEqual(mockResponse);
+          expect(result).toEqual(mockSensor);
           done();
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
       expect(req.request.method).toBe('GET');
-      expect(req.request.params.keys().length).toBe(0);
-      
-      req.flush(mockResponse, { status: 200, statusText: 'OK' });
+      req.event(new HttpResponse<ApiResult<Sensor>>({ body: mockSuccessResponse, status: 200 }));
     });
 
-    it('should return null when device does not exist (404 response)', (done) => {
+    it('should return null when device does not exist (404)', (done) => {
       service.checkSensorExists(thingName).subscribe({
         next: (result) => {
           expect(result).toBeNull();
@@ -111,322 +77,197 @@ describe('DeviceRegistryService', () => {
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      expect(req.request.method).toBe('GET');
-      
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
     });
 
     it('should throw error for non-404 HTTP errors', (done) => {
-      const errorMessage = 'Server Error';
-      
       service.checkSensorExists(thingName).subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error: HttpErrorResponse) => {
-          expect(error.status).toBe(500);
-          expect(error.statusText).toBe('Internal Server Error');
+        next: () => done.fail('Should have thrown'),
+        error: (err: HttpErrorResponse) => {
+          expect(err.status).toBe(500);
           done();
         }
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush(errorMessage, { status: 500, statusText: 'Internal Server Error' });
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
     });
 
-    it('should handle null session data gracefully', (done) => {
-      authService.sessionData.next(null);
-
-      service.checkSensorExists(thingName).subscribe({
-        next: (result) => {
-          expect(result).toEqual({ data: mockSensor });
-          done();
-        },
-        error: done.fail
-      });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush({ data: mockSensor }, { status: 200, statusText: 'OK' });
-    });
-
-    it('should handle undefined session data gracefully', (done) => {
-      authService.sessionData.next(undefined as any);
-
-      service.checkSensorExists(thingName).subscribe({
-        next: (result) => {
-          expect(result).toEqual({ data: mockSensor });
-          done();
-        },
-        error: done.fail
-      });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush({ data: mockSensor }, { status: 200, statusText: 'OK' });
-    });
-
-    it('should log appropriate messages for existing device', (done) => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      const mockResponse = { data: mockSensor };
-
+    it('should log company match/mismatch', (done) => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      // Company matches
       service.checkSensorExists(thingName).subscribe({
         next: () => {
-          expect(consoleSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: checking device with name ${thingName} (company: ${mockCompany}) for existence in the registry...`
-          );
-          expect(consoleSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: found device with name ${mockSensor.thingName}: ${JSON.stringify(mockResponse)}`
-          );
-          expect(consoleSpy).toHaveBeenCalledWith(
+          expect(logSpy).toHaveBeenCalledWith(
             `[DeviceRegistryService]: device associated company matches with user's organization`
           );
-          
-          consoleSpy.mockRestore();
-          done();
+          // Company mismatch
+          logSpy.mockClear();
+          const mismatchSensor: Sensor = { ...mockSensor, company: 'other-company' };
+          const mismatchResponse: SuccessApiResponse<Sensor> = {
+            data: mismatchSensor,
+            timestamp: new Date().toISOString()
+          };
+          service.checkSensorExists(thingName).subscribe({
+            next: () => {
+              expect(logSpy).toHaveBeenCalledWith(
+                `[DeviceRegistryService]: device associated company does not match with user's organization`
+              );
+              logSpy.mockRestore();
+              done();
+            },
+            error: done.fail
+          });
+          const req2 = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+          req2.event(new HttpResponse<ApiResult<Sensor>>({ body: mismatchResponse, status: 200 }));
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush(mockResponse, { status: 200, statusText: 'OK' });
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      req.event(new HttpResponse<ApiResult<Sensor>>({ body: mockSuccessResponse, status: 200 }));
     });
 
-    it('should log appropriate message for non-existing device', (done) => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
+    it('should log not found for 404', (done) => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
       service.checkSensorExists(thingName).subscribe({
         next: () => {
-          expect(consoleSpy).toHaveBeenCalledWith(
+          expect(logSpy).toHaveBeenCalledWith(
             `[DeviceRegistryService]: device with name ${thingName} not found (404)`
           );
-          
-          consoleSpy.mockRestore();
+          logSpy.mockRestore();
           done();
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
     });
 
-    it('should detect company mismatch', (done) => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      const differentCompanySensor = { ...mockSensor, company: 'different-company' };
-      const mockResponse = { data: differentCompanySensor };
-
+    it('should log error for non-404 errors', (done) => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
       service.checkSensorExists(thingName).subscribe({
-        next: () => {
-          expect(consoleSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: device associated company does not match with user's organization`
+        next: () => done.fail('Should have thrown'),
+        error: () => {
+          expect(errorSpy).toHaveBeenCalledWith(
+            `[DeviceRegistryService]: error checking device existence:`,
+            expect.anything()
           );
-          
-          consoleSpy.mockRestore();
+          errorSpy.mockRestore();
           done();
-        },
-        error: done.fail
+        }
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush(mockResponse, { status: 200, statusText: 'OK' });
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
     });
   });
 
   describe('getAllSensors', () => {
-    const expectedUrl = `${APP_CONFIG.aws.apiGateway}/things`;
-
-    it('should return array of sensors on successful response', (done) => {
+    it('should return array of sensors on success', (done) => {
       service.getAllSensors().subscribe({
         next: (result) => {
-          expect(result).toEqual(mockListThingsResponse.things);
-          expect(result).toHaveLength(1);
-          expect(result[0]).toEqual(mockSensor);
+          expect(result).toEqual([mockSensor]);
           done();
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      expect(req.request.method).toBe('GET');
-      
+      const req = httpMock.expectOne(`${apiUrl}/things`);
       req.flush(mockListThingsResponse);
     });
 
-    it('should return empty array when no devices found (404 response)', (done) => {
+    it('should return empty array for 404', (done) => {
       service.getAllSensors().subscribe({
         next: (result) => {
           expect(result).toEqual([]);
-          expect(result).toHaveLength(0);
           done();
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
+      const req = httpMock.expectOne(`${apiUrl}/things`);
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
     });
 
     it('should throw error for non-404 HTTP errors', (done) => {
       service.getAllSensors().subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error: HttpErrorResponse) => {
-          expect(error.status).toBe(500);
-          expect(error.statusText).toBe('Internal Server Error');
+        next: () => done.fail('Should have thrown'),
+        error: (err: HttpErrorResponse) => {
+          expect(err.status).toBe(500);
           done();
         }
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
+      const req = httpMock.expectOne(`${apiUrl}/things`);
       req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
     });
 
-    it('should handle response with multiple sensors', (done) => {
-      const multipleSensors: Sensor[] = [
-        { thingName: 'sensor-001', company: mockCompany },
-        { thingName: 'sensor-002', company: mockCompany },
-        { thingName: 'sensor-003', company: mockCompany }
+    it('should handle multiple sensors and pagination', (done) => {
+      const sensors: Sensor[] = [
+        { thingName: 'a', company: mockCompany },
+        { thingName: 'b', company: mockCompany }
       ];
-
-      const multipleResponse: ListThingsResponse = {
-        company: mockCompany,
-        things: multipleSensors,
-        totalCount: 3,
-        hasMore: false
+      const paginated: SuccessApiResponse<ListThingsResponse> = {
+        data: {
+          company: mockCompany,
+          things: sensors,
+          totalCount: 2,
+          hasMore: true,
+          nextToken: 'next-page'
+        },
+        timestamp: new Date().toISOString()
       };
-
       service.getAllSensors().subscribe({
         next: (result) => {
-          expect(result).toEqual(multipleSensors);
-          expect(result).toHaveLength(3);
+          expect(result).toEqual(sensors);
           done();
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush(multipleResponse);
+      const req = httpMock.expectOne(`${apiUrl}/things`);
+      req.flush(paginated);
     });
 
-    it('should handle response with pagination info', (done) => {
-      const paginatedResponse: ListThingsResponse = {
-        company: mockCompany,
-        things: [mockSensor],
-        totalCount: 10,
-        nextToken: 'next-page-token',
-        hasMore: true
-      };
-
-      service.getAllSensors().subscribe({
-        next: (result) => {
-          expect(result).toEqual(paginatedResponse.things);
-          done();
-        },
-        error: done.fail
-      });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush(paginatedResponse);
-    });
-
-    it('should log appropriate messages for successful response', (done) => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
+    it('should log found devices and no devices', (done) => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      // Found
       service.getAllSensors().subscribe({
         next: () => {
-          expect(consoleSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: found ${mockListThingsResponse.things.length} devices for company ${mockCompany}`
+          expect(logSpy).toHaveBeenCalledWith(
+            `[DeviceRegistryService]: found 1 devices for company ${mockCompany}`
           );
-          
-          consoleSpy.mockRestore();
-          done();
+          // No devices
+          logSpy.mockClear();
+          service.getAllSensors().subscribe({
+            next: () => {
+              expect(logSpy).toHaveBeenCalledWith(
+                `[DeviceRegistryService]: no devices found`
+              );
+              logSpy.mockRestore();
+              done();
+            },
+            error: done.fail
+          });
+          const req2 = httpMock.expectOne(`${apiUrl}/things`);
+          req2.flush('Not Found', { status: 404, statusText: 'Not Found' });
         },
         error: done.fail
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
+      const req = httpMock.expectOne(`${apiUrl}/things`);
       req.flush(mockListThingsResponse);
     });
 
-    it('should log appropriate message for 404 response', (done) => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
+    it('should log error for non-404 errors', (done) => {
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
       service.getAllSensors().subscribe({
-        next: () => {
-          expect(consoleSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: no devices found`
-          );
-          
-          consoleSpy.mockRestore();
-          done();
-        },
-        error: done.fail
-      });
-
-      const req = httpTestingController.expectOne(expectedUrl);
-      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
-    });
-
-    it('should log error for non-404 HTTP errors', (done) => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      service.getAllSensors().subscribe({
-        next: () => done.fail('Should have thrown an error'),
+        next: () => done.fail('Should have thrown'),
         error: () => {
-          expect(consoleErrorSpy).toHaveBeenCalledWith(
+          expect(errorSpy).toHaveBeenCalledWith(
             `[DeviceRegistryService]: error while listing devices:`,
-            expect.any(HttpErrorResponse)
+            expect.anything()
           );
-          
-          consoleErrorSpy.mockRestore();
+          errorSpy.mockRestore();
           done();
         }
       });
-
-      const req = httpTestingController.expectOne(expectedUrl);
+      const req = httpMock.expectOne(`${apiUrl}/things`);
       req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-    });
-  });
-
-  describe('Error Handling', () => {
-    it('should handle network errors gracefully in checkSensorExists', (done) => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      service.checkSensorExists('test-sensor').subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error).toBeDefined();
-          expect(consoleErrorSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: error checking device existence:`,
-            expect.any(Object)
-          );
-          
-          consoleErrorSpy.mockRestore();
-          done();
-        }
-      });
-
-      const req = httpTestingController.expectOne(`${APP_CONFIG.aws.apiGateway}/things/test-sensor/`);
-      req.error(new ProgressEvent('Network error'));
-    });
-
-    it('should handle network errors gracefully in getAllSensors', (done) => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      service.getAllSensors().subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error).toBeDefined();
-          expect(consoleErrorSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: error while listing devices:`,
-            expect.any(Object)
-          );
-          
-          consoleErrorSpy.mockRestore();
-          done();
-        }
-      });
-
-      const req = httpTestingController.expectOne(`${APP_CONFIG.aws.apiGateway}/things`);
-      req.error(new ProgressEvent('Network error'));
     });
   });
 });

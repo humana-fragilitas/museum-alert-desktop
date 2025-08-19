@@ -146,11 +146,13 @@
           }
         },
         "test": {
-          "builder": "@angular-builders/jest:run",
+          "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "polyfills": ["src/polyfills-test.ts"],
             "tsConfig": "src/tsconfig.spec.json",
-            "globalMocks": ["styleTransform", "matchMedia", "getComputedStyle"]
+            "assets": ["src/assets"],
+            "styles": ["src/styles.scss"],
+            "scripts": []
           }
         },
         "lint": {

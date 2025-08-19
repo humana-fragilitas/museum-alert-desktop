@@ -15,7 +15,7 @@ export function urlValidator(): ValidatorFn {
     const value = control.value.toString();
     
     // Basic URL pattern check first (for better performance)
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})(:\d+)?([\/\w \.-]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
     
     if (!urlPattern.test(value)) {
 
@@ -50,7 +50,7 @@ export function urlValidator(): ValidatorFn {
       }
 
       // Check for valid protocol
-      if (!['https:'].includes(url.protocol)) {
+      if (!['http:', 'https:'].includes(url.protocol)) {
 
         return { 
           url: { 
