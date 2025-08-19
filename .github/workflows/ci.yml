@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ unit-tests ]
   pull_request:
-    branches: [ main ]
+    branches: [ unit-tests ]
 
 jobs:
   test:
@@ -31,7 +31,7 @@ jobs:
       run: npm run lint
       
     - name: Run tests
-      run: npm run test:ci
+      run: npm run test:ci -- --browsers=ChromeHeadless
       
     - name: Upload test coverage
       uses: codecov/codecov-action@v3
