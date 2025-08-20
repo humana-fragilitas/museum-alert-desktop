@@ -18,20 +18,20 @@ Users interested in using this project should build these dependencies first in 
 
 ## Getting Started
 
-This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure), respectively used by Electron renderer process and Electron main process:
+This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure):
+
+- Electron renderer process:
 
 ``` bash
-# Electron renderer process
 npm install
 ```
 
+- Electron main process:
+
 ``` bash
-# Electron main process
 cd app/
 npm install
 ```
-
-Why two package.json ? This project follow [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure) in order to optimize final bundle and be still able to use Angular `ng add` feature.
 
 ## To build for development
 
