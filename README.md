@@ -7,9 +7,9 @@
 [![MacOS Build][macos-build-badge]][macos-build]
 [![Windows Build][windows-build-badge]][windows-build]
 
-![alt text](./docs/images/museum_alert_desktop_app.png "Museum Alert Desktop App Screenshot")
-
 This repository contains cross-platform desktop application suitable for configuring and testing the "Museum Alert Sensor (MAS)", part of the ["Museum Alert"](https://github.com/humana-fragilitas/museum-alert) project.
+
+![alt text](./docs/images/museum_alert_desktop_app.png "Museum Alert Desktop App Screenshot")
 
 ## Getting Started
 
