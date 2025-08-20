@@ -33,7 +33,7 @@ cd app/
 npm install
 ```
 
-Renderer and main processes are structured as follows:
+Renderer and main processes files are structured as follows:
 
 | Folder | Description                                      |
 |--------|--------------------------------------------------|
