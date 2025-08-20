@@ -38,4 +38,19 @@ module.exports = {
   ],
   // Setup files
   setupFilesAfterEnv: ['<rootDir>/src/polyfills-test.ts'],
+  
+  // Coverage configuration
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'json-summary', 'html'],
+  collectCoverageFrom: [
+    'src/**/*.{ts,js}',
+    '!src/**/*.d.ts',
+    '!src/main.ts',
+    '!src/polyfills*.ts',
+    '!src/environments/**',
+    '!src/**/*.spec.ts',
+    '!src/**/*.mock.ts',
+    '!src/test-setup.ts'
+  ],
 };

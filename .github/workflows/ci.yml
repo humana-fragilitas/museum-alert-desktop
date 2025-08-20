@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ unit-tests ]
+    branches: [ main, unit-tests ]
   pull_request:
-    branches: [ unit-tests ]
+    branches: [ main, unit-tests ]
 
 jobs:
   test:
@@ -26,9 +26,18 @@ jobs:
     - name: Run tests
       run: npm run test:ci
       
-    - name: Upload test coverage
-      uses: codecov/codecov-action@v3
+    - name: Extract coverage percentage
+      run: |
+        COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.statements.pct')
+        echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+        echo "Coverage: $COVERAGE%"
+        
+    - name: Create Coverage Badge
+      uses: schneegans/dynamic-badges-action@v1.7.0
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/lcov.info
-        fail_ci_if_error: false
+        auth: ${{ secrets.GITHUB_TOKEN }}
+        gistID: ${{ secrets.GIST_ID }}
+        filename: coverage-badge.json
+        label: Coverage
+        message: ${{ env.COVERAGE }}%
+        color: ${{ env.COVERAGE > 80 && 'brightgreen' || env.COVERAGE > 60 && 'yellow' || 'red' }}

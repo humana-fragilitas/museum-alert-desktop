@@ -2,6 +2,7 @@
 
 
 [![CI](https://github.com/humana-fragilitas/museum-alert/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/humana-fragilitas/museum-alert/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/humana-fragilitas/14e2adb30d420562b0ed2a91591eed8e/raw/coverage-badge.json)](https://github.com/humana-fragilitas/museum-alert/actions/workflows/ci.yml)
 [![License][license-badge]](LICENSE.md)
 
 [![Linux Build][linux-build-badge]][linux-build]
