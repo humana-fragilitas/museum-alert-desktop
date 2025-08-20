@@ -18,12 +18,7 @@ Users interested in using this project should build these dependencies first in 
 
 ## Getting Started
 
-This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure).
-
-| Folder | Description                                      |
-|--------|--------------------------------------------------|
-| app    | Electron main process folder (NodeJS)            |
-| src    | Electron renderer process folder (Web / Angular) |
+This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure):
 
 - Electron renderer process:
 
@@ -37,6 +32,13 @@ npm install
 cd app/
 npm install
 ```
+
+Renderer and main processes are structured as follows:
+
+| Folder | Description                                      |
+|--------|--------------------------------------------------|
+| src    | Electron renderer process folder (Web / Angular) |
+| app    | Electron main process folder (NodeJS)            |
 
 ## To build for development
 
