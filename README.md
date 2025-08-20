@@ -18,7 +18,12 @@ Users interested in using this project should build these dependencies first in 
 
 ## Getting Started
 
-This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure):
+This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure).
+
+| Folder | Description                                      |
+|--------|--------------------------------------------------|
+| app    | Electron main process folder (NodeJS)            |
+| src    | Electron renderer process folder (Web / Angular) |
 
 - Electron renderer process:
 
@@ -42,31 +47,6 @@ Voila! You can use your Angular + Electron app in a local development environmen
 The application code is managed by `app/main.ts`. In this sample, the app runs with a simple Angular App (http://localhost:4200), and an Electron window. \
 The Angular component contains an example of Electron and NodeJS native lib import. \
 You can disable "Developer Tools" by commenting `win.webContents.openDevTools();` in `app/main.ts`.
-
-## Project structure
-
-| Folder | Description                                      |
-|--------|--------------------------------------------------|
-| app    | Electron main process folder (NodeJS)            |
-| src    | Electron renderer process folder (Web / Angular) |
-
-## How to import 3rd party libraries
-
-This sample project runs in both modes (web and electron). To make this work, **you have to import your dependencies the right way**. \
-
-There are two kind of 3rd party libraries :
-- NodeJS's one - Uses NodeJS core module (crypto, fs, util...)
-    - I suggest you add this kind of 3rd party library in `dependencies` of both `app/package.json` and `package.json (root folder)` in order to make it work in both Electron's Main process (app folder) and Electron's Renderer process (src folder).
-
-Please check `providers/electron.service.ts` to watch how conditional import of libraries has to be done when using NodeJS / 3rd party libraries in renderer context (i.e. Angular).
-
-- Web's one (like bootstrap, material, tailwind...)
-    - It have to be added in `dependencies` of `package.json  (root folder)`
-
-## Add a dependency with ng-add
-
-You may encounter some difficulties with `ng-add` because this project doesn't use the defaults `@angular-builders`. \
-For example you can find [here](HOW_TO.md) how to install Angular-Material with `ng-add`.
 
 ## Browser mode
 
