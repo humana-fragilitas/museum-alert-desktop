@@ -1,4 +1,4 @@
-# Museum Alert Desktop Application
+# Museum Alert Desktop
 
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/humana-fragilitas/14e2adb30d420562b0ed2a91591eed8e/raw/coverage-badge.json)](https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/ci.yml)
 [![License][license-badge]](LICENSE.md)
