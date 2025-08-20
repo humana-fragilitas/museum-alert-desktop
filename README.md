@@ -18,30 +18,15 @@ Users interested in using this project should build these dependencies first in 
 
 ## Getting Started
 
-*Clone this repository locally:*
+This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure), respectively used by Electron renderer process and Electron main process:
 
 ``` bash
-git clone https://github.com/humana-fragilitas/museum-alert.git
-```
-
-*Install dependencies with npm (used by Electron renderer process):*
-
-``` bash
+# Electron renderer process
 npm install
 ```
 
-There is an issue with `yarn` and `node_modules` when the application is built by the packager. Please use `npm` as dependencies manager.
-
-If you want to generate Angular components with Angular-cli , you **MUST** install `@angular/cli` in npm global context.
-Please follow [Angular-cli documentation](https://github.com/angular/angular-cli) if you had installed a previous version of `angular-cli`.
-
 ``` bash
-npm install -g @angular/cli
-```
-
-*Install NodeJS dependencies with npm (used by Electron main process):*
-
-``` bash
+# Electron main process
 cd app/
 npm install
 ```
