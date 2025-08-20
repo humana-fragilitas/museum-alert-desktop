@@ -9,6 +9,28 @@
 
 # Introduction
 
+## References
+
+- https://skeleton-loader.web.app
+
+Bootstrap and package your project with Angular 19 and Electron 36 (Typescript + SASS + Hot Reload) for creating Desktop applications.
+
+Currently runs with:
+
+- Angular v19.2.14
+- Electron v36.0.0
+
+With this sample, you can:
+
+- Run your app in a local development environment with Electron & Hot reload
+- Run your app in a production environment
+- Execute your tests with Jest and Playwright (E2E)
+- Package your app into an executable file for Linux, Windows & Mac
+
+/!\ Hot reload only pertains to the renderer process. The main electron process is not able to be hot reloaded, only restarted.
+
+/!\ Angular CLI & Electron Builder needs Node 18.10 or later to work correctly.
+
 ## Getting Started
 
 *Clone this repository locally:*
