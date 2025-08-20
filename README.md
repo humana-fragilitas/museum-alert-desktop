@@ -1,3 +1,5 @@
+# Museum Alert Desktop Application
+
 [![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/humana-fragilitas/14e2adb30d420562b0ed2a91591eed8e/raw/coverage-badge.json)](https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/ci.yml)
 [![License][license-badge]](LICENSE.md)
 
@@ -7,7 +9,7 @@
 
 ![alt text](./docs/images/museum_alert_desktop_app.png "Museum Alert Desktop App Screenshot")
 
-# Introduction
+This repository contains cross-platform desktop application suitable for configuring and testing the "Museum Alert Sensor (MAS)", part of the ["Museum Alert"](https://github.com/humana-fragilitas/museum-alert) project.
 
 ## Getting Started
 
