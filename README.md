@@ -1,4 +1,4 @@
-[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/humana-fragilitas/14e2adb30d420562b0ed2a91591eed8e/raw/coverage-badge.json)](https://github.com/humana-fragilitas/museum-alert/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/humana-fragilitas/14e2adb30d420562b0ed2a91591eed8e/raw/coverage-badge.json)](https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/ci.yml)
 [![License][license-badge]](LICENSE.md)
 
 [![Linux Build][linux-build-badge]][linux-build]
@@ -141,12 +141,12 @@ Finally from VsCode press **Ctrl+Shift+D** and select **Application Debug** and 
 Please note that Hot reload is only available in Renderer process.
 
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license]: https://github.com/humana-fragilitas/museum-alert/blob/main/museum-alert-desktop/LICENSE.md
+[license]: https://github.com/humana-fragilitas/museum-alert-desktop/blob/main/LICENSE.md
 
-[linux-build-badge]: https://github.com/humana-fragilitas/museum-alert/workflows/Linux%20Build/badge.svg
-[linux-build]: https://github.com/humana-fragilitas/museum-alert/actions?query=workflow%3A%22Linux+Build%22
-[macos-build-badge]: https://github.com/humana-fragilitas/museum-alert/workflows/MacOS%20Build/badge.svg
-[macos-build]: https://github.com/humana-fragilitas/museum-alert/actions?query=workflow%3A%22MacOS+Build%22
-[windows-build-badge]: https://github.com/humana-fragilitas/museum-alert/workflows/Windows%20Build/badge.svg
-[windows-build]: https://github.com/humana-fragilitas/museum-alert/actions?query=workflow%3A%22Windows+Build%22
+[linux-build-badge]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/linux-build.yml/badge.svg
+[linux-build]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/linux-build.yml
+[macos-build-badge]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/macos-build.yml/badge.svg
+[macos-build]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/macos-build.yml
+[windows-build-badge]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/windows-build.yml/badge.svg
+[windows-build]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/windows-build.yml
 
