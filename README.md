@@ -10,6 +10,11 @@
 This repository contains cross-platform desktop application suitable for configuring and testing the "Museum Alert Sensor (MAS)", part of the ["Museum Alert"](https://github.com/humana-fragilitas/museum-alert) project.
 
 ![alt text](./docs/images/museum_alert_desktop_app.png "Museum Alert Desktop App Screenshot")
+## Prerequisites
+
+This application depends on the infrastructure and artifacts created by ["Museum Alert API"](https://github.com/humana-fragilitas/museum-alert) AWS CDK project and the ["Museum Alert Sensor"](https://github.com/humana-fragilitas/museum-alert-sketch) device.
+
+Users interested in using this project should build these dependencies first in the specified order.
 
 ## Getting Started
 
