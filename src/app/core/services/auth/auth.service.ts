@@ -19,6 +19,7 @@ export class AuthService {
 
   private timeOutId: number = 0;
   private isFetchingSession = false;
+  private pendingSessionRefresh: number = 0;
   private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
   private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
   private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
@@ -98,13 +99,10 @@ export class AuthService {
 
       console.log('[AuthService]: session data:');
       console.log(session);
-
       console.log('%c[AuthService]: access token:', titleStyle);
       console.log(this.accessToken());
-
       console.log('%c[AuthService]: id token:', titleStyle);
       console.log(this.idToken());
-
       console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
 
       // Calculate refresh interval (1 minute before expiration)
@@ -112,24 +110,7 @@ export class AuthService {
           new Date().getTime()) - (1000 * 60);
 
       // Only set timeout if interval is positive
-      if (sessionRefreshInterval > 0) {
-        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
-        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
-
-        console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
-
-        // Note: typings point to NodeJS.Timeout
-        this.timeOutId = Number(setTimeout(
-          () => {
-            console.log('[AuthService]: auto-refreshing session...');
-            this.fetchSession({ forceRefresh: true });
-          },
-          sessionRefreshInterval
-        ));
-      } else {
-        console.log('[AuthService]: session already expired or expiring soon, not setting refresh timeout');
-      }
+      this.pendingSessionRefresh = sessionRefreshInterval > 0 ? sessionRefreshInterval : 0;
 
     } catch (exception) {
 
@@ -137,9 +118,23 @@ export class AuthService {
       this.sessionDataSignal.set(null);
 
     } finally {
-
       this.isFetchingSession = false;
-
+      // Set the timeout for auto-refresh after fetchSession is fully complete
+      if (this.pendingSessionRefresh > 0) {
+        const sessionRefreshInterval = this.pendingSessionRefresh;
+        this.pendingSessionRefresh = 0;
+        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
+        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
+        console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
+        this.timeOutId = Number(setTimeout(
+          () => {
+            console.log('[AuthService]: auto-refreshing session...');
+            this.forceRefreshSession();
+          },
+          sessionRefreshInterval
+        ));
+      }
     }
 
   }
@@ -176,6 +171,10 @@ export class AuthService {
 
     }
 
+  }
+
+  private forceRefreshSession() {
+    this.fetchSession({ forceRefresh: true });
   }
 
   // Clean up resources

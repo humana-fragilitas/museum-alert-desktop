@@ -131,7 +131,7 @@ export class SigV4Service {
     baseUrl.search = queryParams.toString();
     const requestUrl = baseUrl.toString();
 
-    console.dir('[SigV4Service]: request url:', requestUrl);
+    console.log('[SigV4Service]: request url:', requestUrl);
 
     return requestUrl;
 

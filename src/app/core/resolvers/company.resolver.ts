@@ -37,16 +37,6 @@ export class CompanyResolver implements Resolve<Observable<ApiResult<CompanyWith
         });
 
         return throwError(() => exception);
-
-        // this.errorService.showModal({
-        //   data: {
-        //     type: DialogType.ERROR,
-        //     title: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_TITLE',
-        //     message: 'ERRORS.APPLICATION.COMPANY_RETRIEVAL_FAILED_MESSAGE'
-        //   },
-        //   exception
-        // });
-        // return throwError(() => exception);
       })
     );
   }

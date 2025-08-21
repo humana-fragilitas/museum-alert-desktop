@@ -2,188 +2,97 @@ import { FormControl } from '@angular/forms';
 import { validateEddystoneUrl } from '../helpers/eddystone-url.helper';
 import { eddystoneUrlValidator } from './eddystone-encoded-url.validator';
 
-// Mock the helper function
 jest.mock('../helpers/eddystone-url.helper', () => ({
   validateEddystoneUrl: jest.fn()
 }));
 
-describe('EddystoneUrlValidator', () => {
+describe('eddystoneUrlValidator', () => {
   let validator: ReturnType<typeof eddystoneUrlValidator>;
-  let mockValidateEddystoneUrl: jest.MockedFunction<typeof validateEddystoneUrl>;
+  let mockValidate: jest.MockedFunction<typeof validateEddystoneUrl>;
 
   beforeEach(() => {
     validator = eddystoneUrlValidator();
-    mockValidateEddystoneUrl = validateEddystoneUrl as jest.MockedFunction<typeof validateEddystoneUrl>;
+    mockValidate = validateEddystoneUrl as jest.MockedFunction<typeof validateEddystoneUrl>;
     jest.clearAllMocks();
   });
 
-  describe('when control value is empty', () => {
-    it('should return null for null value', () => {
-      const control = new FormControl(null);
-      const result = validator(control);
-      
-      expect(result).toBeNull();
-      expect(mockValidateEddystoneUrl).not.toHaveBeenCalled();
-    });
-
-    it('should return null for undefined value', () => {
-      const control = new FormControl(undefined);
-      const result = validator(control);
-      
-      expect(result).toBeNull();
-      expect(mockValidateEddystoneUrl).not.toHaveBeenCalled();
-    });
-
-    it('should return null for empty string', () => {
-      const control = new FormControl('');
-      const result = validator(control);
-      
-      expect(result).toBeNull();
-      expect(mockValidateEddystoneUrl).not.toHaveBeenCalled();
-    });
+  it('returns null for null, undefined, or empty string', () => {
+    expect(validator(new FormControl(null))).toBeNull();
+    expect(validator(new FormControl(undefined))).toBeNull();
+    expect(validator(new FormControl(''))).toBeNull();
+    expect(mockValidate).not.toHaveBeenCalled();
   });
 
-  describe('when control value is present', () => {
-    it('should return null for valid URL', () => {
-      const testUrl = 'https://example.com';
-      const control = new FormControl(testUrl);
-      
-      mockValidateEddystoneUrl.mockReturnValue({
-        valid: true,
-        encodedLength: 15,
-        error: ''
-      });
+  it('returns null for valid eddystone URL', () => {
+    mockValidate.mockReturnValue({ valid: true, encodedLength: 10, error: '' });
+    const url = 'https://foo.com';
+    expect(validator(new FormControl(url))).toBeNull();
+    expect(mockValidate).toHaveBeenCalledWith(url);
+  });
 
-      const result = validator(control);
-      
-      expect(result).toBeNull();
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledWith(testUrl);
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return validation error for invalid URL', () => {
-      const testUrl = 'https://very-long-url-that-exceeds-eddystone-limit.com';
-      const control = new FormControl(testUrl);
-      
-      mockValidateEddystoneUrl.mockReturnValue({
-        valid: false,
+  it('returns error object for invalid eddystone URL', () => {
+    mockValidate.mockReturnValue({ valid: false, encodedLength: 25, error: 'too long' });
+    const url = 'https://very-long-url.com';
+    expect(validator(new FormControl(url))).toEqual({
+      eddystoneUrl: {
+        value: url,
         encodedLength: 25,
-        error: 'URL too long for Eddystone encoding'
-      });
-
-      const result = validator(control);
-      
-      expect(result).toEqual({
-        eddystoneUrl: {
-          value: testUrl,
-          encodedLength: 25,
-          maxLength: 18,
-          error: 'URL too long for Eddystone encoding'
-        }
-      });
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledWith(testUrl);
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledTimes(1);
+        maxLength: 18,
+        error: 'too long'
+      }
     });
-
-    it('should handle malformed URLs', () => {
-      const testUrl = 'not-a-valid-url';
-      const control = new FormControl(testUrl);
-      
-      mockValidateEddystoneUrl.mockReturnValue({
-        valid: false,
-        encodedLength: 0,
-        error: 'Invalid URL format'
-      });
-
-      const result = validator(control);
-      
-      expect(result).toEqual({
-        eddystoneUrl: {
-          value: testUrl,
-          encodedLength: 0,
-          maxLength: 18,
-          error: 'Invalid URL format'
-        }
-      });
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledWith(testUrl);
-    });
+    expect(mockValidate).toHaveBeenCalledWith(url);
   });
 
-  describe('edge cases', () => {
-    it('should handle whitespace-only strings', () => {
-      const control = new FormControl('   ');
-      
-      mockValidateEddystoneUrl.mockReturnValue({
-        valid: false,
+  it('handles malformed URLs', () => {
+    mockValidate.mockReturnValue({ valid: false, encodedLength: 0, error: 'bad format' });
+    const url = 'not-a-url';
+    expect(validator(new FormControl(url))).toEqual({
+      eddystoneUrl: {
+        value: url,
         encodedLength: 0,
-        error: 'Invalid URL format'
-      });
-
-      const result = validator(control);
-      
-      expect(result).toEqual({
-        eddystoneUrl: {
-          value: '   ',
-          encodedLength: 0,
-          maxLength: 18,
-          error: 'Invalid URL format'
-        }
-      });
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledWith('   ');
+        maxLength: 18,
+        error: 'bad format'
+      }
     });
+    expect(mockValidate).toHaveBeenCalledWith(url);
+  });
 
-    it('should handle URL at exact limit', () => {
-      const testUrl = 'https://ex.co';
-      const control = new FormControl(testUrl);
-      
-      mockValidateEddystoneUrl.mockReturnValue({
-        valid: true,
-        encodedLength: 18,
-        error: ''
-      });
-
-      const result = validator(control);
-      
-      expect(result).toBeNull();
-      expect(mockValidateEddystoneUrl).toHaveBeenCalledWith(testUrl);
+  it('handles whitespace-only strings', () => {
+    mockValidate.mockReturnValue({ valid: false, encodedLength: 0, error: 'bad format' });
+    expect(validator(new FormControl('   '))).toEqual({
+      eddystoneUrl: {
+        value: '   ',
+        encodedLength: 0,
+        maxLength: 18,
+        error: 'bad format'
+      }
     });
+    expect(mockValidate).toHaveBeenCalledWith('   ');
+  });
 
-    it('should handle URL just over limit', () => {
-      const testUrl = 'https://example.co';
-      const control = new FormControl(testUrl);
-      
-      mockValidateEddystoneUrl.mockReturnValue({
-        valid: false,
+  it('returns null for URL at exact limit', () => {
+    mockValidate.mockReturnValue({ valid: true, encodedLength: 18, error: '' });
+    const url = 'https://ex.co';
+    expect(validator(new FormControl(url))).toBeNull();
+    expect(mockValidate).toHaveBeenCalledWith(url);
+  });
+
+  it('returns error for URL just over limit', () => {
+    mockValidate.mockReturnValue({ valid: false, encodedLength: 19, error: 'too long' });
+    const url = 'https://example.co';
+    expect(validator(new FormControl(url))).toEqual({
+      eddystoneUrl: {
+        value: url,
         encodedLength: 19,
-        error: 'URL exceeds 18-byte limit'
-      });
-
-      const result = validator(control);
-      
-      expect(result).toEqual({
-        eddystoneUrl: {
-          value: testUrl,
-          encodedLength: 19,
-          maxLength: 18,
-          error: 'URL exceeds 18-byte limit'
-        }
-      });
+        maxLength: 18,
+        error: 'too long'
+      }
     });
+    expect(mockValidate).toHaveBeenCalledWith(url);
   });
 
-  describe('validator factory', () => {
-    it('should return a function', () => {
-      const validatorFn = eddystoneUrlValidator();
-      expect(typeof validatorFn).toBe('function');
-    });
-
-    it('should create independent validator instances', () => {
-      const validator1 = eddystoneUrlValidator();
-      const validator2 = eddystoneUrlValidator();
-      
-      expect(validator1).not.toBe(validator2);
-      expect(typeof validator1).toBe('function');
-      expect(typeof validator2).toBe('function');
-    });
+  it('returns a new validator function each time', () => {
+    expect(eddystoneUrlValidator()).not.toBe(eddystoneUrlValidator());
   });
 });

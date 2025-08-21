@@ -385,17 +385,12 @@ describe('publicOnlyGuard', () => {
           // Take only the first emission and complete
           result.pipe(take(1)).subscribe({
             next: (canActivate: GuardResult) => {
-              // Debug: log what we actually received
-              console.log('Empty URL test - canActivate:', canActivate);
-              console.log('Empty URL test - user:', userSignal());
-              
               // If the guard returns false for empty URL with null user, 
               // this might be expected behavior in your implementation
               // Let's test what actually happens rather than assume
               if (canActivate === false) {
                 // Your guard might redirect on empty URL regardless of auth state
                 expect(mockRouter.navigate).toHaveBeenCalledWith(['/device']);
-                console.log('Guard redirects on empty URL - this might be expected behavior');
               } else {
                 expect(canActivate).toBe(true);
                 expect(consoleSpy).toHaveBeenCalledWith(
@@ -405,12 +400,10 @@ describe('publicOnlyGuard', () => {
               done();
             },
             error: (error) => {
-              console.error('Empty URL test error:', error);
               done(error);
             }
           });
         } else {
-          console.log('Empty URL test - non-observable result:', result);
           expect(result).toBe(true);
           done();
         }

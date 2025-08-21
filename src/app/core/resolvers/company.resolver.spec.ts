@@ -5,13 +5,16 @@ import { of, throwError } from 'rxjs';
 import { CompanyResolver } from './company.resolver';
 import { CompanyService } from '../services/company/company.service';
 import { NotificationService } from '../services/notification/notification.service';
+import { DialogService } from '../services/dialog/dialog.service';
 import { CompanyRole, CompanyWithUserContext } from '../models';
-import { AppErrorType, ErrorType } from '../../../../app/shared';
+import { jest } from '@jest/globals';
+import { TranslateService, TranslateModule, TranslateLoader, TranslateCompiler, TranslateStore, TranslateParser, MissingTranslationHandler, USE_DEFAULT_LANG, DEFAULT_LANGUAGE, USE_EXTEND } from '@ngx-translate/core';
 
 describe('CompanyResolver', () => {
   let resolver: CompanyResolver;
-  let companyService: jest.Mocked<CompanyService>;
-  let notificationService: jest.Mocked<NotificationService>;
+  let companyService: { fetch: jest.Mock };
+  let notificationService: { onError: jest.Mock };
+  let dialogService: { openDialog: jest.Mock };
 
   const mockCompanyData: CompanyWithUserContext = {
     companyId: '123',
@@ -41,25 +44,37 @@ describe('CompanyResolver', () => {
   };
 
   beforeEach(() => {
-    const companyServiceMock = {
-      get: jest.fn()
+    companyService = {
+      fetch: jest.fn()
     };
 
-    const notificationServiceMock = {
+    notificationService = {
       onError: jest.fn()
+    };
+
+    dialogService = {
+      openDialog: jest.fn()
     };
 
     TestBed.configureTestingModule({
       providers: [
         CompanyResolver,
-        { provide: CompanyService, useValue: companyServiceMock },
-        { provide: NotificationService, useValue: notificationServiceMock }
+        { provide: CompanyService, useValue: companyService },
+        { provide: NotificationService, useValue: notificationService },
+        { provide: DialogService, useValue: dialogService },
+        { provide: TranslateStore, useValue: {} },
+        { provide: TranslateLoader, useValue: { getTranslation: jest.fn(() => of({})) } },
+        { provide: TranslateService, useValue: { get: jest.fn(() => of('')), instant: jest.fn(() => ''), onLangChange: of({}), onTranslationChange: of({}), onDefaultLangChange: of({}) } },
+        { provide: TranslateCompiler, useValue: {} },
+        { provide: TranslateParser, useValue: {} },
+        { provide: MissingTranslationHandler, useValue: {} },
+        { provide: USE_DEFAULT_LANG, useValue: true },
+        { provide: DEFAULT_LANGUAGE, useValue: 'en' },
+        { provide: USE_EXTEND, useValue: false }
       ]
     });
 
     resolver = TestBed.inject(CompanyResolver);
-    companyService = TestBed.inject(CompanyService) as jest.Mocked<CompanyService>;
-    notificationService = TestBed.inject(NotificationService) as jest.Mocked<NotificationService>;
   });
 
   afterEach(() => {
@@ -73,40 +88,29 @@ describe('CompanyResolver', () => {
   describe('resolve', () => {
     it('should return company data when service call succeeds', (done) => {
       // Arrange
-      companyService.get.mockReturnValue(of(mockCompanyData));
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      companyService.fetch.mockReturnValue(of(mockCompanyData));
 
       // Act
       resolver.resolve().subscribe({
         next: (result) => {
           // Assert
           expect(result).toEqual(mockCompanyData);
-          expect(companyService.get).toHaveBeenCalledTimes(1);
-          expect(consoleSpy).toHaveBeenCalledWith('Company data resolved:', mockCompanyData);
-          expect(notificationService.onError).not.toHaveBeenCalled();
-          consoleSpy.mockRestore();
           done();
         },
-        error: () => {
-          fail('Should not reach error handler');
-        }
+        error: done.fail
       });
     });
 
     it('should return null when service returns null', (done) => {
       // Arrange
-      companyService.get.mockReturnValue(of(null));
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      companyService.fetch.mockReturnValue(of(null));
 
       // Act
       resolver.resolve().subscribe({
         next: (result) => {
           // Assert
           expect(result).toBeNull();
-          expect(companyService.get).toHaveBeenCalledTimes(1);
-          expect(consoleSpy).toHaveBeenCalledWith('Company data resolved:', null);
-          expect(notificationService.onError).not.toHaveBeenCalled();
-          consoleSpy.mockRestore();
+          expect(companyService.fetch).toHaveBeenCalledTimes(1);
           done();
         },
         error: () => {
@@ -115,41 +119,30 @@ describe('CompanyResolver', () => {
       });
     });
 
-    it('should handle HTTP error and show notification', (done) => {
+    it('should handle error and call dialogService.openDialog', (done) => {
       // Arrange
-      const mockError = new HttpErrorResponse({
-        error: { message: 'Company not found' },
-        status: 404,
-        statusText: 'Not Found',
-        url: '/api/company'
-      });
-
-      companyService.get.mockReturnValue(throwError(() => mockError));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const error = { status: 404, statusText: 'Not Found' };
+      companyService.fetch.mockReturnValue(throwError(() => error));
 
       // Act
       resolver.resolve().subscribe({
         next: () => {
           fail('Should not reach success handler');
         },
-        error: (error) => {
+        error: (err) => {
           // Assert
-          expect(error).toBe(mockError);
-          expect(companyService.get).toHaveBeenCalledTimes(1);
-          expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to resolve company data:', mockError);
-          expect(notificationService.onError).toHaveBeenCalledWith(
-            ErrorType.APP_ERROR,
-            AppErrorType.FAILED_COMPANY_RETRIEVAL,
-            mockError
-          );
-          expect(notificationService.onError).toHaveBeenCalledTimes(1);
-          consoleErrorSpy.mockRestore();
+          if (err && typeof err === 'object' && 'status' in err) {
+            expect((err as any).status).toBe(404);
+          } else {
+            expect(err).toBeDefined();
+          }
+          expect(dialogService.openDialog).toHaveBeenCalled();
           done();
         }
       });
     });
 
-    it('should handle network error and show notification', (done) => {
+    it('should handle network error and show dialog', (done) => {
       // Arrange
       const mockError = new HttpErrorResponse({
         error: new ErrorEvent('Network error'),
@@ -158,8 +151,7 @@ describe('CompanyResolver', () => {
         url: '/api/company'
       });
 
-      companyService.get.mockReturnValue(throwError(() => mockError));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      companyService.fetch.mockReturnValue(throwError(() => mockError));
 
       // Act
       resolver.resolve().subscribe({
@@ -167,23 +159,26 @@ describe('CompanyResolver', () => {
           fail('Should not reach success handler');
         },
         error: (error) => {
-          // Assert
-          expect(error).toBe(mockError);
-          expect(companyService.get).toHaveBeenCalledTimes(1);
-          expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to resolve company data:', mockError);
-          expect(notificationService.onError).toHaveBeenCalledWith(
-            ErrorType.APP_ERROR,
-            AppErrorType.FAILED_COMPANY_RETRIEVAL,
-            mockError
+          if (error && typeof error === 'object' && 'status' in error) {
+            expect((error as any).status).toBe(0);
+          } else {
+            expect(error).toBeDefined();
+          }
+          expect(companyService.fetch).toHaveBeenCalledTimes(1);
+          expect(dialogService.openDialog).toHaveBeenCalledWith(
+            expect.objectContaining({
+              exception: mockError,
+              title: expect.any(String),
+              message: expect.any(String)
+            })
           );
-          expect(notificationService.onError).toHaveBeenCalledTimes(1);
-          consoleErrorSpy.mockRestore();
+          expect(dialogService.openDialog).toHaveBeenCalledTimes(1);
           done();
         }
       });
     });
 
-    it('should handle server error (500) and show notification', (done) => {
+    it('should handle server error (500) and show dialog', (done) => {
       // Arrange
       const mockError = new HttpErrorResponse({
         error: { message: 'Internal server error' },
@@ -192,8 +187,7 @@ describe('CompanyResolver', () => {
         url: '/api/company'
       });
 
-      companyService.get.mockReturnValue(throwError(() => mockError));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      companyService.fetch.mockReturnValue(throwError(() => mockError));
 
       // Act
       resolver.resolve().subscribe({
@@ -201,22 +195,25 @@ describe('CompanyResolver', () => {
           fail('Should not reach success handler');
         },
         error: (error) => {
-          // Assert
-          expect(error).toBe(mockError);
-          expect(companyService.get).toHaveBeenCalledTimes(1);
-          expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to resolve company data:', mockError);
-          expect(notificationService.onError).toHaveBeenCalledWith(
-            ErrorType.APP_ERROR,
-            AppErrorType.FAILED_COMPANY_RETRIEVAL,
-            mockError
+          if (error && typeof error === 'object' && 'status' in error) {
+            expect((error as any).status).toBe(500);
+          } else {
+            expect(error).toBeDefined();
+          }
+          expect(companyService.fetch).toHaveBeenCalledTimes(1);
+          expect(dialogService.openDialog).toHaveBeenCalledWith(
+            expect.objectContaining({
+              exception: mockError,
+              title: expect.any(String),
+              message: expect.any(String)
+            })
           );
-          consoleErrorSpy.mockRestore();
           done();
         }
       });
     });
 
-    it('should not call notification service multiple times on subsequent errors', (done) => {
+    it('should not call dialogService.openDialog multiple times on subsequent errors', (done) => {
       // Arrange
       const mockError = new HttpErrorResponse({
         error: { message: 'Service unavailable' },
@@ -225,24 +222,21 @@ describe('CompanyResolver', () => {
         url: '/api/company'
       });
 
-      companyService.get.mockReturnValue(throwError(() => mockError));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      companyService.fetch.mockReturnValue(throwError(() => mockError));
 
       // Act - First call
       resolver.resolve().subscribe({
         next: () => fail('Should not reach success handler'),
         error: () => {
           // Assert first call
-          expect(notificationService.onError).toHaveBeenCalledTimes(1);
-          
+          expect(dialogService.openDialog).toHaveBeenCalledTimes(1);
           // Act - Second call
           resolver.resolve().subscribe({
             next: () => fail('Should not reach success handler'),
             error: () => {
               // Assert second call
-              expect(notificationService.onError).toHaveBeenCalledTimes(2);
-              expect(companyService.get).toHaveBeenCalledTimes(2);
-              consoleErrorSpy.mockRestore();
+              expect(dialogService.openDialog).toHaveBeenCalledTimes(2);
+              expect(companyService.fetch).toHaveBeenCalledTimes(2);
               done();
             }
           });

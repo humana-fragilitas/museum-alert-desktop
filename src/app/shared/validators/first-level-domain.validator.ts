@@ -50,6 +50,8 @@ export function firstLevelDomainValidator(): ValidatorFn {
       } else {
         // Handle cases without protocol
         domain = value.split('/')[0];
+        // Remove port, query, and fragment if present
+        domain = domain.split(':')[0].split('?')[0].split('#')[0];
       }
 
       // Find the first-level domain (TLD)

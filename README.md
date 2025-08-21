@@ -1,74 +1,46 @@
-[![Angular Logo](https://www.vectorlogo.zone/logos/angular/angular-icon.svg)](https://angular.io/) [![Electron Logo](https://www.vectorlogo.zone/logos/electronjs/electronjs-icon.svg)](https://electronjs.org/)
+# Museum Alert Desktop
 
-![Maintained][maintained-badge]
-[![Make a pull request][prs-badge]][prs]
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/humana-fragilitas/14e2adb30d420562b0ed2a91591eed8e/raw/coverage-badge.json)](https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/ci.yml)
 [![License][license-badge]](LICENSE.md)
 
 [![Linux Build][linux-build-badge]][linux-build]
 [![MacOS Build][macos-build-badge]][macos-build]
 [![Windows Build][windows-build-badge]][windows-build]
 
-[![Watch on GitHub][github-watch-badge]][github-watch]
-[![Star on GitHub][github-star-badge]][github-star]
-[![Tweet][twitter-badge]][twitter]
+Cross-platform Angular Electron desktop application suitable for configuring and testing the "Museum Alert Sensor (MAS)", part of the ["Museum Alert"](https://github.com/humana-fragilitas/museum-alert) project.
 
 ![alt text](./docs/images/museum_alert_desktop_app.png "Museum Alert Desktop App Screenshot")
+## Prerequisites
 
-# Introduction
+This application depends on the infrastructure and artifacts created by ["Museum Alert API"](https://github.com/humana-fragilitas/museum-alert) AWS CDK project and the ["Museum Alert Sensor"](https://github.com/humana-fragilitas/museum-alert-sketch) device.
 
-## References
+Users interested in using this project should build these dependencies first in the specified order.
 
-- https://skeleton-loader.web.app
-
-Bootstrap and package your project with Angular 19 and Electron 36 (Typescript + SASS + Hot Reload) for creating Desktop applications.
-
-Currently runs with:
-
-- Angular v19.2.14
-- Electron v36.0.0
-
-With this sample, you can:
-
-- Run your app in a local development environment with Electron & Hot reload
-- Run your app in a production environment
-- Execute your tests with Jest and Playwright (E2E)
-- Package your app into an executable file for Linux, Windows & Mac
-
-/!\ Hot reload only pertains to the renderer process. The main electron process is not able to be hot reloaded, only restarted.
-
-/!\ Angular CLI & Electron Builder needs Node 18.10 or later to work correctly.
+⚠️ **Please read the [disclaimer](#disclaimer) before using this project.**
 
 ## Getting Started
 
-*Clone this repository locally:*
+This project has two dependencies trees, following [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure):
 
-``` bash
-git clone https://github.com/maximegris/angular-electron.git
-```
-
-*Install dependencies with npm (used by Electron renderer process):*
+- Electron renderer process:
 
 ``` bash
 npm install
 ```
 
-There is an issue with `yarn` and `node_modules` when the application is built by the packager. Please use `npm` as dependencies manager.
-
-If you want to generate Angular components with Angular-cli , you **MUST** install `@angular/cli` in npm global context.
-Please follow [Angular-cli documentation](https://github.com/angular/angular-cli) if you had installed a previous version of `angular-cli`.
-
-``` bash
-npm install -g @angular/cli
-```
-
-*Install NodeJS dependencies with npm (used by Electron main process):*
+- Electron main process:
 
 ``` bash
 cd app/
 npm install
 ```
 
-Why two package.json ? This project follow [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure) in order to optimize final bundle and be still able to use Angular `ng add` feature.
+Renderer and main processes files are structured as follows:
+
+| Folder | Description                                      |
+|--------|--------------------------------------------------|
+| src    | Electron renderer process folder (Web / Angular) |
+| app    | Electron main process folder (NodeJS)            |
 
 ## To build for development
 
@@ -79,31 +51,6 @@ Voila! You can use your Angular + Electron app in a local development environmen
 The application code is managed by `app/main.ts`. In this sample, the app runs with a simple Angular App (http://localhost:4200), and an Electron window. \
 The Angular component contains an example of Electron and NodeJS native lib import. \
 You can disable "Developer Tools" by commenting `win.webContents.openDevTools();` in `app/main.ts`.
-
-## Project structure
-
-| Folder | Description                                      |
-|--------|--------------------------------------------------|
-| app    | Electron main process folder (NodeJS)            |
-| src    | Electron renderer process folder (Web / Angular) |
-
-## How to import 3rd party libraries
-
-This sample project runs in both modes (web and electron). To make this work, **you have to import your dependencies the right way**. \
-
-There are two kind of 3rd party libraries :
-- NodeJS's one - Uses NodeJS core module (crypto, fs, util...)
-    - I suggest you add this kind of 3rd party library in `dependencies` of both `app/package.json` and `package.json (root folder)` in order to make it work in both Electron's Main process (app folder) and Electron's Renderer process (src folder).
-
-Please check `providers/electron.service.ts` to watch how conditional import of libraries has to be done when using NodeJS / 3rd party libraries in renderer context (i.e. Angular).
-
-- Web's one (like bootstrap, material, tailwind...)
-    - It have to be added in `dependencies` of `package.json  (root folder)`
-
-## Add a dependency with ng-add
-
-You may encounter some difficulties with `ng-add` because this project doesn't use the defaults `@angular-builders`. \
-For example you can find [here](HOW_TO.md) how to install Angular-Material with `ng-add`.
 
 ## Browser mode
 
@@ -147,44 +94,77 @@ Finally from VsCode press **Ctrl+Shift+D** and select **Application Debug** and 
 
 Please note that Hot reload is only available in Renderer process.
 
-## Want to use Angular Material ? Ngx-Bootstrap ?
+## Disclaimer
 
-Please refer to [HOW_TO file](./HOW_TO.md)
+### Important Notice
 
-## Branch & Packages version
+This open source project, including all its submodules, documentation, and associated code (collectively, the "Project"), is provided for educational and experimental purposes only.
 
-- Angular 4 & Electron 1 : Branch [angular4](https://github.com/maximegris/angular-electron/tree/angular4)
-- Angular 5 & Electron 1 : Branch [angular5](https://github.com/maximegris/angular-electron/tree/angular5)
-- Angular 6 & Electron 3 : Branch [angular6](https://github.com/maximegris/angular-electron/tree/angular6)
-- Angular 7 & Electron 3 : Branch [angular7](https://github.com/maximegris/angular-electron/tree/angular7)
-- Angular 8 & Electron 7 : Branch [angular8](https://github.com/maximegris/angular-electron/tree/angular8)
-- Angular 9 & Electron 7 : Branch [angular9](https://github.com/maximegris/angular-electron/tree/angular9)
-- Angular 10 & Electron 9 : Branch [angular10](https://github.com/maximegris/angular-electron/tree/angular10)
-- Angular 11 & Electron 12 : Branch [angular11](https://github.com/maximegris/angular-electron/tree/angular11)
-- Angular 12 & Electron 16 : Branch [angular12](https://github.com/maximegris/angular-electron/tree/angular12)
-- Angular 13 & Electron 18 : Branch [angular13](https://github.com/maximegris/angular-electron/tree/angular13)
-- Angular 14 & Electron 21 : Branch [angular14](https://github.com/maximegris/angular-electron/tree/angular14)
-- Angular 15 & Electron 24 : Branch [angular15](https://github.com/maximegris/angular-electron/tree/angular15)
-- Angular 16 & Electron 25 : Branch [angular16](https://github.com/maximegris/angular-electron/tree/angular16)
-- Angular 17 & Electron 30 : Branch [angular17](https://github.com/maximegris/angular-electron/tree/angular17)
-- Angular 19 & Electron 36 : (main)
+### No Warranty
 
-[maintained-badge]: https://img.shields.io/badge/maintained-yes-brightgreen
+THE PROJECT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THE AUTHOR MAKES NO WARRANTIES ABOUT THE ACCURACY, RELIABILITY, COMPLETENESS, OR TIMELINESS OF THE PROJECT OR ITS COMPONENTS.
+
+### Limitation of Liability
+
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE PROJECT OR THE USE OR OTHER DEALINGS IN THE PROJECT. THIS INCLUDES, BUT IS NOT LIMITED TO:
+
+- **AWS Costs**: any charges incurred from AWS services deployed using the provided CDK templates;
+- **Hardware Damage**: damage to Arduino boards, sensors, or other electronic components;
+- **Data Loss**: loss of data or configuration settings;
+- **Service Interruptions**: downtime or interruptions to connected services;
+- **Security Issues**: any security vulnerabilities or breaches;
+- **Indirect Damages**: lost profits, business interruption, or consequential damages of any kind.
+
+### User Responsibility
+
+By using this Project, you acknowledge and agree that:
+
+1. **you use the Project entirely at your own risk**;
+2. **you are responsible for understanding AWS pricing** and monitoring your usage to avoid unexpected charges;
+3. **you should implement appropriate security measures** for any production deployments;
+4. **you are responsible for compliance** with all applicable laws and regulations in your jurisdiction;
+5. **you should test thoroughly** in development environments before any production use;
+6. **you are responsible for backing up** any important data or configurations.
+
+### AWS Specific Notice
+
+This project may create AWS resources that incur charges; users are solely responsible for:
+- understanding AWS pricing models;
+- monitoring their AWS usage and costs;
+- properly terminating or deleting resources when no longer needed;
+- reviewing and understanding all CloudFormation templates before deployment.
+
+### Third-Party Components
+
+This Project may include or reference third-party libraries, services, or components. The author is not responsible for the functionality, security, or licensing of these third-party components. Users should review and comply with all applicable third-party licenses and terms of service.
+
+### Modification and Distribution
+
+Users may modify and distribute this Project under the terms of the applicable open source license. However, any modifications or distributions must include this disclaimer, and the author bears no responsibility for modified versions of the Project.
+
+### Professional Advice
+
+This Project is not intended to replace professional consultation. For production systems or critical applications, please consult with qualified professionals in the relevant fields.
+
+### Acknowledgments
+
+By downloading, cloning, forking, or otherwise using this Project, you acknowledge that you have read, understood, and agree to be bound by this disclaimer.
+
+The [museum-alert-desktop](https://github.com/humana-fragilitas/museum-alert-desktop) project has been derived from Maxime Gris's [angular-electron](https://github.com/maximegris/angular-electron) starter project (see the license for further information).
+
+---
+
+**Last Updated**: July 2025.
+
+**Contact**: For questions about this disclaimer, please open an issue in the project repository.
+
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
-[license]: https://github.com/maximegris/angular-electron/blob/main/LICENSE.md
-[prs-badge]: https://img.shields.io/badge/PRs-welcome-red.svg
-[prs]: http://makeapullrequest.com
+[license]: https://github.com/humana-fragilitas/museum-alert-desktop/blob/main/LICENSE.md
 
-[linux-build-badge]: https://github.com/maximegris/angular-electron/workflows/Linux%20Build/badge.svg
-[linux-build]: https://github.com/maximegris/angular-electron/actions?query=workflow%3A%22Linux+Build%22
-[macos-build-badge]: https://github.com/maximegris/angular-electron/workflows/MacOS%20Build/badge.svg
-[macos-build]: https://github.com/maximegris/angular-electron/actions?query=workflow%3A%22MacOS+Build%22
-[windows-build-badge]: https://github.com/maximegris/angular-electron/workflows/Windows%20Build/badge.svg
-[windows-build]: https://github.com/maximegris/angular-electron/actions?query=workflow%3A%22Windows+Build%22
+[linux-build-badge]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/linux-build.yml/badge.svg
+[linux-build]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/linux-build.yml
+[macos-build-badge]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/macos-build.yml/badge.svg
+[macos-build]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/macos-build.yml
+[windows-build-badge]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/windows-build.yml/badge.svg
+[windows-build]: https://github.com/humana-fragilitas/museum-alert-desktop/actions/workflows/windows-build.yml
 
-[github-watch-badge]: https://img.shields.io/github/watchers/maximegris/angular-electron.svg?style=social
-[github-watch]: https://github.com/maximegris/angular-electron/watchers
-[github-star-badge]: https://img.shields.io/github/stars/maximegris/angular-electron.svg?style=social
-[github-star]: https://github.com/maximegris/angular-electron/stargazers
-[twitter]: https://twitter.com/intent/tweet?text=Check%20out%20angular-electron!%20https://github.com/maximegris/angular-electron%20%F0%9F%91%8D
-[twitter-badge]: https://img.shields.io/twitter/url/https/github.com/maximegris/angular-electron.svg?style=social

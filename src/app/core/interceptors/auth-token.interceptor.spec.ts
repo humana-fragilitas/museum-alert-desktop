@@ -1,6 +1,16 @@
+// Mock APP_CONFIG at the module level before any imports that use it
+jest.mock('@env/environment', () => ({
+  APP_CONFIG: {
+    aws: {
+      apiGateway: 'https://api.example.com/v1'
+    }
+  }
+}));
+
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpRequest, HttpResponse, HTTP_INTERCEPTORS, HttpHandler } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { HttpRequest, HttpHandler } from '@angular/common/http';
 import { signal, WritableSignal, runInInjectionContext, Injector, InjectionToken } from '@angular/core';
 import { of, throwError, EMPTY } from 'rxjs';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
@@ -26,6 +36,10 @@ interface MockAuthService {
   user: WritableSignal<MockAuthUser | null>;
   idToken: jest.Mock;
 }
+
+// Define a consistent API URL for tests
+const TEST_API_URL = 'https://api.example.com/v1/test';
+const apiUrl = TEST_API_URL;
 
 describe('authTokenInterceptor', () => {
   let httpClient: HttpClient;
@@ -84,26 +98,13 @@ describe('authTokenInterceptor', () => {
     } as any;
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
+        provideHttpClient(withInterceptors([authTokenInterceptor])),
+        provideHttpClientTesting(),
         { provide: AuthService, useValue: mockAuthService },
         { provide: AuthenticatorService, useValue: mockAuthenticatorService },
-        { provide: DialogService, useValue: mockDialogService },
-        // Note: APP_CONFIG is imported as a constant in the interceptor, not injected
-        {
-          provide: HTTP_INTERCEPTORS,
-          useFactory: (injector: Injector) => {
-            return {
-              intercept: (req: HttpRequest<any>, next: HttpHandler) => {
-                return runInInjectionContext(injector, () => {
-                  return authTokenInterceptor(req, next.handle.bind(next));
-                });
-              }
-            };
-          },
-          deps: [Injector],
-          multi: true
-        }
+        { provide: DialogService, useValue: mockDialogService }
+        // Removed HTTP_INTERCEPTORS useValue for functional interceptor
       ]
     });
 
@@ -130,94 +131,6 @@ describe('authTokenInterceptor', () => {
     
     // Verify no outstanding HTTP requests
     httpTestingController.verify();
-  });
-
-  describe('Direct Interceptor Testing', () => {
-    it('should test addAuthToken logic manually', () => {
-      const testToken = 'test.jwt.token';
-      mockAuthService.idToken.mockReturnValue(testToken);
-
-      const mockRequest = new HttpRequest('GET', TEST_API_URL);
-      
-      // Manually test the addAuthToken logic using the REAL APP_CONFIG
-      const idToken = mockAuthService.idToken();
-      const allowedBasePath = APP_CONFIG.aws.apiGateway; // Use the real imported constant
-      
-      console.log('Manual test - URL:', mockRequest.url);
-      console.log('Manual test - idToken:', idToken);
-      console.log('Manual test - allowedBasePath (REAL):', allowedBasePath);
-      console.log('Manual test - URL starts with base?', mockRequest.url.startsWith(allowedBasePath));
-      console.log('Manual test - Has token?', !!idToken);
-      
-      if (mockRequest.url.startsWith(allowedBasePath) && idToken) {
-        const reqWithHeader = mockRequest.clone({
-          headers: mockRequest.headers.set('Authorization', idToken),
-        });
-        
-        console.log('Manual test - Modified request headers:', reqWithHeader.headers.keys());
-        console.log('Manual test - Authorization header:', reqWithHeader.headers.get('Authorization'));
-        
-        expect(reqWithHeader.headers.get('Authorization')).toBe(testToken);
-      } else {
-        fail('Should have added token but conditions not met');
-      }
-    });
-
-    it('should test interceptor with direct call', (done) => {
-      const testToken = 'test.jwt.token';
-      mockAuthService.idToken.mockReturnValue(testToken);
-
-      const mockRequest = new HttpRequest('GET', TEST_API_URL);
-      const mockNext = (req: HttpRequest<any>) => {
-        console.log('Direct interceptor test - URL:', req.url);
-        console.log('Direct interceptor test - Headers:', req.headers.keys());
-        console.log('Direct interceptor test - Authorization:', req.headers.get('Authorization'));
-        
-        // This should show us if the interceptor logic works
-        done();
-        return of(new HttpResponse({ status: 200, body: { data: 'test' } }));
-      };
-
-      runInInjectionContext(injector, () => {
-        authTokenInterceptor(mockRequest, mockNext).subscribe({
-          error: (err) => {
-            console.log('Direct interceptor error:', err);
-            done(err);
-          }
-        });
-      });
-    });
-
-    it('should debug APP_CONFIG usage', () => {
-      console.log('Real imported APP_CONFIG:', APP_CONFIG);
-      console.log('Real AWS API Gateway:', APP_CONFIG.aws.apiGateway);
-      console.log('Test URL:', TEST_API_URL);
-      console.log('Does test URL start with real base?', TEST_API_URL.startsWith(APP_CONFIG.aws.apiGateway));
-    });
-  });
-
-  describe('Debug Tests', () => {
-    it('should verify interceptor is being called', () => {
-      const testToken = 'test-token';
-      mockAuthService.idToken.mockReturnValue(testToken);
-
-      httpClient.get(TEST_API_URL).subscribe();
-
-      const req = httpTestingController.expectOne(TEST_API_URL);
-      
-      // Debug: Check if idToken was called
-      console.log('idToken called:', mockAuthService.idToken.mock.calls.length);
-      console.log('Request URL:', req.request.url);
-      console.log('Request headers:', req.request.headers.keys());
-      console.log('Authorization header:', req.request.headers.get('Authorization'));
-      console.log('Real API base:', APP_CONFIG.aws.apiGateway);
-      console.log('URL matches real base?', req.request.url.startsWith(APP_CONFIG.aws.apiGateway));
-      
-      // Verify the interceptor was executed
-      expect(mockAuthService.idToken).toHaveBeenCalled();
-      
-      req.flush({ data: 'test' });
-    });
   });
 
   describe('Token Addition', () => {
@@ -282,7 +195,7 @@ describe('authTokenInterceptor', () => {
         req.flush({ data: 'test' });
       });
 
-      it('should override existing Authorization header', () => {
+      it('should override existing Authorization header if idToken is truthy', () => {
         const newToken = 'new.jwt.token';
         const oldToken = 'old.jwt.token';
         mockAuthService.idToken.mockReturnValue(newToken);
@@ -292,6 +205,19 @@ describe('authTokenInterceptor', () => {
 
         const req = httpTestingController.expectOne(apiUrl);
         expect(req.request.headers.get('Authorization')).toBe(newToken);
+        
+        req.flush({ data: 'test' });
+      });
+
+      it('should not override existing Authorization header if idToken is falsy', () => {
+        const oldToken = 'old.jwt.token';
+        mockAuthService.idToken.mockReturnValue(null);
+
+        const headers = { 'Authorization': oldToken };
+        httpClient.get(apiUrl, { headers }).subscribe();
+
+        const req = httpTestingController.expectOne(apiUrl);
+        expect(req.request.headers.get('Authorization')).toBe(oldToken);
         
         req.flush({ data: 'test' });
       });

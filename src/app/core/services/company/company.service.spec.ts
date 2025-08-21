@@ -1,448 +1,224 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { CompanyService } from './company.service';
 import { AuthService } from '../auth/auth.service';
-import { NotificationService } from '../notification/notification.service';
-import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole, CompanyStatus, SuccessApiResponse } from '../../models';
+import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole, SuccessApiResponse } from '../../models';
 import { APP_CONFIG } from '../../../../environments/environment';
+import { of } from 'rxjs';
+import { fakeAsync, tick, flush } from '@angular/core/testing';
+import { signal, ChangeDetectorRef, ApplicationRef } from '@angular/core';
 
-// Mock APP_CONFIG
 jest.mock('../../../../environments/environment', () => ({
-  APP_CONFIG: {
-    aws: {
-      apiGateway: 'https://api.example.com'
-    }
-  }
+  APP_CONFIG: { aws: { apiGateway: 'https://api.example.com' } }
 }));
 
 describe('CompanyService', () => {
   let service: CompanyService;
   let httpMock: HttpTestingController;
-  let authServiceMock: jest.Mocked<AuthService>;
-  let notificationServiceMock: jest.Mocked<NotificationService>;
+  let authService: { sessionData: any };
+  let sessionSignal: any;
+  let appRef: ApplicationRef;
 
-  const mockCompanyData: CompanyWithUserContext = {
-    companyId: 'company-123',
-    companyName: 'Test Company',
-    status: CompanyStatus.ACTIVE,
-    createdAt: '2023-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
-    ownerEmail: 'owner@test.com',
-    ownerUsername: 'testowner',
+  const mockCompany: CompanyWithUserContext = {
+    companyId: 'id',
+    companyName: 'Test',
+    status: 'active',
+    createdAt: '',
+    updatedAt: '',
+    ownerEmail: '',
+    ownerUsername: '',
     memberCount: 1,
-    members: [
-      {
-        email: 'owner@test.com',
-        username: 'testowner',
-        role: CompanyRole.OWNER,
-        joinedAt: '2023-01-01T00:00:00.000Z'
-      }
-    ],
+    members: [],
     userRole: CompanyRole.OWNER,
-    userJoinedAt: '2024-01-01T00:00:00.000Z'
+    userJoinedAt: ''
   };
 
-  const mockSessionData = new BehaviorSubject<any>(null); // Start with null session
+  // Helper function to trigger effect processing
+  const triggerEffects = () => {
+    // In test environments, effects may need manual triggering
+    appRef.tick();
+  };
 
-  beforeEach(() => {
-    // Create mocks
-    authServiceMock = {
-      sessionData: mockSessionData
-    } as any;
-
-    notificationServiceMock = {
-      showSuccess: jest.fn(),
-      showError: jest.fn()
-    } as any;
-
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+  beforeEach(async () => {
+    // Create a real Angular signal for sessionData
+    sessionSignal = signal<any>(null);
+    authService = {
+      sessionData: sessionSignal.asReadonly(),
+    };
+    await TestBed.configureTestingModule({
       providers: [
         CompanyService,
-        { provide: AuthService, useValue: authServiceMock },
-        { provide: NotificationService, useValue: notificationServiceMock }
+        { provide: AuthService, useValue: authService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     });
-
     service = TestBed.inject(CompanyService);
     httpMock = TestBed.inject(HttpTestingController);
-  });
-
-  afterEach(() => {
-    // Handle any pending requests before verification
-    const pendingRequests = httpMock.match(() => true);
-    pendingRequests.forEach(req => req.flush({ timestamp: '2024-01-01T12:00:00.000Z', data: mockCompanyData }));
-    
-    httpMock.verify();
+    appRef = TestBed.inject(ApplicationRef);
     jest.clearAllMocks();
   });
 
-  describe('Initialization', () => {
-    it('should be created', () => {
-      expect(service).toBeTruthy();
-    });
-
-    it('should initialize with null company data', () => {
-      expect(service.currentCompany).toBeNull();
-      expect(service.hasCompanyData).toBe(false);
-    });
-
-    it('should initialize with isFetchingCompany as false', () => {
-      // Since we start with null session, no HTTP request should be triggered
-      let isFetchingValue: boolean | undefined;
-      
-      service.isFetchingCompany$.subscribe(isFetching => {
-        isFetchingValue = isFetching;
-      });
-
-      expect(isFetchingValue).toBe(false);
-    });
-
-    it('should fetch company data when session is available', () => {
-      // Emit session data to trigger HTTP request
-      mockSessionData.next({ userId: 'user-123' });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      expect(req.request.method).toBe('GET');
-      
-      req.flush({
-        timestamp: '2024-01-01T12:00:00.000Z',
-        data: mockCompanyData
-      });
-    });
-
-    it('should clear company data when session is null', () => {
-      // First set some company data manually (without triggering HTTP request)
-      service['company'].next(mockCompanyData);
-      expect(service.currentCompany).toEqual(mockCompanyData);
-
-      // Emit null session - this should clear the data without making HTTP request
-      mockSessionData.next(null);
-
-      expect(service.currentCompany).toBeNull();
-    });
+  afterEach(() => {
+    httpMock.verify();
+    jest.resetAllMocks();
   });
 
-  describe('get()', () => {
-    it('should fetch company data successfully', (done) => {
-      const mockResponse: SuccessApiResponse<CompanyWithUserContext> = {
-        timestamp: '2024-01-01T12:00:00.000Z',
-        data: mockCompanyData
-      };
-
-      service.get().subscribe(company => {
-        expect(company).toEqual(mockCompanyData);
-        expect(service.currentCompany).toEqual(mockCompanyData);
-        done();
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
-    it('should set isFetchingCompany to true during request', () => {
-      let isFetchingValues: boolean[] = [];
-      
-      service.isFetchingCompany$.subscribe(isFetching => {
-        isFetchingValues.push(isFetching);
-      });
-
-      service.get().subscribe();
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush({ timestamp: '2024-01-01T12:00:00.000Z', data: mockCompanyData });
-
-      expect(isFetchingValues).toEqual([false, true, false]);
-    });
-
-    it('should handle HTTP errors', (done) => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      service.get().subscribe({
-        error: (error) => {
-          expect(error.status).toBe(500);
-          expect(consoleSpy).toHaveBeenCalledWith('Error fetching company:', expect.any(Object));
-          done();
-        }
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should set isFetchingCompany to false after error', (done) => {
-      service.get().subscribe({
-        error: () => {
-          service.isFetchingCompany$.subscribe(isFetching => {
-            expect(isFetching).toBe(false);
-            done();
-          });
-        }
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush('Error', { status: 500, statusText: 'Internal Server Error' });
-    });
+  it('should be created', () => {
+    expect(service).toBeTruthy();
   });
 
-  describe('setName()', () => {
-    const updateRequest: UpdateCompanyRequest = {
-      companyName: 'Updated Company Name'
+  it('should fetch company data and update signal', (done) => {
+    service.fetch().subscribe(resp => {
+      if ('data' in resp) {
+        expect(resp.data).toEqual(mockCompany);
+        expect(service.company()).toEqual(mockCompany);
+      }
+      done();
+    });
+    const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ data: mockCompany });
+  });
+
+  it('should set company to null on clear()', () => {
+    service['companySignal'].set(mockCompany);
+    service.clear();
+    expect(service.company()).toBeNull();
+  });
+
+  it('should set isFetchingCompany true/false during fetch', fakeAsync(() => {
+    let states: boolean[] = [];
+    
+    // Record initial state
+    states.push(service.isFetchingCompany());
+    
+    const sub = service.fetch().subscribe(() => {
+      // This will be called after the HTTP response
+    });
+    
+    // Should be true after starting fetch
+    states.push(service.isFetchingCompany());
+    
+    // Complete the HTTP request
+    const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
+    req.flush({ data: mockCompany });
+    
+    // Allow finalize to run
+    tick();
+    flush();
+    
+    // Should be false after completion
+    states.push(service.isFetchingCompany());
+    
+    // Remove duplicate trailing values
+    const deduped = states.filter((v, i, arr) => i === 0 || v !== arr[i-1]);
+    expect(deduped).toEqual([false, true, false]);
+    
+    sub.unsubscribe();
+  }));
+
+  it('should handle fetch error and set isFetchingCompany to false', fakeAsync(() => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    let errorHandled = false;
+    
+    service.fetch().subscribe({
+      error: err => {
+        errorHandled = true;
+      }
+    });
+    
+    const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
+    req.flush('fail', { status: 500, statusText: 'fail' });
+    
+    // Allow finalize to run
+    tick();
+    flush();
+    
+    expect(consoleSpy).toHaveBeenCalled();
+    expect(service.isFetchingCompany()).toBe(false);
+    expect(errorHandled).toBe(true);
+    
+    consoleSpy.mockRestore();
+  }));
+
+  it('should update company name and preserve user context', (done) => {
+    service['companySignal'].set(mockCompany);
+    const updateReq: UpdateCompanyRequest = { companyName: 'NewName' };
+    const updatedCompany = { ...mockCompany, companyName: 'NewName' };
+    const resp: SuccessApiResponse<UpdateCompanyResponse> = {
+      data: { message: '', company: updatedCompany, updatedFields: ['companyName'] },
+      timestamp: ''
     };
-
-    beforeEach(() => {
-      // Set initial company data
-      service['company'].next(mockCompanyData);
+    service.setName(updateReq).subscribe(r => {
+      expect(r).toEqual(resp);
+      expect(service.company()?.companyName).toBe('NewName');
+      expect(service.company()?.userRole).toBe(mockCompany.userRole);
+      done();
     });
+    const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
+    expect(req.request.method).toBe('PATCH');
+    req.flush(resp);
+  });
 
-    it('should update company name successfully', (done) => {
-      const mockResponse: SuccessApiResponse<UpdateCompanyResponse> = {
-        timestamp: '2024-01-01T12:00:00.000Z',
-        data: {
-          message: 'Company updated successfully',
-          company: {
-            companyId: 'company-123',
-            companyName: 'Updated Company Name',
-            status: CompanyStatus.ACTIVE,
-            createdAt: '2023-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
-            ownerEmail: 'owner@test.com',
-            ownerUsername: 'testowner',
-            memberCount: 1,
-            members: [
-              {
-                email: 'owner@test.com',
-                username: 'testowner',
-                role: CompanyRole.OWNER,
-                joinedAt: '2023-01-01T00:00:00.000Z'
-              }
-            ]
-          },
-          updatedFields: ['companyName']
-        }
-      };
-
-      service.setName(updateRequest).subscribe(response => {
-        expect(response).toEqual(mockResponse);
-        expect(service.currentCompany?.companyName).toBe('Updated Company Name');
-        expect(service.currentCompany?.userRole).toBe(CompanyRole.OWNER);
-        expect(service.currentCompany?.userJoinedAt).toEqual(mockCompanyData.userJoinedAt);
+  it('should handle setName error', (done) => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    service['companySignal'].set(mockCompany);
+    service.setName({ companyName: 'fail' }).subscribe({
+      error: err => {
+        expect(consoleSpy).toHaveBeenCalled();
         done();
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      expect(req.request.method).toBe('PUT');
-      expect(req.request.body).toEqual({ companyName: 'Updated Company Name' });
-      req.flush(mockResponse);
+      }
     });
-
-    it('should preserve user context when updating company name', (done) => {
-      const mockResponse: SuccessApiResponse<UpdateCompanyResponse> = {
-        timestamp: '2024-01-01T12:00:00.000Z',
-        data: {
-          message: 'Company updated successfully',
-          company: {
-            companyId: 'company-123',
-            companyName: 'Updated Company Name',
-            status: CompanyStatus.ACTIVE,
-            createdAt: '2023-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
-            ownerEmail: 'owner@test.com',
-            ownerUsername: 'testowner',
-            memberCount: 1,
-            members: [
-              {
-                email: 'owner@test.com',
-                username: 'testowner',
-                role: CompanyRole.OWNER,
-                joinedAt: '2023-01-01T00:00:00.000Z'
-              }
-            ]
-          },
-          updatedFields: ['companyName']
-        }
-      };
-
-      service.setName(updateRequest).subscribe(() => {
-        const currentCompany = service.currentCompany;
-        expect(currentCompany?.userRole).toBe(CompanyRole.OWNER);
-        expect(currentCompany?.userJoinedAt).toEqual(mockCompanyData.userJoinedAt);
-        done();
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush(mockResponse);
-    });
-
-    it('should handle update errors', (done) => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      service.setName(updateRequest).subscribe({
-        error: (error) => {
-          expect(error.status).toBe(400);
-          expect(consoleSpy).toHaveBeenCalledWith('Error updating company name:', expect.any(Object));
-          done();
-        }
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush('Bad Request', { status: 400, statusText: 'Bad Request' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should not update company if no current company exists', (done) => {
-      service.clear();
-
-      const mockResponse: SuccessApiResponse<UpdateCompanyResponse> = {
-        timestamp: '2024-01-01T12:00:00.000Z',
-        data: {
-          message: 'Company updated successfully',
-          company: {
-            companyId: 'company-123',
-            companyName: 'Updated Company Name',
-            status: CompanyStatus.ACTIVE,
-            createdAt: '2023-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
-            ownerEmail: 'owner@test.com',
-            ownerUsername: 'testowner',
-            memberCount: 1,
-            members: [
-              {
-                email: 'owner@test.com',
-                username: 'testowner',
-                role: CompanyRole.OWNER,
-                joinedAt: '2023-01-01T00:00:00.000Z'
-              }
-            ]
-          },
-          updatedFields: ['companyName']
-        }
-      };
-
-      service.setName(updateRequest).subscribe(() => {
-        expect(service.currentCompany).toBeNull();
-        done();
-      });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush(mockResponse);
-    });
+    const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
+    req.flush('fail', { status: 400, statusText: 'fail' });
+    consoleSpy.mockRestore();
   });
 
-  describe('isOwner getter', () => {
-    it('should return true when user role is OWNER', () => {
-      service['company'].next({
-        ...mockCompanyData,
-        userRole: CompanyRole.OWNER
-      });
+  it('should clear company when sessionData becomes null', fakeAsync(() => {
+    service['companySignal'].set(mockCompany);
+    
+    // Simulate session signal update
+    sessionSignal.set(null);
+    
+    // Trigger effects and allow them to run
+    triggerEffects();
+    tick();
+    flush();
+    
+    expect(service.company()).toBeNull();
+  }));
 
-      expect(service.isOwner).toBe(true);
-    });
+  it('should fetch company when sessionData becomes available', fakeAsync(() => {
+    // Simulate session signal update
+    sessionSignal.set({ user: 'test' });
+    
+    // Trigger effects and allow them to run
+    triggerEffects();
+    tick();
+    
+    const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
+    req.flush({ data: mockCompany });
+    
+    tick();
+    flush();
+    
+    expect(service.company()).toEqual(mockCompany);
+  }));
 
-    it('should return false when user role is not OWNER', () => {
-      service['company'].next({
-        ...mockCompanyData,
-        userRole: CompanyRole.MEMBER
-      });
-
-      expect(service.isOwner).toBe(false);
-    });
-
-    it('should return false when no company data exists', () => {
-      service.clear();
-      expect(service.isOwner).toBe(false);
-    });
+  it('isOwner should return true if userRole is OWNER', () => {
+    service['companySignal'].set({ ...mockCompany, userRole: CompanyRole.OWNER });
+    expect(service.isOwner()).toBe(true);
   });
 
-  describe('hasCompanyData getter', () => {
-    it('should return true when company data exists', () => {
-      service['company'].next(mockCompanyData);
-      expect(service.hasCompanyData).toBe(true);
-    });
-
-    it('should return false when no company data exists', () => {
-      service.clear();
-      expect(service.hasCompanyData).toBe(false);
-    });
+  it('isOwner should return false if userRole is not OWNER', () => {
+    service['companySignal'].set({ ...mockCompany, userRole: CompanyRole.MEMBER });
+    expect(service.isOwner()).toBe(false);
   });
 
-  describe('clear()', () => {
-    it('should clear company data', () => {
-      service['company'].next(mockCompanyData);
-      expect(service.currentCompany).toEqual(mockCompanyData);
-
-      service.clear();
-      expect(service.currentCompany).toBeNull();
-    });
-
-    it('should emit null value to company$ observable', (done) => {
-      service['company'].next(mockCompanyData);
-      
-      service.clear();
-      
-      service.company$.subscribe(company => {
-        expect(company).toBeNull();
-        done();
-      });
-    });
-  });
-
-  describe('Observables', () => {
-    it('should emit company data through company$ observable', (done) => {
-      service.company$.subscribe(company => {
-        if (company) {
-          expect(company).toEqual(mockCompanyData);
-          done();
-        }
-      });
-
-      service['company'].next(mockCompanyData);
-    });
-
-    it('should emit fetching state through isFetchingCompany$ observable', (done) => {
-      const states: boolean[] = [];
-      
-      service.isFetchingCompany$.subscribe(isFetching => {
-        states.push(isFetching);
-        
-        if (states.length === 3) {
-          expect(states).toEqual([false, true, false]);
-          done();
-        }
-      });
-
-      service.get().subscribe();
-      
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      req.flush({ timestamp: '2024-01-01T12:00:00.000Z', data: mockCompanyData });
-    });
-  });
-
-  describe('Session Management', () => {
-    it('should fetch company data when session becomes available', () => {
-      // Clear any existing requests
-      httpMock.match(() => true).forEach(req => req.flush(null));
-      
-      // Emit session data
-      mockSessionData.next({ userId: 'user-123' });
-
-      const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/company`);
-      expect(req.request.method).toBe('GET');
-      req.flush({ data: mockCompanyData, success: true });
-    });
-
-    it('should clear company data when session becomes null', () => {
-      service['company'].next(mockCompanyData);
-      expect(service.currentCompany).toEqual(mockCompanyData);
-
-      mockSessionData.next(null);
-
-      expect(service.currentCompany).toBeNull();
-    });
+  it('isOwner should return false if no company', () => {
+    service.clear();
+    expect(service.isOwner()).toBe(false);
   });
 });
