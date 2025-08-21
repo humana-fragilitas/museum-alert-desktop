@@ -19,7 +19,7 @@ export class AuthService {
 
   private timeOutId: number = 0;
   private isFetchingSession = false;
-  private _pendingSessionRefresh: number = 0;
+  private pendingSessionRefresh: number = 0;
   private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
   private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
   private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
@@ -110,7 +110,7 @@ export class AuthService {
           new Date().getTime()) - (1000 * 60);
 
       // Only set timeout if interval is positive
-      this._pendingSessionRefresh = sessionRefreshInterval > 0 ? sessionRefreshInterval : 0;
+      this.pendingSessionRefresh = sessionRefreshInterval > 0 ? sessionRefreshInterval : 0;
 
     } catch (exception) {
 
@@ -120,9 +120,9 @@ export class AuthService {
     } finally {
       this.isFetchingSession = false;
       // Set the timeout for auto-refresh after fetchSession is fully complete
-      if (this._pendingSessionRefresh && this._pendingSessionRefresh > 0) {
-        const sessionRefreshInterval = this._pendingSessionRefresh;
-        this._pendingSessionRefresh = 0;
+      if (this.pendingSessionRefresh > 0) {
+        const sessionRefreshInterval = this.pendingSessionRefresh;
+        this.pendingSessionRefresh = 0;
         const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
         const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
