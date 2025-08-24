@@ -75,7 +75,7 @@
       "REGISTER_DEVICE": "Register device",
       "DEVICE_REGISTRATION_MESSAGE": "Your device is being registered; please wait...",
       "REGISTRATION_DONE": "Done",
-      "FATAL_ERROR_MESSAGE": "An error occurred: please reset your device",
+      "FATAL_ERROR_MESSAGE": "An error occurred: you may need to reset the device and try again",
       "WAIT_FOR_COMMUNICATION_MESSAGE": "Communicating; please wait..."
     }
   },
@@ -97,6 +97,7 @@
       "SIGN_OUT": "Sign out",
       "CONFIRM": "Confirm",
       "RESET": "Reset",
+      "RESET_SENSOR": "Reset Sensor",
       "YES": "Yes",
       "NO": "No",
       "OK": "OK",
@@ -150,5 +151,9 @@
       "IOT_POLICY_ATTACHMENT_FAILED_TITLE": "An Error Occurred",
       "IOT_POLICY_ATTACHMENT_FAILED_MESSAGE": "It was not possible to complete your registration; please log in again"
     }
+  },
+  "WARNINGS": {
+    "ABOUT_TO_UNREGISTER_AND_RESET_SENSOR_TITLE": "Device Reset Warning",
+    "ABOUT_TO_UNREGISTER_AND_RESET_SENSOR_MESSAGE": "Device {{deviceName}} is about to be unregistered from your Company and reset to factory settings. This operation cannot be undone. Are you sure you want to proceed?"
   }
 }

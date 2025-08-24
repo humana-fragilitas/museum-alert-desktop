@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { Component,
@@ -21,6 +21,9 @@ import { ProvisioningComponent } from '@shared/components/provisioning/provision
 import { DeviceControlComponent } from '@shared/components/device-control/device-control.component';
 import { DeviceDiagnosticsComponent } from '@shared/components/device-diagnostics/device-diagnostics.component';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { DeviceRegistryService } from '@services/device-registry/device-registry.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { DialogType } from '@models';
 
 @Component({
   selector: 'app-wizard',
@@ -56,7 +59,9 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   private latestAppStatus: Nullable<DeviceAppState> = null;
   
   constructor(
-    public deviceService: DeviceService
+    private readonly deviceService: DeviceService,
+    private readonly deviceRegistryService: DeviceRegistryService,
+    private readonly dialogService: DialogService
   ) {
 
     effect(() => {
@@ -127,14 +132,33 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async reset() {
-    this.isRequestingReset.set(true);
-    this.deviceService.sendUSBCommand(USBCommandType.HARD_RESET, null).then(() => {
-      this.isRequestingReset.set(false);
-    }).catch(() => {
-      this.isRequestingReset.set(false);
-    }).finally(() => {
-      this.isRequestingReset.set(false);
+
+    const serialNumber = this.deviceService.serialNumber();
+
+    this.dialogService.openDialog({
+      type: DialogType.WARNING,
+      title: 'WARNINGS.ABOUT_TO_UNREGISTER_AND_RESET_SENSOR_TITLE',
+      message: 'WARNINGS.ABOUT_TO_UNREGISTER_AND_RESET_SENSOR_MESSAGE',
+      messageParams: {
+        deviceName: serialNumber
+      },
+      confirmText: 'COMMON.ACTIONS.RESET_SENSOR',
+      cancelText: 'COMMON.ACTIONS.CANCEL',
+      showCancel: true
+    }).subscribe(async (result) => {
+      if (result?.confirmed) {
+        this.isRequestingReset.set(true);
+        try {
+          await firstValueFrom(this.deviceRegistryService.deleteSensor(serialNumber));
+          await this.deviceService.sendUSBCommand(USBCommandType.HARD_RESET, null);
+        } catch (error) {
+          console.error('An error occurred while trying to delete and reset sensor:', error);
+        } finally {
+          this.isRequestingReset.set(false);
+        }
+      }
     });
+
   }
   
 }

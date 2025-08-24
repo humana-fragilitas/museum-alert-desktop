@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 
 import { APP_CONFIG } from '@env/environment';
 import { AuthService } from '@services/auth/auth.service';
-import { Sensor, ListThingsResponse, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '@models';
+import { Sensor, HttpStatusCode, ApiResult, ErrorApiResponse, SuccessApiResponse } from '@models';
 
 
 @Injectable({
@@ -51,24 +51,31 @@ export class DeviceRegistryService {
 
   }
 
-  getAllSensors(): Observable<Sensor[]> {
+  deleteSensor(thingName: string): Observable<boolean> {
 
-    const apiUrl = `${APP_CONFIG.aws.apiGateway}/things`;
-    
-    return this.httpClient.get<ApiResult<ListThingsResponse>>(apiUrl).pipe(
-      map((response: ApiResult<ListThingsResponse>) => {
-        const list = (response as SuccessApiResponse<ListThingsResponse>).data;
-        console.log(`[DeviceRegistryService]: found ${list.things.length} devices for company ${list.company}`);
-        return list.things;
+    const company = this.authService.company();
+ 
+    console.log(`[DeviceRegistryService]: deleting device with name ${thingName} ` +
+                `(company: ${company}) from the registry...`);
+
+    const apiUrl = `${APP_CONFIG.aws.apiGateway}/things/${thingName}/`;
+
+    return this.httpClient.delete<ApiResult<Sensor>>(apiUrl, {
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<ApiResult<Sensor>>) => {
+        console.log(`[DeviceRegistryService]: deleted device with name ` +
+                    `${(response.body as SuccessApiResponse<Sensor>).data.thingName}`);
+        return true;
       }),
       catchError((exception: HttpErrorResponse) => {
         if (exception.status === HttpStatusCode.NOT_FOUND) {
-          console.log(`[DeviceRegistryService]: no devices found`);
-          return of([]);
+          console.log(`[DeviceRegistryService]: device with name ${thingName} not found (404)`);
         } else {
-          console.error(`[DeviceRegistryService]: error while listing devices:`, exception.error as ErrorApiResponse);
-          throw exception;
+        console.error(`[DeviceRegistryService]: error deleting device:`,
+          exception.error as ErrorApiResponse);
         }
+        return of(false);
       })
     );
 

@@ -6,6 +6,8 @@ import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
 import { By } from '@angular/platform-browser';
 import { TranslateService, TranslateStore, TranslateModule } from '@ngx-translate/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 describe('DeviceComponent', () => {
   let fixture: ComponentFixture<DeviceComponent>;
@@ -18,11 +20,13 @@ describe('DeviceComponent', () => {
       imports: [
         DeviceComponent,
         TranslateModule.forRoot(),
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        HttpClientTestingModule
       ],
       providers: [
         TranslateService,
-        TranslateStore
+        TranslateStore,
+        { provide: MatSnackBar, useValue: { open: jest.fn() } }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DeviceComponent);

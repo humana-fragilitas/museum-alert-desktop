@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { DeviceRegistryService } from './device-registry.service';
 import { AuthService } from '../auth/auth.service';
 import { APP_CONFIG } from '../../../../environments/environment';
-import { Sensor, ListThingsResponse, SuccessApiResponse, ErrorApiResponse, ApiResult } from '../../models';
+import { Sensor, SuccessApiResponse, ErrorApiResponse, ApiResult } from '../../models';
 
 
 describe('DeviceRegistryService', () => {
@@ -25,16 +25,6 @@ describe('DeviceRegistryService', () => {
 
   const mockSuccessResponse: SuccessApiResponse<Sensor> = {
     data: mockSensor,
-    timestamp: new Date().toISOString()
-  };
-
-  const mockListThingsResponse: SuccessApiResponse<ListThingsResponse> = {
-    data: {
-      company: mockCompany,
-      things: [mockSensor],
-      totalCount: 1,
-      hasMore: false
-    },
     timestamp: new Date().toISOString()
   };
 
@@ -161,113 +151,144 @@ describe('DeviceRegistryService', () => {
     });
   });
 
-  describe('getAllSensors', () => {
-    it('should return array of sensors on success', (done) => {
-      service.getAllSensors().subscribe({
-        next: (result) => {
-          expect(result).toEqual([mockSensor]);
-          done();
-        },
-        error: done.fail
-      });
-      const req = httpMock.expectOne(`${apiUrl}/things`);
-      req.flush(mockListThingsResponse);
-    });
-
-    it('should return empty array for 404', (done) => {
-      service.getAllSensors().subscribe({
-        next: (result) => {
-          expect(result).toEqual([]);
-          done();
-        },
-        error: done.fail
-      });
-      const req = httpMock.expectOne(`${apiUrl}/things`);
-      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
-    });
-
-    it('should throw error for non-404 HTTP errors', (done) => {
-      service.getAllSensors().subscribe({
-        next: () => done.fail('Should have thrown'),
-        error: (err: HttpErrorResponse) => {
-          expect(err.status).toBe(500);
-          done();
-        }
-      });
-      const req = httpMock.expectOne(`${apiUrl}/things`);
-      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-    });
-
-    it('should handle multiple sensors and pagination', (done) => {
-      const sensors: Sensor[] = [
-        { thingName: 'a', company: mockCompany },
-        { thingName: 'b', company: mockCompany }
-      ];
-      const paginated: SuccessApiResponse<ListThingsResponse> = {
+  describe('deleteSensor', () => {
+    it('should return true when device is successfully deleted (200)', (done) => {
+      const mockDeleteResponse: SuccessApiResponse<any> = {
         data: {
-          company: mockCompany,
-          things: sensors,
-          totalCount: 2,
-          hasMore: true,
-          nextToken: 'next-page'
+          message: `Thing '${thingName}' has been successfully deleted`,
+          thingName,
+          company: mockCompany
         },
         timestamp: new Date().toISOString()
       };
-      service.getAllSensors().subscribe({
+
+      service.deleteSensor(thingName).subscribe({
         next: (result) => {
-          expect(result).toEqual(sensors);
+          expect(result).toBe(true);
           done();
         },
         error: done.fail
       });
-      const req = httpMock.expectOne(`${apiUrl}/things`);
-      req.flush(paginated);
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      expect(req.request.method).toBe('DELETE');
+      req.event(new HttpResponse<ApiResult<any>>({ body: mockDeleteResponse, status: 200 }));
     });
 
-    it('should log found devices and no devices', (done) => {
-      const logSpy = jest.spyOn(console, 'log').mockImplementation();
-      // Found
-      service.getAllSensors().subscribe({
-        next: () => {
-          expect(logSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: found 1 devices for company ${mockCompany}`
-          );
-          // No devices
-          logSpy.mockClear();
-          service.getAllSensors().subscribe({
-            next: () => {
-              expect(logSpy).toHaveBeenCalledWith(
-                `[DeviceRegistryService]: no devices found`
-              );
-              logSpy.mockRestore();
-              done();
-            },
-            error: done.fail
-          });
-          const req2 = httpMock.expectOne(`${apiUrl}/things`);
-          req2.flush('Not Found', { status: 404, statusText: 'Not Found' });
+    it('should return false when device does not exist (404)', (done) => {
+      service.deleteSensor(thingName).subscribe({
+        next: (result) => {
+          expect(result).toBe(false);
+          done();
         },
         error: done.fail
       });
-      const req = httpMock.expectOne(`${apiUrl}/things`);
-      req.flush(mockListThingsResponse);
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+    });
+
+    it('should return false for non-404 HTTP errors', (done) => {
+      service.deleteSensor(thingName).subscribe({
+        next: (result) => {
+          expect(result).toBe(false);
+          done();
+        },
+        error: done.fail
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+    });
+
+    it('should log success when device is deleted', (done) => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      const mockDeleteResponse: SuccessApiResponse<any> = {
+        data: {
+          message: `Thing '${thingName}' has been successfully deleted`,
+          thingName,
+          company: mockCompany
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      service.deleteSensor(thingName).subscribe({
+        next: () => {
+          expect(logSpy).toHaveBeenCalledWith(
+            `[DeviceRegistryService]: deleting device with name ${thingName} (company: ${mockCompany}) from the registry...`
+          );
+          expect(logSpy).toHaveBeenCalledWith(
+            `[DeviceRegistryService]: deleted device with name ${thingName}`
+          );
+          logSpy.mockRestore();
+          done();
+        },
+        error: done.fail
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      req.event(new HttpResponse<ApiResult<any>>({ body: mockDeleteResponse, status: 200 }));
+    });
+
+    it('should log not found for 404', (done) => {
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      service.deleteSensor(thingName).subscribe({
+        next: () => {
+          expect(logSpy).toHaveBeenCalledWith(
+            `[DeviceRegistryService]: device with name ${thingName} not found (404)`
+          );
+          logSpy.mockRestore();
+          done();
+        },
+        error: done.fail
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
     });
 
     it('should log error for non-404 errors', (done) => {
       const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-      service.getAllSensors().subscribe({
-        next: () => done.fail('Should have thrown'),
-        error: () => {
+
+      service.deleteSensor(thingName).subscribe({
+        next: () => {
           expect(errorSpy).toHaveBeenCalledWith(
-            `[DeviceRegistryService]: error while listing devices:`,
+            `[DeviceRegistryService]: error deleting device:`,
             expect.anything()
           );
           errorSpy.mockRestore();
           done();
-        }
+        },
+        error: done.fail
       });
-      const req = httpMock.expectOne(`${apiUrl}/things`);
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
       req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
+    });
+
+    it('should call authService.company() to get user company', (done) => {
+      const mockDeleteResponse: SuccessApiResponse<any> = {
+        data: {
+          message: `Thing '${thingName}' has been successfully deleted`,
+          thingName,
+          company: mockCompany
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      service.deleteSensor(thingName).subscribe({
+        next: () => {
+          expect(authService.company).toHaveBeenCalled();
+          done();
+        },
+        error: done.fail
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/things/${thingName}/`);
+      req.event(new HttpResponse<ApiResult<any>>({ body: mockDeleteResponse, status: 200 }));
     });
   });
 });

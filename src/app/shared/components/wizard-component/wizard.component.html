@@ -60,3 +60,13 @@
             </h3>
         </ng-template>
     </ng-template>
+
+
+    <button mat-raised-button color="primary" type="button" (click)="reset()" class="reset-button"
+                    [disabled]="isRequestingReset()">
+                    <span class="button-content">
+                        {{ 'COMMON.ACTIONS.RESET' | translate }}
+                        <mat-progress-spinner *ngIf="isRequestingReset()" mode="indeterminate"
+                            diameter="16"></mat-progress-spinner>
+                    </span>
+                </button>
