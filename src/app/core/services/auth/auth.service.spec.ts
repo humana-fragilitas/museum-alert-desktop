@@ -124,31 +124,20 @@ describe('AuthService', () => {
     expect(service.accessToken()).toBe('access');
   });
 
-  it('should call forceRefreshSession correctly', async () => {
-    // Test the forceRefreshSession method directly
-    mockFetchAuthSession.mockClear();
-    
-    // Call the method with proper context
-    await (service as any).forceRefreshSession();
-    
-    expect(mockFetchAuthSession).toHaveBeenCalledTimes(1);
-    expect(mockFetchAuthSession).toHaveBeenCalledWith({ forceRefresh: true });
-  });
-
   it('should auto-refresh session before expiration', async () => {
     // Clear any initial calls from constructor/effect
     mockFetchAuthSession.mockClear();
 
-    // Spy on the forceRefreshSession method to verify it's called
-    const forceRefreshSpy = jest.spyOn(service as any, 'forceRefreshSession');
+    // Spy on the fetchSession method to verify it's called with forceRefresh: true
+    const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
 
     // Perform an explicit initial fetch and wait for it to complete
     await service.fetchSession({ forceRefresh: false });
     expect(mockFetchAuthSession).toHaveBeenCalledTimes(1);
     expect(mockFetchAuthSession).toHaveBeenNthCalledWith(1, { forceRefresh: false });
 
-    // Clear the mock again to isolate the auto-refresh call
-    mockFetchAuthSession.mockClear();
+    // Clear the spy to isolate the auto-refresh call
+    fetchSessionSpy.mockClear();
 
     // Ensure service is not currently fetching session
     expect((service as any).isFetchingSession).toBe(false);
@@ -163,13 +152,10 @@ describe('AuthService', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    // Verify that forceRefreshSession was called
-    expect(forceRefreshSpy).toHaveBeenCalledTimes(1);
-    
-    // Since forceRefreshSession works correctly when called directly,
-    // and it's being called by the timeout, this test verifies the timeout mechanism
-    // The fact that it calls forceRefreshSession means it should call fetchAuthSession 
-    // with { forceRefresh: true }
+    // Verify that fetchSession was called at least once with forceRefresh: true
+    // (allow for potential effect-triggered calls but ensure the auto-refresh happened)
+    expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    expect(fetchSessionSpy.mock.calls.filter(call => call[0]?.forceRefresh === true)).toHaveLength(1);
   });
 
   it('should not set timeout if session is expired', async () => {

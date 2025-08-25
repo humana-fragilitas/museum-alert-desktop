@@ -130,7 +130,7 @@ export class AuthService {
         this.timeOutId = Number(setTimeout(
           () => {
             console.log('[AuthService]: auto-refreshing session...');
-            this.forceRefreshSession();
+            this.fetchSession({ forceRefresh: true });
           },
           sessionRefreshInterval
         ));
@@ -171,10 +171,6 @@ export class AuthService {
 
     }
 
-  }
-
-  private forceRefreshSession() {
-    this.fetchSession({ forceRefresh: true });
   }
 
   // Clean up resources
