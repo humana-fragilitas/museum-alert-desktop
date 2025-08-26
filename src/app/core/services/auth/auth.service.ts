@@ -52,20 +52,27 @@ export class AuthService {
     console.log('[AuthService]: instance created');
 
     if (win.electron) {
-      
-      win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
-        this.ngZone.run(() => {
-          console.log('[AuthService]: window focused');
-          this.onFocusResume(MainProcessEvent.WINDOW_FOCUSED);
-        });
-      });
 
-      win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
+      win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
         this.ngZone.run(() => {
-          console.log('[AuthService]: system resumed');
-          this.onFocusResume(MainProcessEvent.SYSTEM_RESUMED);
+          console.log('[AuthService]: session check received');
+          this.refreshSessionOnTokenExpiry();
         });
       });
+      
+      // win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
+      //   this.ngZone.run(() => {
+      //     console.log('[AuthService]: window focused');
+      //     this.onFocusResume(MainProcessEvent.WINDOW_FOCUSED);
+      //   });
+      // });
+
+      // win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
+      //   this.ngZone.run(() => {
+      //     console.log('[AuthService]: system resumed');
+      //     this.onFocusResume(MainProcessEvent.SYSTEM_RESUMED);
+      //   });
+      // });
 
     }
 
@@ -150,13 +157,13 @@ export class AuthService {
       const minutes = Math.floor((this.sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((this.sessionRefreshInterval % (1000 * 60)) / 1000);  
       console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
-      this.timeOutId = Number(setTimeout(
-        () => {
-          console.log('[AuthService]: auto-refreshing session...');
-          this.fetchSession({ forceRefresh: true });
-        },
-        this.sessionRefreshInterval
-      ));
+      // this.timeOutId = Number(setTimeout(
+      //   () => {
+      //     console.log('[AuthService]: auto-refreshing session...');
+      //     this.fetchSession({ forceRefresh: true });
+      //   },
+      //   this.sessionRefreshInterval
+      // ));
 
     }
 
@@ -223,6 +230,18 @@ export class AuthService {
       this.fetchSession({ forceRefresh: true });
     }
 
+  }
+
+  isSessionTokenExpired(): boolean {
+    return (this.sessionData()?.credentials?.expiration?.getTime() || 0 -
+            new Date().getTime()) <= 0;
+  }
+
+  refreshSessionOnTokenExpiry() {
+    if (this.isSessionTokenExpired()) {
+      console.log('[AuthService]: user session is expired; refreshing session...');
+      this.fetchSession({ forceRefresh: true });
+    }
   }
 
 }

@@ -1,3 +1,16 @@
+/*
+client.on('error', (error) => {
+  if (error.code === 'ENOTFOUND' || 
+      error.code === 'ECONNREFUSED' || 
+      error.message.includes('unauthorized')) {
+    console.log('Stopping reconnection due to:', error.message);
+    shouldAllowReconnect = false;
+    client.options.reconnectPeriod = 0;
+    client.end(true);
+  }
+});
+*/
+
 import { AuthSession } from 'aws-amplify/auth';
 import { BehaviorSubject,
          filter,
@@ -98,11 +111,14 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
-          if (this.currentSession) {
+          if (this.authService.isSessionTokenExpired()) {
+            throw new Error('[MqttService]: Session token expired, preventing reconnection');
+          } else if (this.currentSession) {
             return this.sigV4Service.getSignedURL(this.currentSession);
-          }
+          } else {
           console.log('[MqttService]: no session available, preventing reconnection');
           throw new Error('[MqttService]: No session available for reconnection');
+          }
         }
       });
 
