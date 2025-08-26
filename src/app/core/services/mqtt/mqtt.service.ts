@@ -98,11 +98,11 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
-          const currentSession = this.authService.sessionData();
-          if (currentSession) {
-            return this.sigV4Service.getSignedURL(currentSession);
+          if (this.currentSession) {
+            return this.sigV4Service.getSignedURL(this.currentSession);
           }
-          return url;
+          console.log('[MqttService]: no session available, preventing reconnection');
+          throw new Error('[MqttService]: No session available for reconnection');
         }
       });
 
@@ -305,6 +305,7 @@ export class MqttService {
 
     console.log(`[MqttService]: session data changed, current connection status: `+ 
                 `${ this.isConnected ? 'connected' : 'disconnected' }`);
+    this.currentSession = sessionData;
 
     try {
       
@@ -319,7 +320,6 @@ export class MqttService {
 
       if (this.isConnected && isSameUser) {
         console.log('[MqttService]: session refreshed for same user, updating credentials without reconnecting');
-        this.currentSession = sessionData;
         return;
       }
 

@@ -87,3 +87,8 @@ export enum DeviceEvent {
     INCOMING_DATA = 'device-incoming-data',
     OUTGOING_DATA = 'device-outgoing-data'
 }
+
+export enum MainProcessEvent {
+    WINDOW_FOCUSED = 'window-focused',
+    SYSTEM_RESUMED = 'system-resumed'
+}

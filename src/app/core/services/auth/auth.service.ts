@@ -8,8 +8,10 @@ import { fetchAuthSession,
 import { Hub, HubCapsule } from '@aws-amplify/core';
 import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
 
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, NgZone, Inject } from '@angular/core';
 import { titleStyle } from '@shared/helpers/console.helper';
+import { WINDOW } from '@tokens/window';
+import { MainProcessEvent } from '@shared-with-electron';
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({
@@ -19,7 +21,7 @@ export class AuthService {
 
   private timeOutId: number = 0;
   private isFetchingSession = false;
-  private pendingSessionRefresh: number = 0;
+  private sessionRefreshInterval: number = 0;
   private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
   private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
   private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
@@ -44,13 +46,41 @@ export class AuthService {
     this.sessionDataSignal()?.tokens?.accessToken?.toString() || ''
   );
 
-  constructor() {
+  constructor(@Inject(WINDOW) private win: Window,
+                              private ngZone: NgZone) {
 
     console.log('[AuthService]: instance created');
 
+    if (win.electron) {
+      
+      win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
+        this.ngZone.run(() => {
+          console.log('[AuthService]: window focused');
+          this.onFocusResume(MainProcessEvent.WINDOW_FOCUSED);
+        });
+      });
+
+      win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
+        this.ngZone.run(() => {
+          console.log('[AuthService]: system resumed');
+          this.onFocusResume(MainProcessEvent.SYSTEM_RESUMED);
+        });
+      });
+
+    }
+
+    effect(() => {
+      const session = this.sessionDataSignal();
+      if (session) {
+        this.fetchUser();
+      } else {
+        this.userSignal.set(null);
+        this.userAttributesSignal.set(null);
+      }
+    });
+
     effect(() => {
       const user = this.userSignal();
-      this.fetchSession();
       if (user) this.fetchAttributes();
     });
 
@@ -58,11 +88,11 @@ export class AuthService {
       const { payload } = data;
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
-        this.fetchUser();
-      }
+        this.fetchSession();
+      } 
     });
 
-    this.fetchUser();
+    this.fetchSession();
 
   }
  
@@ -105,12 +135,8 @@ export class AuthService {
       console.log(this.idToken());
       console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
 
-      // Calculate refresh interval (1 minute before expiration)
-      const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
-          new Date().getTime()) - (1000 * 60);
-
-      // Only set timeout if interval is positive
-      this.pendingSessionRefresh = sessionRefreshInterval > 0 ? sessionRefreshInterval : 0;
+      this.sessionRefreshInterval = Math.max((session.credentials!.expiration!.getTime() -
+          new Date().getTime()) - (1000 * 60), 1000);
 
     } catch (exception) {
 
@@ -118,23 +144,20 @@ export class AuthService {
       this.sessionDataSignal.set(null);
 
     } finally {
+
       this.isFetchingSession = false;
-      // Set the timeout for auto-refresh after fetchSession is fully complete
-      if (this.pendingSessionRefresh > 0) {
-        const sessionRefreshInterval = this.pendingSessionRefresh;
-        this.pendingSessionRefresh = 0;
-        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
-        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
-        console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
-        this.timeOutId = Number(setTimeout(
-          () => {
-            console.log('[AuthService]: auto-refreshing session...');
-            this.fetchSession({ forceRefresh: true });
-          },
-          sessionRefreshInterval
-        ));
-      }
+      const hours = Math.floor(this.sessionRefreshInterval / (1000 * 60 * 60));
+      const minutes = Math.floor((this.sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((this.sessionRefreshInterval % (1000 * 60)) / 1000);  
+      console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
+      this.timeOutId = Number(setTimeout(
+        () => {
+          console.log('[AuthService]: auto-refreshing session...');
+          this.fetchSession({ forceRefresh: true });
+        },
+        this.sessionRefreshInterval
+      ));
+
     }
 
   }
@@ -184,6 +207,22 @@ export class AuthService {
   // TO DO: remove this after testing
   cancelSession() {
     this.sessionDataSignal.set(null);
+  }
+
+  onFocusResume(event: MainProcessEvent) {
+
+    if (event === MainProcessEvent.WINDOW_FOCUSED) {
+      if (this.sessionRefreshInterval < (60 * 1000)) {
+        console.log('[AuthService]: app focus detected near session expiration; refreshing session...');
+        this.fetchSession();
+      } 
+    }
+
+    if (event === MainProcessEvent.SYSTEM_RESUMED) {
+      console.log('[AuthService]: app resume detected; refreshing session...');
+      this.fetchSession({ forceRefresh: true });
+    }
+
   }
 
 }

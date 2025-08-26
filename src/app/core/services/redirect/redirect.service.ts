@@ -1,4 +1,4 @@
-import { AuthUser } from 'aws-amplify/auth';
+import { AuthSession } from 'aws-amplify/auth';
 
 import { Injectable,
          Injector,
@@ -19,7 +19,7 @@ import { DeviceService } from '@services/device/device.service';
 export class RedirectService {
 
   private readonly redirectState: Signal<{
-    user: Signal<Nullable<AuthUser>>;
+    session: Signal<Nullable<AuthSession>>;
     isUsbConnected: Signal<boolean>;
   }>;
 
@@ -31,26 +31,26 @@ export class RedirectService {
   ) {
     
     this.redirectState = computed(() => ({
-      user: this.authService.user,
+      session: this.authService.sessionData,
       isUsbConnected: this.deviceService.usbConnectionStatus
     }));
 
     effect(() => {
-      const { user, isUsbConnected } = this.redirectState();
+      const { session, isUsbConnected } = this.redirectState();
       const currentUrl = this.router.url;
       console.log('Redirect service: current url: ', currentUrl);
       // Handle auth-based redirects (your original logic)
-      if (!user() && currentUrl !== '/index') {
+      if (!session() && currentUrl !== '/index') {
         console.log('Session expired, redirecting to /index');
         this.navigateWithDelay(['/index']);
       }
       // Handle USB connection redirects (your new requirement)
-      else if (user() && isUsbConnected() && currentUrl !== '/device') {
+      else if (session() && isUsbConnected() && currentUrl !== '/device') {
         console.log('User authenticated and USB connected, redirecting to /device');
         this.navigateWithDelay(['/device']);
       }
       // Handle authenticated user without USB connection
-      else if (user() && !isUsbConnected() && currentUrl === '/index') {
+      else if (session() && !isUsbConnected() && currentUrl === '/index') {
         console.log('User authenticated but no USB connected, could redirect to profile or stay');
         this.navigateWithDelay(['/device']);
       }

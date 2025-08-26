@@ -13,9 +13,9 @@ export const publicOnlyGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   
-  return toObservable(authService.user).pipe(
-    map(user => {
-      if (user) {
+  return toObservable(authService.sessionData).pipe(
+    map(session => {
+      if (session) {
         console.log(`[publicOnlyGuard]: authenticated user is not allowed ` +
           `to browse public only route '${state.url}'; redirecting to /device`);
         router.navigate(['/device']);

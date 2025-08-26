@@ -7,6 +7,7 @@ import { app,
          Menu,
          MenuItemConstructorOptions,
          dialog,
+         powerMonitor,
          ipcMain } from 'electron';
 
 import SerialCom from './core/serial-com.service';
@@ -90,7 +91,19 @@ try {
    */
   app.on('ready', () => setTimeout(() => {
 
-    new SerialCom(createWindow()).startDeviceDetection();
+    const mainWindow = createWindow();
+
+    mainWindow.on('focus', () => {
+      console.log('[Main process]: window focused');
+      mainWindow.webContents.send('window-focused');
+    });
+
+    powerMonitor.on('resume', () => {
+      console.log('[Main process]: system is resuming');
+      mainWindow.webContents.send('system-resumed');
+    });
+
+    new SerialCom(mainWindow).startDeviceDetection();
 
     /**
      * Place here any handlers suitable for renderer to main
