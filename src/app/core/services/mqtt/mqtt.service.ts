@@ -38,7 +38,6 @@ export class MqttService {
   
   private pendingRequests: Record<string, PendingRequest<any>> = {};
   private client: mqtt.MqttClient | undefined;
-  private currentSession: AuthSession | null = null;
   private lastIdentityId: string | undefined;
   private isConnecting = false;
   private isDisconnecting = false;

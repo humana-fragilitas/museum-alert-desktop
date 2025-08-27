@@ -176,7 +176,8 @@ export class AuthService {
 
     console.log('[AuthService]: checking if session token is expired...');
     const timeToExpiration = this.accessTokenExpirationTimeMS();
-    console.log(`[AuthService]: time to session expiration: ${timeToExpiration} ms`);
+    const refreshTime = msToHMS(timeToExpiration);
+    console.log(`[AuthService]: user session will be refreshed in ${refreshTime.h} hours, ${refreshTime.m} minutes, ${refreshTime.s} seconds`);
     const isExpired = timeToExpiration === 0;
     console.log(`[AuthService]: session token is ${isExpired ? '' : 'not '}expired`);
     return isExpired;
