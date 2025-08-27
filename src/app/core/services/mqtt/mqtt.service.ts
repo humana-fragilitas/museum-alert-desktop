@@ -39,10 +39,11 @@ export class MqttService {
   private pendingRequests: Record<string, PendingRequest<any>> = {};
   private client: mqtt.MqttClient | undefined;
   private currentSession: AuthSession | null = null;
+  private lastIdentityId: string | undefined;
   private isConnecting = false;
   private isDisconnecting = false;
-  private connectionPromise: Promise<void> | null = null;
-  private disconnectionPromise: Promise<void> | null = null;
+  private connectionPromise: Nullable<Promise<void>> = null;
+  private disconnectionPromise: Nullable<Promise<void>> = null;
   private readonly sessionDataSignal = this.authService.sessionData;
 
   readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
@@ -74,9 +75,9 @@ export class MqttService {
     }
 
     // If already connected to the same session, no need to reconnect
-    if (this.isConnected && this.currentSession?.identityId === sessionData.identityId) {
+    if (this.isConnected && this.lastIdentityId === sessionData.identityId) {
       console.log('[MqttService]: already connected to the same session');
-      this.currentSession = sessionData; // Update session data for token refresh
+      this.lastIdentityId = sessionData.identityId; // Update last identity ID for token refresh
       return;
     }
 
@@ -111,10 +112,11 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
+          const currentSession = this.sessionDataSignal();
           if (this.authService.isSessionTokenExpired()) {
             throw new Error('[MqttService]: Session token expired, preventing reconnection');
-          } else if (this.currentSession) {
-            return this.sigV4Service.getSignedURL(this.currentSession);
+          } else if (currentSession) {
+            return this.sigV4Service.getSignedURL(currentSession);
           } else {
           console.log('[MqttService]: no session available, preventing reconnection');
           throw new Error('[MqttService]: No session available for reconnection');
@@ -146,7 +148,7 @@ export class MqttService {
         this.client.once('error', onError);
       });
 
-      this.currentSession = sessionData;
+      this.lastIdentityId = sessionData?.identityId;
       console.log('[MqttService]: MQTT connection established successfully');
 
     } catch (error) {
@@ -211,8 +213,6 @@ export class MqttService {
 
         this.client = undefined;
       }
-
-      this.currentSession = null;
 
     } catch (error) {
 
@@ -321,7 +321,6 @@ export class MqttService {
 
     console.log(`[MqttService]: session data changed, current connection status: `+ 
                 `${ this.isConnected ? 'connected' : 'disconnected' }`);
-    this.currentSession = sessionData;
 
     try {
       
@@ -332,7 +331,7 @@ export class MqttService {
       }
 
       // Check if this is the same user (just a token refresh)
-      const isSameUser = this.currentSession?.identityId === sessionData.identityId;
+      const isSameUser = sessionData?.identityId === this.lastIdentityId;
 
       if (this.isConnected && isSameUser) {
         console.log('[MqttService]: session refreshed for same user, updating credentials without reconnecting');
