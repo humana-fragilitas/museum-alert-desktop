@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
+import { NgZone } from '@angular/core';
 import { AuthService } from './auth.service';
 import { fetchAuthSession, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { Hub } from '@aws-amplify/core';
+import { WINDOW } from '@tokens/window';
 
 jest.mock('aws-amplify/auth', () => ({
   fetchAuthSession: jest.fn(),
@@ -14,6 +16,15 @@ jest.mock('@aws-amplify/core', () => ({
 jest.mock('@shared/helpers/console.helper', () => ({
   titleStyle: ''
 }));
+
+// Mock window object for electron
+const mockWindow = {
+  electron: {
+    ipcRenderer: {
+      on: jest.fn()
+    }
+  }
+};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -31,8 +42,17 @@ describe('AuthService', () => {
     },
     identityId: 'id',
     tokens: {
-      accessToken: { toString: () => 'access' },
-      idToken: { toString: () => 'id' }
+      accessToken: { 
+        toString: () => 'access',
+        payload: {}
+      },
+      idToken: { 
+        toString: () => 'id',
+        payload: {
+          'custom:Company': 'test-company',
+          'custom:hasPolicy': '1'
+        }
+      }
     },
     userSub: 'sub'
   };
@@ -52,7 +72,13 @@ describe('AuthService', () => {
     mockHubListen.mockImplementation(() => {});
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    TestBed.configureTestingModule({ providers: [AuthService] });
+    
+    TestBed.configureTestingModule({ 
+      providers: [
+        AuthService,
+        { provide: WINDOW, useValue: mockWindow }
+      ] 
+    });
     service = TestBed.inject(AuthService);
   });
 
@@ -101,14 +127,6 @@ describe('AuthService', () => {
     expect(service.userAttributes()).toBeNull();
   });
 
-  it('should clear timeout on destroy', () => {
-    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-    (service as any).timeOutId = 123;
-    service.destroy();
-    expect(clearTimeoutSpy).toHaveBeenCalledWith(123);
-    expect((service as any).timeOutId).toBe(0);
-  });
-
   it('should cancel session', () => {
     service.cancelSession();
     expect(service.sessionData()).toBeNull();
@@ -118,50 +136,40 @@ describe('AuthService', () => {
     await service.fetchSession();
     await service.fetchUser();
     expect(service.userLoginId()).toBe('login');
-    expect(service.company()).toBe('');
-    expect(service.hasPolicy()).toBe(false);
+    expect(service.company()).toBe('test-company');
+    expect(service.hasPolicy()).toBe(true);
     expect(service.idToken()).toBe('id');
     expect(service.accessToken()).toBe('access');
   });
 
-  it('should auto-refresh session before expiration', async () => {
-    // Clear any initial calls from constructor/effect
-    mockFetchAuthSession.mockClear();
-
-    // Spy on the fetchSession method to verify it's called with forceRefresh: true
-    const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-
-    // Perform an explicit initial fetch and wait for it to complete
-    await service.fetchSession({ forceRefresh: false });
-    expect(mockFetchAuthSession).toHaveBeenCalledTimes(1);
-    expect(mockFetchAuthSession).toHaveBeenNthCalledWith(1, { forceRefresh: false });
-
-    // Clear the spy to isolate the auto-refresh call
-    fetchSessionSpy.mockClear();
-
-    // Ensure service is not currently fetching session
-    expect((service as any).isFetchingSession).toBe(false);
-
-    // Fast-forward to 1 minute before expiration to trigger auto-refresh
-    jest.advanceTimersByTime(3540000); // 59 min (3600000 - 60000)
+  it('should check if session token is expired correctly', async () => {
+    // Test with no session (should be considered expired)
+    service.cancelSession();
+    expect(service.isSessionTokenExpired()).toBe(true);
     
-    // Run all pending timers
-    jest.runOnlyPendingTimers();
+    // Test with a valid session that's not expired
+    await service.fetchSession();
+    expect(service.isSessionTokenExpired()).toBe(false);
     
-    // Allow promises to resolve
-    await Promise.resolve();
-    await Promise.resolve();
-
-    // Verify that fetchSession was called at least once with forceRefresh: true
-    // (allow for potential effect-triggered calls but ensure the auto-refresh happened)
-    expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
-    expect(fetchSessionSpy.mock.calls.filter(call => call[0]?.forceRefresh === true)).toHaveLength(1);
+    // Test with expired session
+    const expiredSession = {
+      ...mockSession,
+      credentials: { ...mockSession.credentials, expiration: new Date(Date.now() - 1000) }
+    };
+    mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
+    await service.fetchSession();
+    expect(service.isSessionTokenExpired()).toBe(true);
   });
 
-  it('should not set timeout if session is expired', async () => {
-    mockFetchAuthSession.mockResolvedValueOnce({ ...mockSession, credentials: { ...mockSession.credentials, expiration: new Date(Date.now() - 1000) } });
+  it('should calculate access token expiration time correctly', async () => {
     await service.fetchSession();
-    expect((service as any).timeOutId).toBe(0);
+    const timeToExpiration = service.accessTokenExpirationTimeMS();
+    expect(timeToExpiration).toBeGreaterThan(0);
+    expect(timeToExpiration).toBeLessThanOrEqual(3600000);
+    
+    // Test with no session
+    service.cancelSession();
+    expect(service.accessTokenExpirationTimeMS()).toBe(0);
   });
 
   it('should skip fetchSession if already fetching', async () => {
@@ -170,13 +178,27 @@ describe('AuthService', () => {
     expect(mockFetchAuthSession).not.toHaveBeenCalled();
   });
 
-  it('should listen to Hub auth events and call fetchUser', () => {
+  it('should listen to Hub auth events and fetch session', async () => {
     expect(mockHubListen).toHaveBeenCalledWith('auth', expect.any(Function));
-    const cb = mockHubListen.mock.calls[0][1];
-    mockGetCurrentUser.mockResolvedValue(mockUser);
-    cb({ payload: { event: 'signedIn' } });
-    cb({ payload: { event: 'signedOut' } });
-    // The effect in the constructor also calls fetchUser once
-    expect(mockGetCurrentUser).toHaveBeenCalledTimes(3);
+    const callback = mockHubListen.mock.calls[0][1];
+    
+    // Clear previous calls from constructor and spy on fetchSession
+    mockFetchAuthSession.mockClear();
+    const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+    
+    // Test signedIn event
+    await callback({ payload: { event: 'signedIn' } });
+    expect(fetchSessionSpy).toHaveBeenCalled();
+    
+    // Test signedOut event
+    fetchSessionSpy.mockClear();
+    await callback({ payload: { event: 'signedOut' } });
+    expect(fetchSessionSpy).toHaveBeenCalled();
+    
+    // Test other events (should not trigger fetchSession)
+    fetchSessionSpy.mockClear();
+    await callback({ payload: { event: 'tokenRefresh' } });
+    expect(fetchSessionSpy).not.toHaveBeenCalled();
   });
+
 });

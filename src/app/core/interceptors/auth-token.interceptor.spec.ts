@@ -14,6 +14,7 @@ import { HttpRequest, HttpHandler } from '@angular/common/http';
 import { signal, WritableSignal, runInInjectionContext, Injector, InjectionToken } from '@angular/core';
 import { of, throwError, EMPTY } from 'rxjs';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { AuthSession } from 'aws-amplify/auth';
 
 import { authTokenInterceptor, AuthenticationExpiredError } from './auth-token.interceptor';
 import { AuthService } from '@services/auth/auth.service';
@@ -24,16 +25,9 @@ import { APP_CONFIG } from '@env/environment';
 // Create a proper injection token for testing
 const TEST_APP_CONFIG = new InjectionToken('TEST_APP_CONFIG');
 
-// Mock implementations
-interface MockAuthUser {
-  userId: string;
-  username?: string;
-  email?: string;
-}
-
 // Mock AuthService
 interface MockAuthService {
-  user: WritableSignal<MockAuthUser | null>;
+  sessionData: WritableSignal<AuthSession | null>;
   idToken: jest.Mock;
 }
 
@@ -47,8 +41,30 @@ describe('authTokenInterceptor', () => {
   let mockAuthService: MockAuthService;
   let mockAuthenticatorService: jest.Mocked<AuthenticatorService>;
   let mockDialogService: jest.Mocked<DialogService>;
-  let userSignal: WritableSignal<MockAuthUser | null>;
+  let sessionDataSignal: WritableSignal<AuthSession | null>;
   let injector: Injector;
+
+  // Mock session object
+  const mockSession: AuthSession = {
+    credentials: {
+      accessKeyId: 'key',
+      secretAccessKey: 'secret', 
+      sessionToken: 'token',
+      expiration: new Date(Date.now() + 3600000)
+    },
+    identityId: 'id',
+    tokens: {
+      accessToken: { 
+        toString: () => 'access',
+        payload: {}
+      } as any,
+      idToken: { 
+        toString: () => 'test-id-token',
+        payload: {}
+      } as any
+    },
+    userSub: 'sub'
+  };
 
   // Mock APP_CONFIG that matches your actual structure
   const mockAppConfig = {
@@ -82,10 +98,10 @@ describe('authTokenInterceptor', () => {
 
   beforeEach(() => {
     // Create mock signals and services
-    userSignal = signal<MockAuthUser | null>(null);
+    sessionDataSignal = signal<AuthSession | null>(null);
     
     mockAuthService = {
-      user: userSignal,
+      sessionData: sessionDataSignal,
       idToken: jest.fn()
     };
 

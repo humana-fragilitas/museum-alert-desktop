@@ -53,11 +53,10 @@ export class AuthService {
 
       win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
         this.ngZone.run(() => {
-          console.log('[AuthService]: session check received');
-              if (this.isSessionTokenExpired()) {
-                console.log('[AuthService]: user session is expired; refreshing session...');
-                this.fetchSession({ forceRefresh: true });
-              }
+          if (this.isSessionTokenExpired()) {
+            console.log('[AuthService]: user session is expired; refreshing session...');
+            this.fetchSession({ forceRefresh: true });
+          }
         });
       });
 
