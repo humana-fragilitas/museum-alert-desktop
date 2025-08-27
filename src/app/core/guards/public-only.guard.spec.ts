@@ -4,24 +4,17 @@ import { ActivatedRouteSnapshot, RouterStateSnapshot, GuardResult } from '@angul
 import { signal, WritableSignal, Injector, runInInjectionContext } from '@angular/core';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { AuthSession } from 'aws-amplify/auth';
 
 import { publicOnlyGuard } from './public-only.guard';
 import { AuthService } from '@services/auth/auth.service';
 
-// Mock AuthUser interface to match AWS Amplify's AuthUser type
-interface MockAuthUser {
-  userId: string;
-  username?: string;
-  email?: string;
-  [key: string]: any; // Allow additional properties
-}
-
-// Type for nullable AuthUser
+// Type for nullable AuthSession
 type Nullable<T> = T | null;
 
 // Mock AuthService interface
 interface MockAuthService {
-  user: WritableSignal<Nullable<MockAuthUser>>;
+  sessionData: WritableSignal<Nullable<AuthSession>>;
 }
 
 describe('publicOnlyGuard', () => {
@@ -29,19 +22,19 @@ describe('publicOnlyGuard', () => {
   let mockRouter: jest.Mocked<Pick<Router, 'navigate'>>;
   let mockRoute: ActivatedRouteSnapshot;
   let mockState: RouterStateSnapshot;
-  let userSignal: WritableSignal<Nullable<MockAuthUser>>;
+  let sessionDataSignal: WritableSignal<Nullable<AuthSession>>;
   let injector: Injector;
 
   // Console spy to test logging behavior
   let consoleSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    // Create writable signal for user
-    userSignal = signal<Nullable<MockAuthUser>>(null);
+    // Create writable signal for sessionData
+    sessionDataSignal = signal<Nullable<AuthSession>>(null);
 
     // Create mock AuthService
     mockAuthService = {
-      user: userSignal
+      sessionData: sessionDataSignal
     };
 
     // Create mock Router with only navigate method
@@ -70,7 +63,7 @@ describe('publicOnlyGuard', () => {
     consoleSpy = jest.spyOn(console, 'log').mockImplementation();
     
     // Ensure clean state
-    userSignal.set(null);
+    sessionDataSignal.set(null);
   });
 
   afterEach(() => {
@@ -81,8 +74,8 @@ describe('publicOnlyGuard', () => {
 
   describe('when user is NOT authenticated', () => {
     beforeEach(() => {
-      // Set user signal to null (not authenticated)
-      userSignal.set(null);
+      // Set sessionData signal to null (not authenticated)
+      sessionDataSignal.set(null);
     });
 
     it('should allow access to public-only route', (done) => {
@@ -151,15 +144,55 @@ describe('publicOnlyGuard', () => {
   });
 
   describe('when user IS authenticated', () => {
-    const mockUser: MockAuthUser = {
-      userId: 'user-123',
-      email: 'test@example.com',
-      username: 'testuser'
-    };
-
     beforeEach(() => {
-      // Set user signal to authenticated user
-      userSignal.set(mockUser);
+      // Create a mock AuthSession object
+      const mockSession: AuthSession = {
+        tokens: {
+          accessToken: {
+            toString: jest.fn(() => 'mock-access-token'),
+            payload: {
+              sub: 'user-123',
+              iss: 'https://cognito-idp.region.amazonaws.com/userPoolId',
+              client_id: 'clientId',
+              origin_jti: 'originJti',
+              event_id: 'eventId',
+              token_use: 'access',
+              scope: 'aws.cognito.signin.user.admin',
+              auth_time: Math.floor(Date.now() / 1000),
+              exp: Math.floor(Date.now() / 1000) + 3600,
+              iat: Math.floor(Date.now() / 1000),
+              jti: 'jti',
+              username: 'testuser'
+            }
+          },
+          idToken: {
+            toString: jest.fn(() => 'mock-id-token'),
+            payload: {
+              sub: 'user-123',
+              aud: 'clientId',
+              'cognito:username': 'testuser',
+              email: 'test@example.com',
+              email_verified: true,
+              iss: 'https://cognito-idp.region.amazonaws.com/userPoolId',
+              origin_jti: 'originJti',
+              event_id: 'eventId',
+              token_use: 'id',
+              auth_time: Math.floor(Date.now() / 1000),
+              exp: Math.floor(Date.now() / 1000) + 3600,
+              iat: Math.floor(Date.now() / 1000)
+            }
+          }
+        },
+        credentials: {
+          accessKeyId: 'mockAccessKeyId',
+          secretAccessKey: 'mockSecretAccessKey',
+          sessionToken: 'mockSessionToken',
+          expiration: new Date(Date.now() + 3600000)
+        },
+        identityId: 'mockIdentityId',
+        userSub: 'user-123'
+      };
+      sessionDataSignal.set(mockSession);
     });
 
     it('should deny access to public-only route', (done) => {
@@ -244,7 +277,7 @@ describe('publicOnlyGuard', () => {
         });
 
         it('should allow non-authenticated users', (done) => {
-          userSignal.set(null);
+          sessionDataSignal.set(null);
           
           runInInjectionContext(injector, () => {
             const result = publicOnlyGuard(mockRoute, mockState);
@@ -272,11 +305,28 @@ describe('publicOnlyGuard', () => {
         });
 
         it('should deny authenticated users and redirect', (done) => {
-          userSignal.set({
-            userId: 'user-123',
-            email: 'test@example.com',
-            username: 'testuser'
-          });
+          const mockSession: AuthSession = {
+            tokens: {
+              accessToken: {
+                toString: () => 'token',
+                payload: {
+                  sub: 'user-123',
+                  exp: 0,
+                  iat: 0,
+                  token_use: 'access',
+                  scope: '',
+                  auth_time: 0,
+                  iss: '',
+                  client_id: '',
+                  origin_jti: '',
+                  event_id: '',
+                  jti: '',
+                  username: 'testuser'
+                }
+              }
+            }
+          } as AuthSession;
+          sessionDataSignal.set(mockSession);
           
           runInInjectionContext(injector, () => {
             const result = publicOnlyGuard(mockRoute, mockState);
@@ -311,18 +361,35 @@ describe('publicOnlyGuard', () => {
   describe('edge cases', () => {
     it('should handle user signal changes during execution', (done) => {
       // Start with non-authenticated user
-      userSignal.set(null);
+      sessionDataSignal.set(null);
       
       runInInjectionContext(injector, () => {
         const result = publicOnlyGuard(mockRoute, mockState);
         
-        // Change user state before subscription completes
+        // Change session state before subscription completes
         setTimeout(() => {
-          userSignal.set({
-            userId: 'user-123',
-            email: 'test@example.com',
-            username: 'testuser'
-          });
+          const mockSession: AuthSession = {
+            tokens: {
+              accessToken: {
+                toString: () => 'token',
+                payload: {
+                  sub: 'user-123',
+                  exp: 0,
+                  iat: 0,
+                  token_use: 'access',
+                  scope: '',
+                  auth_time: 0,
+                  iss: '',
+                  client_id: '',
+                  origin_jti: '',
+                  event_id: '',
+                  jti: '',
+                  username: 'testuser'
+                }
+              }
+            }
+          } as AuthSession;
+          sessionDataSignal.set(mockSession);
         }, 10);
         
         // Handle both Observable and boolean returns
@@ -343,11 +410,28 @@ describe('publicOnlyGuard', () => {
     });
 
     it('should handle router navigation failure gracefully', (done) => {
-      userSignal.set({
-        userId: 'user-123',
-        email: 'test@example.com',
-        username: 'testuser'
-      });
+      const mockSession: AuthSession = {
+        tokens: {
+          accessToken: {
+            toString: () => 'token',
+            payload: {
+              sub: 'user-123',
+              exp: 0,
+              iat: 0,
+              token_use: 'access',
+              scope: '',
+              auth_time: 0,
+              iss: '',
+              client_id: '',
+              origin_jti: '',
+              event_id: '',
+              jti: '',
+              username: 'testuser'
+            }
+          }
+        }
+      } as AuthSession;
+      sessionDataSignal.set(mockSession);
       
       // Mock router.navigate to reject
       mockRouter.navigate.mockRejectedValue(new Error('Navigation failed'));
@@ -375,7 +459,7 @@ describe('publicOnlyGuard', () => {
 
     it('should handle empty or undefined route URL', (done) => {
       mockState = { url: '' } as RouterStateSnapshot;
-      userSignal.set(null);
+      sessionDataSignal.set(null);
       
       runInInjectionContext(injector, () => {
         const result = publicOnlyGuard(mockRoute, mockState);
@@ -413,9 +497,29 @@ describe('publicOnlyGuard', () => {
 
   describe('integration with AuthService', () => {
     it('should work with different user object structures', (done) => {
-      // Test with minimal user object
-      const minimalUser = { userId: 'user-456' };
-      userSignal.set(minimalUser);
+      // Test with minimal session object
+      const minimalSession: AuthSession = {
+        tokens: {
+          accessToken: {
+            toString: () => 'token',
+            payload: {
+              sub: 'user-456',
+              exp: 0,
+              iat: 0,
+              token_use: 'access',
+              scope: '',
+              auth_time: 0,
+              iss: '',
+              client_id: '',
+              origin_jti: '',
+              event_id: '',
+              jti: '',
+              username: 'testuser'
+            }
+          }
+        }
+      } as AuthSession;
+      sessionDataSignal.set(minimalSession);
       
       runInInjectionContext(injector, () => {
         const result = publicOnlyGuard(mockRoute, mockState);
@@ -439,8 +543,8 @@ describe('publicOnlyGuard', () => {
     });
 
     it('should handle truthy non-object user values', (done) => {
-      // Test with string user (edge case)
-      userSignal.set('authenticated' as any);
+      // Test with string session (edge case)
+      sessionDataSignal.set('authenticated' as any);
       
       runInInjectionContext(injector, () => {
         const result = publicOnlyGuard(mockRoute, mockState);
@@ -466,7 +570,7 @@ describe('publicOnlyGuard', () => {
 
   describe('performance and memory', () => {
     it('should complete the observable stream', (done) => {
-      userSignal.set(null);
+      sessionDataSignal.set(null);
       
       runInInjectionContext(injector, () => {
         const result = publicOnlyGuard(mockRoute, mockState);
@@ -491,7 +595,7 @@ describe('publicOnlyGuard', () => {
     });
 
     it('should not create memory leaks with multiple subscriptions', (done) => {
-      userSignal.set(null);
+      sessionDataSignal.set(null);
       
       runInInjectionContext(injector, () => {
         const result = publicOnlyGuard(mockRoute, mockState);

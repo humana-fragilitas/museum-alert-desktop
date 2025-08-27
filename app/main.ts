@@ -7,9 +7,11 @@ import { app,
          Menu,
          MenuItemConstructorOptions,
          dialog,
+         powerMonitor,
          ipcMain } from 'electron';
 
 import SerialCom from './core/serial-com.service';
+import { MainProcessEvent } from './shared';
 
 let win: BrowserWindow | null = null;
 const args = process.argv.slice(1),
@@ -90,7 +92,23 @@ try {
    */
   app.on('ready', () => setTimeout(() => {
 
-    new SerialCom(createWindow()).startDeviceDetection();
+    const mainWindow = createWindow();
+
+    // mainWindow.on('focus', () => {
+    //   console.log('[Main process]: window focused');
+    //   //mainWindow.webContents.send(MainProcessEvent.WINDOW_FOCUSED);
+    // });
+
+    setInterval(() => {
+      mainWindow.webContents.send(MainProcessEvent.SESSION_CHECK);
+    }, 1000);
+
+    // powerMonitor.on('resume', () => {
+    //   console.log('[Main process]: system is resuming');
+    //   //mainWindow.webContents.send(MainProcessEvent.SYSTEM_RESUMED);
+    // });
+
+    new SerialCom(mainWindow).startDeviceDetection();
 
     /**
      * Place here any handlers suitable for renderer to main

@@ -8,8 +8,10 @@ import { fetchAuthSession,
 import { Hub, HubCapsule } from '@aws-amplify/core';
 import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
 
-import { Injectable, signal, computed, effect } from '@angular/core';
-import { titleStyle } from '@shared/helpers/console.helper';
+import { Injectable, signal, computed, effect, NgZone, Inject } from '@angular/core';
+import { WINDOW } from '@tokens/window';
+import { MainProcessEvent } from '@shared-with-electron';
+import { msToHMS } from '@shared/helpers/milliseconds-to-readable-time.helper';
 
 // Ref.: https://dev.to/beavearony/aws-amplify-auth-angular-rxjs-simple-state-management-3jhd
 @Injectable({
@@ -17,9 +19,7 @@ import { titleStyle } from '@shared/helpers/console.helper';
 })
 export class AuthService {
 
-  private timeOutId: number = 0;
   private isFetchingSession = false;
-  private pendingSessionRefresh: number = 0;
   private readonly sessionDataSignal = signal<Nullable<AuthSession>>(null);
   private readonly userSignal = signal<Nullable<GetCurrentUserOutput>>(null);
   private readonly userAttributesSignal = signal<Nullable<FetchUserAttributesOutput>>(null);
@@ -44,13 +44,36 @@ export class AuthService {
     this.sessionDataSignal()?.tokens?.accessToken?.toString() || ''
   );
 
-  constructor() {
+  constructor(@Inject(WINDOW) private win: Window,
+                              private ngZone: NgZone) {
 
     console.log('[AuthService]: instance created');
 
+    if (win.electron) {
+
+      win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
+        this.ngZone.run(() => {
+          if (this.isSessionTokenExpired()) {
+            console.log('[AuthService]: user session is expired; refreshing session...');
+            this.fetchSession({ forceRefresh: true });
+          }
+        });
+      });
+
+    }
+
+    effect(() => {
+      const session = this.sessionDataSignal();
+      if (session) {
+        this.fetchUser();
+      } else {
+        this.userSignal.set(null);
+        this.userAttributesSignal.set(null);
+      }
+    });
+
     effect(() => {
       const user = this.userSignal();
-      this.fetchSession();
       if (user) this.fetchAttributes();
     });
 
@@ -58,11 +81,9 @@ export class AuthService {
       const { payload } = data;
       if (payload.event == 'signedIn' ||
           payload.event == 'signedOut') {
-        this.fetchUser();
-      }
+        this.fetchSession();
+      } 
     });
-
-    this.fetchUser();
 
   }
  
@@ -86,31 +107,15 @@ export class AuthService {
 
       this.sessionDataSignal.set(hasSession ? session : null);
 
-      // Clear existing timeout
-      if (this.timeOutId) { 
-        clearTimeout(this.timeOutId); 
-        this.timeOutId = 0;
-      }
-
       if (!hasSession) {
         console.log('[AuthService]: no session data available');
         return;
       }
 
-      console.log('[AuthService]: session data:');
-      console.log(session);
-      console.log('%c[AuthService]: access token:', titleStyle);
-      console.log(this.accessToken());
-      console.log('%c[AuthService]: id token:', titleStyle);
-      console.log(this.idToken());
+      console.log('[AuthService]: session data:', session);
+      console.log('[AuthService]: access token:', this.accessToken());
+      console.log('[AuthService]: id token:', this.idToken());
       console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
-
-      // Calculate refresh interval (1 minute before expiration)
-      const sessionRefreshInterval = (session.credentials!.expiration!.getTime() -
-          new Date().getTime()) - (1000 * 60);
-
-      // Only set timeout if interval is positive
-      this.pendingSessionRefresh = sessionRefreshInterval > 0 ? sessionRefreshInterval : 0;
 
     } catch (exception) {
 
@@ -118,23 +123,11 @@ export class AuthService {
       this.sessionDataSignal.set(null);
 
     } finally {
+
       this.isFetchingSession = false;
-      // Set the timeout for auto-refresh after fetchSession is fully complete
-      if (this.pendingSessionRefresh > 0) {
-        const sessionRefreshInterval = this.pendingSessionRefresh;
-        this.pendingSessionRefresh = 0;
-        const hours = Math.floor(sessionRefreshInterval / (1000 * 60 * 60));
-        const minutes = Math.floor((sessionRefreshInterval % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((sessionRefreshInterval % (1000 * 60)) / 1000);  
-        console.log(`[AuthService]: user session set to be automatically refreshed in ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
-        this.timeOutId = Number(setTimeout(
-          () => {
-            console.log('[AuthService]: auto-refreshing session...');
-            this.fetchSession({ forceRefresh: true });
-          },
-          sessionRefreshInterval
-        ));
-      }
+      const refreshTime = msToHMS(this.accessTokenExpirationTimeMS());
+      console.log(`[AuthService]: user session will be refreshed in ${refreshTime.h} hours, ${refreshTime.m} minutes, ${refreshTime.s} seconds`);
+
     }
 
   }
@@ -173,17 +166,26 @@ export class AuthService {
 
   }
 
-  // Clean up resources
-  destroy() {
-    if (this.timeOutId) {
-      clearTimeout(this.timeOutId);
-      this.timeOutId = 0;
-    }
-  }
-
   // TO DO: remove this after testing
   cancelSession() {
     this.sessionDataSignal.set(null);
+  }
+
+  isSessionTokenExpired(): boolean {
+
+    console.log('[AuthService]: checking if session token is expired...');
+    const timeToExpiration = this.accessTokenExpirationTimeMS();
+    const refreshTime = msToHMS(timeToExpiration);
+    console.log(`[AuthService]: user session will be refreshed in ${refreshTime.h} hours, ${refreshTime.m} minutes, ${refreshTime.s} seconds`);
+    const isExpired = timeToExpiration === 0;
+    console.log(`[AuthService]: session token is ${isExpired ? '' : 'not '}expired`);
+    return isExpired;
+
+  }
+
+  accessTokenExpirationTimeMS(): number {
+    const expirationTime = this.sessionData()?.credentials?.expiration?.getTime() || 0;
+    return Math.max(expirationTime - new Date().getTime(), 0);
   }
 
 }

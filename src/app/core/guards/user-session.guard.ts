@@ -13,9 +13,9 @@ export const userSessionGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   
-  return toObservable(authService.user).pipe(
-    map(user => {
-      if (user) {
+  return toObservable(authService.sessionData).pipe(
+    map(session => {
+      if (session) {
         console.log(`[userSessionGuard]: authenticated user is allowed to browse ` +
           `private only route '${state.url}'`);
         return true;
