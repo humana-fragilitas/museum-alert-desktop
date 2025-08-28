@@ -62,10 +62,9 @@ describe('CompanyFormComponent', () => {
   });
 
   it('should disable submit button if form is invalid', () => {
-    // Ensure company name is not set so submit button appears
-    mockCompanySignal.set({ companyName: '' });
-    mockOrganizationSignal.set({ companyName: '' });
-    component.isEditable.set(true);
+    // Set edit mode and enable form control to show submit button
+    component.editMode.set(true);
+    component.companyNameForm.get('companyName')?.enable();
     component.companyNameForm.get('companyName')?.setValue('');
     component.companyNameForm.get('companyName')?.markAsTouched();
     fixture.detectChanges();
@@ -73,8 +72,9 @@ describe('CompanyFormComponent', () => {
     expect(submitBtn?.nativeElement.disabled).toBe(true);
   });
 
-  it('should enable submit button if form is valid and editable', () => {
-    component.isEditable.set(true);
+  it('should enable submit button if form is valid and in edit mode', () => {
+    component.editMode.set(true);
+    component.companyNameForm.get('companyName')?.enable();
     component.companyNameForm.get('companyName')?.setValue('ValidName');
     fixture.detectChanges();
     const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
@@ -82,7 +82,8 @@ describe('CompanyFormComponent', () => {
   });
 
   it('should call onSubmit and setName on submit', fakeAsync(() => {
-    component.isEditable.set(true);
+    component.editMode.set(true);
+    component.companyNameForm.get('companyName')?.enable();
     component.companyNameForm.get('companyName')?.setValue('ValidName');
     fixture.detectChanges();
     const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
@@ -97,7 +98,8 @@ describe('CompanyFormComponent', () => {
     // Simulate error by returning an observable that errors
     const { throwError } = require('rxjs');
     mockCompanyService.setName.mockReturnValueOnce(throwError(() => new Error('fail')));
-    component.isEditable.set(true);
+    component.editMode.set(true);
+    component.companyNameForm.get('companyName')?.enable();
     component.companyNameForm.get('companyName')?.setValue('FailName');
     fixture.detectChanges();
     component.onSubmit();
@@ -110,10 +112,9 @@ describe('CompanyFormComponent', () => {
   });
 
   it('should show error message when form is invalid', fakeAsync(() => {
-    // Ensure company name is not set so form is in edit mode  
-    mockCompanySignal.set({ companyName: '' });
-    mockOrganizationSignal.set({ companyName: '' });
-    component.isEditable.set(true);
+    // Set edit mode and enable form control to show form errors
+    component.editMode.set(true);
+    component.companyNameForm.get('companyName')?.enable();
     component.companyNameForm.get('companyName')?.setValue('');
     component.companyNameForm.get('companyName')?.markAsTouched();
     fixture.detectChanges();
@@ -132,7 +133,7 @@ describe('CompanyFormComponent', () => {
     component.companyNameInput = { nativeElement: { focus: focusSpy, select: selectSpy } } as any;
     component.edit();
     tick();
-    expect(component.isEditable()).toBe(true);
+    expect(component.editMode()).toBe(true);
     expect(focusSpy).toHaveBeenCalled();
     expect(selectSpy).toHaveBeenCalled();
   }));
@@ -142,7 +143,54 @@ describe('CompanyFormComponent', () => {
     component.companyNameInput = { nativeElement: { blur: blurSpy } } as any;
     component.cancel();
     tick();
-    expect(component.isEditable()).toBe(false);
+    expect(component.editMode()).toBe(false);
     expect(blurSpy).toHaveBeenCalled();
   }));
+
+  it('should show edit button when not in edit mode', () => {
+    component.editMode.set(false);
+    fixture.detectChanges();
+    const editBtn = fixture.debugElement.query(By.css('button:not([type="submit"])'));
+    expect(editBtn).toBeTruthy();
+    expect(editBtn.nativeElement.textContent).toContain('COMMON.ACTIONS.EDIT');
+  });
+
+  it('should show submit and cancel buttons when in edit mode', () => {
+    component.editMode.set(true);
+    fixture.detectChanges();
+    const submitBtn = fixture.debugElement.query(By.css('button[type="submit"]'));
+    const cancelBtn = fixture.debugElement.query(By.css('button[color="secondary"]'));
+    expect(submitBtn).toBeTruthy();
+    expect(cancelBtn).toBeTruthy();
+  });
+
+  it('should disable all buttons when busy', () => {
+    component.editMode.set(true);
+    component.isBusy.set(true);
+    fixture.detectChanges();
+    const buttons = fixture.debugElement.queryAll(By.css('button'));
+    buttons.forEach(button => {
+      expect(button.nativeElement.disabled).toBe(true);
+    });
+  });
+
+  it('should show spinner when busy', () => {
+    component.editMode.set(true);
+    component.isBusy.set(true);
+    fixture.detectChanges();
+    const spinner = fixture.debugElement.query(By.css('mat-progress-spinner'));
+    expect(spinner).toBeTruthy();
+  });
+
+  it('should set edit mode when company has no name', () => {
+    mockCompanySignal.set({ companyName: '' });
+    fixture.detectChanges();
+    expect(component.editMode()).toBe(true);
+  });
+
+  it('should set display mode when company has name', () => {
+    mockCompanySignal.set({ companyName: 'ExistingCompany' });
+    fixture.detectChanges();
+    expect(component.editMode()).toBe(false);
+  });
 });

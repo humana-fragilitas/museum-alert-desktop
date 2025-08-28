@@ -9,7 +9,7 @@
   
   <div class="button-cta">
 
-    <button *ngIf="showSubmitButton()"
+    <button *ngIf="editMode()"
             mat-raised-button color="primary"
             type="submit"
             [disabled]="companyNameForm.invalid || isBusy()">
@@ -22,7 +22,7 @@
       </span>
     </button>
     
-    <button *ngIf="showCancelButton()"
+    <button *ngIf="editMode()"
             mat-raised-button color="secondary"
             [disabled]="isBusy()"
             (click)="cancel()">
@@ -33,7 +33,7 @@
     
   </div>
   
-  <button *ngIf="showEditButton()"
+  <button *ngIf="!editMode()"
           mat-raised-button color="primary"
           [disabled]="isBusy()"
           (click)="edit()">
