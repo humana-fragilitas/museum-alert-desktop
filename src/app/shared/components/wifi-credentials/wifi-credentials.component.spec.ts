@@ -144,10 +144,36 @@ describe('WiFiCredentialsComponent', () => {
     expect(component.isRefreshingWiFiNetworks()).toBe(false);
   });
 
-  it('should reset isSendingCredentials on device error signal', () => {
+  it('should reset isSendingCredentials on device error signal only when sending credentials', () => {
+    // Test case 1: Error when sending credentials - should reset
     component.isSendingCredentials.set(true);
     mockErrorSignal.set('Some error');
     fixture.detectChanges();
     expect(component.isSendingCredentials()).toBe(false);
+    
+    // Test case 2: Error when NOT sending credentials - should not change state
+    component.isSendingCredentials.set(false);
+    mockErrorSignal.set('Another error');
+    fixture.detectChanges();
+    expect(component.isSendingCredentials()).toBe(false); // Should remain false
+  });
+
+  it('should not reset isSendingCredentials when error signal is cleared', () => {
+    // Set up initial state to avoid interference from other computed signals
+    mockWiFiNetworksSignal.set([{ ssid: 'TestNet', rssi: -50, encryptionType: 1 }]);
+    mockErrorSignal.set(null); // Start with no error
+    component.isRefreshingWiFiNetworks.set(false);
+    fixture.detectChanges();
+    
+    // Set up initial state with credentials being sent
+    component.isSendingCredentials.set(true);
+    fixture.detectChanges();
+    
+    // Clear the error signal again (should not affect isSendingCredentials since there's no error)
+    mockErrorSignal.set(null);
+    fixture.detectChanges();
+    
+    // isSendingCredentials should remain true since there's no error
+    expect(component.isSendingCredentials()).toBe(true);
   });
 });
