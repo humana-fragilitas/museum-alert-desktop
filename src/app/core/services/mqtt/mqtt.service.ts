@@ -1,23 +1,10 @@
-/*
-client.on('error', (error) => {
-  if (error.code === 'ENOTFOUND' || 
-      error.code === 'ECONNREFUSED' || 
-      error.message.includes('unauthorized')) {
-    console.log('Stopping reconnection due to:', error.message);
-    shouldAllowReconnect = false;
-    client.options.reconnectPeriod = 0;
-    client.end(true);
-  }
-});
-*/
-
 import { AuthSession } from 'aws-amplify/auth';
 import { BehaviorSubject,
          filter,
          Observable } from 'rxjs';
 import mqtt from 'mqtt';
 
-import { Injectable, effect } from '@angular/core';
+import { Inject, Injectable, NgZone, effect } from '@angular/core';
 
 import { APP_CONFIG } from '@env/environment';
 import { SigV4Service } from '@services/sig-v4/sig-v4.service';
@@ -30,6 +17,8 @@ import { PendingRequest,
          MqttMessageType,
          DeviceConfiguration,
          AlarmPayload } from '@models';
+import { WINDOW } from '@tokens/window';
+import { MainProcessEvent } from '@shared-with-electron';
 
 @Injectable({
   providedIn: 'root'
@@ -43,23 +32,39 @@ export class MqttService {
   private isDisconnecting = false;
   private connectionPromise: Nullable<Promise<void>> = null;
   private disconnectionPromise: Nullable<Promise<void>> = null;
+  private reconnectionAttempts = 0;
+  private readonly maximumReconnectionAttempts = 5;
   private readonly sessionDataSignal = this.authService.sessionData;
 
   readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
 
   constructor(
+    @Inject(WINDOW) private win: Window,
+    private ngZone: NgZone,
     private authService: AuthService,
     private sigV4Service: SigV4Service,
     private deviceService: DeviceService
   ) {
 
     console.log('[MqttService]: instance created');
+
+    /**
+     * Note: connections are ALWAYS initiated or terminated
+     * by successful or unsuccessful session retrieval or refresh
+     * or system events (e.g.: online/offline, suspend/resume);
+     * this aims to guarantee that the MQTT connection is always
+     * in sync with the combined user session and system status
+     */
+
     this.initializeAuthSubscription();
+    this.initializeSystemEventHandlers();
     this.setupMessageHandlers();
 
   }
 
   async connect(sessionData: AuthSession): Promise<void> {
+
+    this.reconnectionAttempts = 0;
 
     // Check if user has policy
     if (!this.authService.hasPolicy()) {
@@ -111,6 +116,12 @@ export class MqttService {
         connectTimeout: 30 * 1000,
         keepalive: 60,
         transformWsUrl: (url, options, client) => {
+          if (++this.reconnectionAttempts >= this.maximumReconnectionAttempts) {
+            this.cleanup();
+            throw new Error('[MqttService]: maximum reconnection attempts reached; disconnecting...');
+          }
+          console.log(`[MqttService]: transforming WebSocket URL for reconnection; ` +
+                      `attempt ${this.reconnectionAttempts} of ${this.maximumReconnectionAttempts}`);
           const currentSession = this.sessionDataSignal();
           if (this.authService.isSessionTokenExpired()) {
             throw new Error('[MqttService]: Session token expired, preventing reconnection');
@@ -314,6 +325,26 @@ export class MqttService {
       const sessionData = this.sessionDataSignal();
       this.handleSessionChange(sessionData);
     });
+  }
+
+  private initializeSystemEventHandlers(): void {
+
+    this.win.addEventListener('offline', () => {
+      this.ngZone.run(() => {
+        console.log('[MqttService]: system is offline; disconnecting...');
+        this.cleanup();
+      });
+    });
+
+    if (this.win.electron) {
+      this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_SUSPENDED, () => {
+        this.ngZone.run(() => {
+          console.log('[MqttService]: system suspended; initiating disconnect...');
+          this.cleanup();
+        });
+      });
+    }
+
   }
 
   private async handleSessionChange(sessionData: Nullable<AuthSession>): Promise<void> {

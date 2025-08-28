@@ -26,8 +26,8 @@ export class NotificationService {
     
     effect(() => {
       const message = this.deviceErrorSignal();
-      console.log('[NotificationService]: got new error:', message);
       if (message && message.type === DeviceMessageType.ERROR) {
+        console.log('[NotificationService]: got new error:', message);
         this.onError(message.data.error);
       }
     });
