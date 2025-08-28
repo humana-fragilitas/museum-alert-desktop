@@ -85,7 +85,7 @@ export class MqttService {
       return;
     }
 
-    this.connectionPromise = this._connect(sessionData);
+    this.connectionPromise = this.establishConnection(sessionData);
     
     try {
       await this.connectionPromise;
@@ -95,7 +95,7 @@ export class MqttService {
 
   }
 
-  private async _connect(sessionData: AuthSession): Promise<void> {
+  private async establishConnection(sessionData: AuthSession): Promise<void> {
 
     this.isConnecting = true;
 
@@ -189,7 +189,7 @@ export class MqttService {
       return;
     }
 
-    this.disconnectionPromise = this._disconnect();
+    this.disconnectionPromise = this.terminateConnection();
     
     try {
       await this.disconnectionPromise;
@@ -199,7 +199,7 @@ export class MqttService {
 
   }
 
-  private async _disconnect(): Promise<void> {
+  private async terminateConnection(): Promise<void> {
 
     this.isDisconnecting = true;
 

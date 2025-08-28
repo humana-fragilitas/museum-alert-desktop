@@ -824,7 +824,7 @@ describe('MqttService', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle connection timeout in _connect', async () => {
+    it('should handle connection timeout in establishConnection', async () => {
       (service as any).client = undefined;
       
       mockMqttClient.once.mockImplementation((event, callback) => {
