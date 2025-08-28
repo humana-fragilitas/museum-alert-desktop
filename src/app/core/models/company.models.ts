@@ -1,6 +1,3 @@
-// TO DO: simplify this models both here and in the corresponding lambda
-
-
 export interface CompanyMember {
   email: string;
   username: string;
@@ -40,7 +37,6 @@ export interface CompanyWithUserContext extends Company {
  */
 export interface UpdateCompanyRequest {
   companyName?: string;
-  // TO DO: this should not be possible!
   status?: 'active' | 'inactive' | 'suspended';
 }
 

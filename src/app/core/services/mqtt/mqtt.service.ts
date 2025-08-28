@@ -49,11 +49,11 @@ export class MqttService {
     console.log('[MqttService]: instance created');
 
     /**
-     * Note: connections are ALWAYS initiated or terminated
-     * by successful or unsuccessful session retrieval or refresh
-     * or system events (e.g.: online/offline, suspend/resume);
-     * this aims to guarantee that the MQTT connection is always
-     * in sync with the combined user session and system status
+     * Note: MQTT connection state changes are always triggered by session 
+     * retrieval attempts - either successful (connects) or unsuccessful 
+     * (disconnects). System events (online/offline, suspend/resume) also 
+     * trigger session retrieval, ensuring the MQTT connection reflects 
+     * both user session validity and system connectivity
      */
 
     this.initializeAuthSubscription();

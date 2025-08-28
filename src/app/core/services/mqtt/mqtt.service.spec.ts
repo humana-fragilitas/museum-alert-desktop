@@ -7,6 +7,7 @@ import { SigV4Service } from '../sig-v4/sig-v4.service';
 import { MqttMessageType, MqttCommandType, AlarmPayload, DeviceConfiguration, BaseMqttMessage } from '../../models';
 import { AuthSession } from 'aws-amplify/auth';
 import { NgZone } from '@angular/core';
+import { WINDOW } from '../../tokens/window';
 import mqtt from 'mqtt';
 import { APP_CONFIG } from '../../../../environments/environment';
 
@@ -73,6 +74,16 @@ jest.mock('@aws-amplify/core', () => ({
   }
 }));
 
+// Mock window object for electron
+const mockWindow = {
+  electron: {
+    ipcRenderer: {
+      on: jest.fn()
+    }
+  },
+  addEventListener: jest.fn()
+};
+
 describe('MqttService', () => {
   let service: MqttService;
   let authService: any;
@@ -90,7 +101,8 @@ describe('MqttService', () => {
     authService = {
       sessionData: sessionDataSignal,
       hasPolicy: jest.fn(() => true),
-      company: jest.fn(() => 'company')
+      company: jest.fn(() => 'company'),
+      isSessionTokenExpired: jest.fn(() => false)
     };
     deviceService = { 
       onAlarm: jest.fn(), 
@@ -118,7 +130,8 @@ describe('MqttService', () => {
         { provide: AuthService, useValue: authService },
         { provide: DeviceService, useValue: deviceService },
         { provide: 'NotificationService', useValue: notificationService },
-        { provide: SigV4Service, useValue: sigV4Service }
+        { provide: SigV4Service, useValue: sigV4Service },
+        { provide: 'WINDOW', useValue: mockWindow }
       ]
     });
     
@@ -127,6 +140,7 @@ describe('MqttService', () => {
     // Mock the effect-related methods to prevent automatic session handling
     jest.spyOn(service as any, 'initializeAuthSubscription').mockImplementation(() => {});
     jest.spyOn(service as any, 'handleSessionChange').mockImplementation(() => Promise.resolve());
+    jest.spyOn(service as any, 'initializeSystemEventHandlers').mockImplementation(() => {});
     
     jest.clearAllMocks();
     mockMqttConnect.mockClear();
@@ -330,5 +344,538 @@ describe('MqttService', () => {
     const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
     service.cleanup();
     expect(disconnectSpy).toHaveBeenCalled();
+  });
+
+  describe('Connection Management', () => {
+    it('should return existing connection promise if already connecting', async () => {
+      // Set a connection promise
+      (service as any).connectionPromise = Promise.resolve();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await service.connect(mockSession);
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: connection already in progress, waiting...');
+      logSpy.mockRestore();
+    });
+
+    it('should skip reconnection if already connected to same session', async () => {
+      // Set up as already connected to the same session
+      (service as any).client = mockMqttClient;
+      (service as any).lastIdentityId = mockSession.identityId;
+      mockMqttClient.connected = true;
+      
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await service.connect(mockSession);
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: already connected to the same session');
+      logSpy.mockRestore();
+    });
+
+    it('should return existing disconnection promise if already disconnecting', async () => {
+      // Set a disconnection promise
+      (service as any).disconnectionPromise = Promise.resolve();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await service.disconnect();
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: disconnection already in progress, waiting...');
+      logSpy.mockRestore();
+    });
+
+    it('should handle disconnect when no client exists and not connecting', async () => {
+      (service as any).client = undefined;
+      (service as any).isConnecting = false;
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await service.disconnect();
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: no client to disconnect');
+      logSpy.mockRestore();
+    });
+
+    it('should clear pending requests on disconnect', async () => {
+      // Set up pending requests
+      const mockRequest = {
+        resolve: jest.fn(),
+        reject: jest.fn(),
+        timeout: setTimeout(() => {}, 1000)
+      };
+      (service as any).pendingRequests = { 'test-cid': mockRequest };
+      
+      (service as any).client = mockMqttClient;
+      mockMqttClient.connected = true;
+      mockMqttClient.end.mockImplementation((force: any, opts: any, cb: any) => cb());
+      
+      await service.disconnect();
+      
+      expect(mockRequest.reject).toHaveBeenCalledWith(new Error('[MqttService]: connection closed'));
+      expect((service as any).pendingRequests).toEqual({});
+    });
+  });
+
+  describe('Reconnection Management', () => {
+    beforeEach(() => {
+      // Clear any previous mock implementations to avoid interference
+      mockMqttConnect.mockClear();
+      jest.clearAllMocks();
+    });
+
+    it('should reset reconnection attempts on new connection', async () => {
+      // Set reconnection attempts to non-zero
+      (service as any).reconnectionAttempts = 3;
+      
+      authService.hasPolicy.mockReturnValue(true);
+      (service as any).client = undefined;
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          setTimeout(() => {
+            mockMqttClient.connected = true;
+            callback();
+          }, 0);
+        }
+      });
+      
+      await service.connect(mockSession);
+      
+      expect((service as any).reconnectionAttempts).toBe(0);
+    });
+
+    it('should handle maximum reconnection attempts in transformWsUrl', async () => {
+      (service as any).client = undefined;
+      
+      // Mock the session data signal to return session data
+      authService.sessionData.mockReturnValue(mockSession);
+      authService.isSessionTokenExpired.mockReturnValue(false);
+      
+      // Mock transformWsUrl to be called - it should throw immediately due to max attempts
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        if (options?.transformWsUrl) {
+          const transformWsUrl = options.transformWsUrl;
+          // Set reconnection attempts to 4 before calling transformWsUrl
+          (service as any).reconnectionAttempts = 4;
+          expect(() => transformWsUrl('', {}, null as any)).toThrow('[MqttService]: maximum reconnection attempts reached; disconnecting...');
+        }
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      await service.connect(mockSession);
+      expect(mockMqttConnect).toHaveBeenCalled();
+    });
+
+    it('should handle session token expiration in transformWsUrl', async () => {
+      (service as any).client = undefined;
+      authService.isSessionTokenExpired.mockReturnValue(true);
+      
+      // Mock transformWsUrl to be called
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        if (options?.transformWsUrl) {
+          const transformWsUrl = options.transformWsUrl;
+          expect(() => transformWsUrl('', {}, null as any)).toThrow('[MqttService]: Session token expired, preventing reconnection');
+        }
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      await service.connect(mockSession);
+      expect(mockMqttConnect).toHaveBeenCalled();
+    });
+
+    it('should handle no session available in transformWsUrl', async () => {
+      (service as any).client = undefined;
+      authService.sessionData.mockReturnValue(null);
+      
+      // Mock transformWsUrl to be called
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        if (options?.transformWsUrl) {
+          const transformWsUrl = options.transformWsUrl;
+          expect(() => transformWsUrl('', {}, null as any)).toThrow('[MqttService]: No session available for reconnection');
+        }
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      await service.connect(mockSession);
+      expect(mockMqttConnect).toHaveBeenCalled();
+    });
+
+    it('should return new signed URL when session is available in transformWsUrl', async () => {
+      (service as any).client = undefined;
+      authService.sessionData.mockReturnValue(mockSession);
+      authService.isSessionTokenExpired.mockReturnValue(false);
+      sigV4Service.getSignedURL.mockReturnValue('wss://new-signed-url');
+      
+      // Mock transformWsUrl to be called
+      let transformUrlResult = '';
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        if (options?.transformWsUrl) {
+          const transformWsUrl = options.transformWsUrl;
+          transformUrlResult = transformWsUrl('', {}, null as any);
+        }
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      await service.connect(mockSession);
+      expect(transformUrlResult).toBe('wss://new-signed-url');
+      expect(sigV4Service.getSignedURL).toHaveBeenCalledWith(mockSession);
+    });
+  });
+
+  describe('System Event Handlers', () => {
+    beforeEach(() => {
+      // Reset mocks and enable system event handlers for these tests
+      jest.clearAllMocks();
+      mockWindow.addEventListener.mockClear();
+      
+      // Create a new service instance without mocking initializeSystemEventHandlers
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          MqttService,
+          { provide: AuthService, useValue: authService },
+          { provide: DeviceService, useValue: deviceService },
+          { provide: 'NotificationService', useValue: notificationService },
+          { provide: SigV4Service, useValue: sigV4Service },
+          { provide: WINDOW, useValue: mockWindow }
+        ]
+      });
+      
+      // Don't mock the system event handlers for these tests
+      service = TestBed.inject(MqttService);
+      jest.spyOn(service as any, 'initializeAuthSubscription').mockImplementation(() => {});
+      jest.spyOn(service as any, 'handleSessionChange').mockImplementation(() => Promise.resolve());
+    });
+
+    it('should set up offline event listener', () => {
+      // The system event handlers are set up in the constructor
+      // We should see the listener was added
+      expect(mockWindow.addEventListener).toHaveBeenCalledWith('offline', expect.any(Function));
+    });
+
+    it('should cleanup on offline event', () => {
+      const cleanupSpy = jest.spyOn(service, 'cleanup').mockImplementation();
+      
+      // Find the offline event handler and call it
+      const offlineHandler = mockWindow.addEventListener.mock.calls
+        .find(call => call[0] === 'offline')?.[1];
+      
+      expect(offlineHandler).toBeDefined();
+      if (offlineHandler) {
+        offlineHandler();
+      }
+      
+      expect(cleanupSpy).toHaveBeenCalled();
+    });
+
+    it('should set up system suspended event listener when electron is available', () => {
+      // The system event handlers for electron should be set up
+      expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith('system-suspended', expect.any(Function));
+    });
+
+    it('should cleanup on system suspended event', () => {
+      const cleanupSpy = jest.spyOn(service, 'cleanup').mockImplementation();
+      
+      // Find the system suspended event handler and call it
+      const suspendedHandler = mockWindow.electron.ipcRenderer.on.mock.calls
+        .find(call => call[0] === 'system-suspended')?.[1];
+      
+      expect(suspendedHandler).toBeDefined();
+      if (suspendedHandler) {
+        suspendedHandler();
+      }
+      
+      expect(cleanupSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Session Change Handling', () => {
+    beforeEach(() => {
+      // Remove the mock for handleSessionChange to test it
+      jest.restoreAllMocks();
+      jest.spyOn(service as any, 'initializeAuthSubscription').mockImplementation(() => {});
+      jest.spyOn(service as any, 'initializeSystemEventHandlers').mockImplementation(() => {});
+    });
+
+    it('should disconnect when no session data', async () => {
+      const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await (service as any).handleSessionChange(null);
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: no session data, disconnecting MQTT');
+      expect(disconnectSpy).toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
+
+    it('should not reconnect for same user session refresh', async () => {
+      (service as any).client = mockMqttClient;
+      (service as any).lastIdentityId = mockSession.identityId;
+      mockMqttClient.connected = true;
+      
+      const connectSpy = jest.spyOn(service, 'connect').mockResolvedValue();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await (service as any).handleSessionChange(mockSession);
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: session refreshed for same user, updating credentials without reconnecting');
+      expect(connectSpy).not.toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
+
+    it('should reconnect for different user', async () => {
+      (service as any).client = mockMqttClient;
+      (service as any).lastIdentityId = 'different-id';
+      mockMqttClient.connected = true;
+      
+      const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
+      const connectSpy = jest.spyOn(service, 'connect').mockResolvedValue();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await (service as any).handleSessionChange(mockSession);
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: different user detected, reconnecting MQTT');
+      expect(disconnectSpy).toHaveBeenCalled();
+      expect(connectSpy).toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
+
+    it('should connect when not connected', async () => {
+      (service as any).client = undefined;
+      mockMqttClient.connected = false;
+      
+      const connectSpy = jest.spyOn(service, 'connect').mockResolvedValue();
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      await (service as any).handleSessionChange(mockSession);
+      
+      expect(logSpy).toHaveBeenCalledWith('[MqttService]: establishing MQTT connection');
+      expect(connectSpy).toHaveBeenCalledWith(mockSession);
+      logSpy.mockRestore();
+    });
+
+    it('should handle errors in session change', async () => {
+      const connectSpy = jest.spyOn(service, 'connect').mockRejectedValue(new Error('Connection failed'));
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      await (service as any).handleSessionChange(mockSession);
+      
+      expect(errorSpy).toHaveBeenCalledWith('[MqttService]: error handling session change:', expect.any(Error));
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe('Client Event Handlers', () => {
+    beforeEach(() => {
+      // Clear any previous mock implementations to avoid interference
+      mockMqttConnect.mockClear();
+      jest.clearAllMocks();
+    });
+
+    it('should set up all client event handlers', async () => {
+      (service as any).client = undefined;
+      
+      // Mock the session data signal to return session data
+      authService.sessionData.mockReturnValue(mockSession);
+      authService.isSessionTokenExpired.mockReturnValue(false);
+      sigV4Service.getSignedURL.mockReturnValue('wss://test-url');
+      
+      // Set up a clean mock implementation
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      await service.connect(mockSession);
+      
+      expect(mockMqttClient.on).toHaveBeenCalledWith('connect', expect.any(Function));
+      expect(mockMqttClient.on).toHaveBeenCalledWith('message', expect.any(Function));
+      expect(mockMqttClient.on).toHaveBeenCalledWith('error', expect.any(Function));
+      expect(mockMqttClient.on).toHaveBeenCalledWith('disconnect', expect.any(Function));
+      expect(mockMqttClient.on).toHaveBeenCalledWith('close', expect.any(Function));
+      expect(mockMqttClient.on).toHaveBeenCalledWith('reconnect', expect.any(Function));
+      expect(mockMqttClient.on).toHaveBeenCalledWith('offline', expect.any(Function));
+    });
+
+    it('should subscribe to company topic on connect event', async () => {
+      (service as any).client = undefined;
+      
+      // Mock the session data signal to return session data
+      authService.sessionData.mockReturnValue(mockSession);
+      authService.isSessionTokenExpired.mockReturnValue(false);
+      sigV4Service.getSignedURL.mockReturnValue('wss://test-url');
+      
+      // Set up a clean mock implementation
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      let connectHandler: Function;
+      mockMqttClient.on.mockImplementation((event, handler) => {
+        if (event === 'connect') {
+          connectHandler = handler;
+        }
+      });
+      
+      await service.connect(mockSession);
+      
+      // Simulate connect event
+      connectHandler!();
+      
+      expect(mockMqttClient.subscribe).toHaveBeenCalledWith('companies/company/events', expect.any(Function));
+    });
+
+    it('should handle subscription errors', async () => {
+      (service as any).client = undefined;
+      
+      // Mock the session data signal to return session data
+      authService.sessionData.mockReturnValue(mockSession);
+      authService.isSessionTokenExpired.mockReturnValue(false);
+      sigV4Service.getSignedURL.mockReturnValue('wss://test-url');
+      
+      // Set up a clean mock implementation
+      (mockMqttConnect as any).mockImplementation((url: string, options: any) => {
+        return mockMqttClient;
+      });
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        if (event === 'connect') {
+          mockMqttClient.connected = true;
+          callback();
+        }
+      });
+      
+      let connectHandler: Function;
+      mockMqttClient.on.mockImplementation((event, handler) => {
+        if (event === 'connect') {
+          connectHandler = handler;
+        }
+      });
+      
+      mockMqttClient.subscribe.mockImplementation((topic, callback) => {
+        callback(new Error('Subscription failed'));
+      });
+      
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      await service.connect(mockSession);
+      
+      // Simulate connect event
+      connectHandler!();
+      
+      expect(errorSpy).toHaveBeenCalledWith('[MqttService]: failed to subscribe to topic:', 'companies/company/events', expect.any(Error));
+      errorSpy.mockRestore();
+    });
+
+    it('should remove all event listeners on disconnect', async () => {
+      (service as any).client = mockMqttClient;
+      mockMqttClient.connected = true;
+      mockMqttClient.end.mockImplementation((force: any, opts: any, cb: any) => cb());
+      
+      await service.disconnect();
+      
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('connect');
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('message');
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('error');
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('disconnect');
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('close');
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('reconnect');
+      expect(mockMqttClient.removeAllListeners).toHaveBeenCalledWith('offline');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle connection timeout in _connect', async () => {
+      (service as any).client = undefined;
+      
+      mockMqttClient.once.mockImplementation((event, callback) => {
+        // Don't call any callback to simulate timeout
+      });
+      
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      // The service should timeout and throw an error
+      // Since we're not calling any callbacks, the connection promise will hang
+      // We need to either simulate a timeout or just verify the error path
+      await expect(async () => {
+        const connectPromise = service.connect(mockSession);
+        
+        // Simulate timeout by rejecting after a short delay
+        setTimeout(() => {
+          const timeoutError = new Error('Connection timeout');
+          // Find the error callback from the once mock calls and call it
+          const onceCalls = mockMqttClient.once.mock.calls;
+          const errorCall = onceCalls.find(call => call[0] === 'error');
+          if (errorCall) {
+            errorCall[1](timeoutError);
+          }
+        }, 100);
+        
+        await connectPromise;
+      }).rejects.toThrow();
+      
+      errorSpy.mockRestore();
+    }, 1000);
+
+    it('should handle missing company or device serial number in sendCommand', async () => {
+      (service as any).client = mockMqttClient;
+      mockMqttClient.connected = true;
+      
+      // Mock missing company
+      authService.company.mockReturnValue(null);
+      
+      await expect(service.sendCommand(MqttCommandType.SET_CONFIGURATION))
+        .rejects.toThrow('[MqttService]: missing company or device serial number');
+    });
+
+    it('should handle missing device serial number in sendCommand', async () => {
+      (service as any).client = mockMqttClient;
+      mockMqttClient.connected = true;
+      
+      // Mock missing device serial number
+      deviceService.serialNumber.mockReturnValue(null);
+      
+      await expect(service.sendCommand(MqttCommandType.SET_CONFIGURATION))
+        .rejects.toThrow('[MqttService]: missing company or device serial number');
+    });
   });
 });

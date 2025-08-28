@@ -3,7 +3,6 @@ export interface SuccessApiResponse<T> {
   data: T;
 }
 
-// TO DO: update the lambda layer to reflect this change!
 export interface ErrorApiResponse {
   timestamp: string; // ISO 8601 timestamp
   message: string;

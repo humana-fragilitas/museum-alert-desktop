@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { fetchAuthSession, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { Hub } from '@aws-amplify/core';
 import { WINDOW } from '@tokens/window';
+import { MainProcessEvent } from '@shared-with-electron';
 
 jest.mock('aws-amplify/auth', () => ({
   fetchAuthSession: jest.fn(),
@@ -16,6 +17,9 @@ jest.mock('@aws-amplify/core', () => ({
 jest.mock('@shared/helpers/console.helper', () => ({
   titleStyle: ''
 }));
+jest.mock('@shared/helpers/milliseconds-to-readable-time.helper', () => ({
+  msToHMS: jest.fn().mockReturnValue({ h: 1, m: 30, s: 45 })
+}));
 
 // Mock window object for electron
 const mockWindow = {
@@ -23,7 +27,8 @@ const mockWindow = {
     ipcRenderer: {
       on: jest.fn()
     }
-  }
+  },
+  addEventListener: jest.fn()
 };
 
 describe('AuthService', () => {
@@ -38,7 +43,7 @@ describe('AuthService', () => {
       accessKeyId: 'key',
       secretAccessKey: 'secret',
       sessionToken: 'token',
-      expiration: new Date(Date.now() + 3600000)
+      expiration: new Date(Date.now() + 3600000) // 1 hour from now
     },
     identityId: 'id',
     tokens: {
@@ -127,11 +132,6 @@ describe('AuthService', () => {
     expect(service.userAttributes()).toBeNull();
   });
 
-  it('should cancel session', () => {
-    service.cancelSession();
-    expect(service.sessionData()).toBeNull();
-  });
-
   it('should compute userLoginId, company, hasPolicy, idToken, accessToken', async () => {
     await service.fetchSession();
     await service.fetchUser();
@@ -140,36 +140,6 @@ describe('AuthService', () => {
     expect(service.hasPolicy()).toBe(true);
     expect(service.idToken()).toBe('id');
     expect(service.accessToken()).toBe('access');
-  });
-
-  it('should check if session token is expired correctly', async () => {
-    // Test with no session (should be considered expired)
-    service.cancelSession();
-    expect(service.isSessionTokenExpired()).toBe(true);
-    
-    // Test with a valid session that's not expired
-    await service.fetchSession();
-    expect(service.isSessionTokenExpired()).toBe(false);
-    
-    // Test with expired session
-    const expiredSession = {
-      ...mockSession,
-      credentials: { ...mockSession.credentials, expiration: new Date(Date.now() - 1000) }
-    };
-    mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
-    await service.fetchSession();
-    expect(service.isSessionTokenExpired()).toBe(true);
-  });
-
-  it('should calculate access token expiration time correctly', async () => {
-    await service.fetchSession();
-    const timeToExpiration = service.accessTokenExpirationTimeMS();
-    expect(timeToExpiration).toBeGreaterThan(0);
-    expect(timeToExpiration).toBeLessThanOrEqual(3600000);
-    
-    // Test with no session
-    service.cancelSession();
-    expect(service.accessTokenExpirationTimeMS()).toBe(0);
   });
 
   it('should skip fetchSession if already fetching', async () => {
@@ -199,6 +169,150 @@ describe('AuthService', () => {
     fetchSessionSpy.mockClear();
     await callback({ payload: { event: 'tokenRefresh' } });
     expect(fetchSessionSpy).not.toHaveBeenCalled();
+  });
+
+  describe('Session expiration', () => {
+    it('should correctly calculate access token expiration time', async () => {
+      await service.fetchSession();
+      const expirationTime = service.accessTokenExpirationTimeMS();
+      expect(expirationTime).toBeGreaterThan(0);
+      expect(expirationTime).toBeLessThanOrEqual(3600000); // 1 hour
+    });
+
+    it('should return 0 for expiration time when no session', async () => {
+      // Set up service with no session
+      mockFetchAuthSession.mockResolvedValueOnce({});
+      await service.fetchSession();
+      const expirationTime = service.accessTokenExpirationTimeMS();
+      expect(expirationTime).toBe(0);
+    });
+
+    it('should return false for isSessionTokenExpired when session is valid', async () => {
+      await service.fetchSession();
+      expect(service.isSessionTokenExpired()).toBe(false);
+    });
+
+    it('should return true for isSessionTokenExpired when session is expired', async () => {
+      // Mock expired session
+      const expiredSession = {
+        ...mockSession,
+        credentials: {
+          ...mockSession.credentials,
+          expiration: new Date(Date.now() - 1000) // 1 second ago
+        }
+      };
+      mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
+      await service.fetchSession();
+      expect(service.isSessionTokenExpired()).toBe(true);
+    });
+  });
+
+  describe('System event handling', () => {
+    let mockAddEventListener: jest.Mock;
+    let mockIpcOn: jest.Mock;
+
+    beforeEach(() => {
+      mockAddEventListener = mockWindow.addEventListener as jest.Mock;
+      mockIpcOn = mockWindow.electron.ipcRenderer.on as jest.Mock;
+    });
+
+    it('should set up online event listener', () => {
+      expect(mockAddEventListener).toHaveBeenCalledWith('online', expect.any(Function));
+    });
+
+    it('should set up electron IPC event listeners', () => {
+      expect(mockIpcOn).toHaveBeenCalledWith(MainProcessEvent.WINDOW_FOCUSED, expect.any(Function));
+      expect(mockIpcOn).toHaveBeenCalledWith(MainProcessEvent.SESSION_CHECK, expect.any(Function));
+      expect(mockIpcOn).toHaveBeenCalledWith(MainProcessEvent.SYSTEM_RESUMED, expect.any(Function));
+    });
+
+    it('should refresh session on online event', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      const onlineCallback = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'online'
+      )[1];
+      
+      onlineCallback();
+      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    });
+
+    it('should refresh session on system resume', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      const systemResumedCallback = mockIpcOn.mock.calls.find(
+        call => call[0] === MainProcessEvent.SYSTEM_RESUMED
+      )[1];
+      
+      systemResumedCallback();
+      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    });
+
+    it('should check session expiration on window focus', async () => {
+      // Set up expired session
+      const expiredSession = {
+        ...mockSession,
+        credentials: {
+          ...mockSession.credentials,
+          expiration: new Date(Date.now() - 1000)
+        }
+      };
+      mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
+      await service.fetchSession();
+      
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      const windowFocusCallback = mockIpcOn.mock.calls.find(
+        call => call[0] === MainProcessEvent.WINDOW_FOCUSED
+      )[1];
+      
+      windowFocusCallback();
+      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    });
+
+    it('should not refresh session on window focus if session is still valid', async () => {
+      await service.fetchSession(); // Valid session
+      
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      fetchSessionSpy.mockClear();
+      
+      const windowFocusCallback = mockIpcOn.mock.calls.find(
+        call => call[0] === MainProcessEvent.WINDOW_FOCUSED
+      )[1];
+      
+      windowFocusCallback();
+      expect(fetchSessionSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('fetchSession with options', () => {
+    it('should pass forceRefresh option to fetchAuthSession', async () => {
+      await service.fetchSession({ forceRefresh: true });
+      expect(mockFetchAuthSession).toHaveBeenCalledWith({ forceRefresh: true });
+    });
+
+    it('should handle invalid session data correctly', async () => {
+      const invalidSession = {
+        credentials: null,
+        identityId: null,
+        tokens: null,
+        userSub: null
+      };
+      mockFetchAuthSession.mockResolvedValueOnce(invalidSession);
+      
+      await service.fetchSession();
+      expect(service.sessionData()).toBeNull();
+    });
+
+    it('should handle partial session data correctly', async () => {
+      const partialSession = {
+        credentials: mockSession.credentials,
+        identityId: mockSession.identityId,
+        tokens: null, // Missing tokens
+        userSub: mockSession.userSub
+      };
+      mockFetchAuthSession.mockResolvedValueOnce(partialSession);
+      
+      await service.fetchSession();
+      expect(service.sessionData()).toBeNull();
+    });
   });
 
 });

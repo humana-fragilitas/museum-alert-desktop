@@ -187,11 +187,6 @@ export class AuthService {
 
   }
 
-  // TO DO: remove this after testing
-  cancelSession() {
-    this.sessionDataSignal.set(null);
-  }
-
   isSessionTokenExpired(): boolean {
 
     const timeToExpiration = this.accessTokenExpirationTimeMS();
