@@ -81,20 +81,17 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+
     console.log('WizardComponent INIT');
-    
-    // TO DO: remove after testing
-    // this.isReady = false;
-    // this.isVisible = true;
-    // this.hasFatalError = true;
+  
   }
 
   ngAfterViewInit(): void {
+    
     if (this.latestAppStatus) {
       this.setStepperState(this.latestAppStatus);
     }
-    // TO DO: remove after testing
-    // this.setStepperState(DeviceAppState.FATAL_ERROR);
+  
   }
 
   ngOnDestroy(): void {

@@ -38,9 +38,13 @@ mat-list-item {
     text-wrap: wrap;
 
     mat-icon {
-        vertical-align: bottom;
-        margin-right: 10px;
+        vertical-align: text-top;
+        margin-right: 5px;
     }
+}
+
+.warning-text {
+    vertical-align: text-bottom;
 }
 
 table {

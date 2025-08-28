@@ -53,18 +53,8 @@ export class CompanyFormComponent implements OnInit {
 
   private readonly company = this.companyService.company;
 
+  readonly editMode = signal(false);
   readonly isBusy = signal(false);
-  readonly isEditable = signal(false);
-  readonly isCompanyNameSet = signal(true);
-  readonly showSubmitButton = computed(() => 
-    !this.isCompanyNameSet() || this.isEditable()
-  );
-  readonly showEditButton = computed(() => 
-    this.isCompanyNameSet() && !this.isEditable()
-  );
-  readonly showCancelButton = computed(() => 
-    this.isEditable()
-  );
 
   @ViewChild('companyName', { static: false }) companyNameInput!: ElementRef;
 
@@ -90,7 +80,6 @@ export class CompanyFormComponent implements OnInit {
       const company = this.company();
       if (company) {
         const hasCompanyName = !!company?.companyName;
-        this.isCompanyNameSet.set(hasCompanyName);
         this.companyNameForm.get('companyName')?.setValue(company?.companyName || '');
 
         if (hasCompanyName) {
@@ -117,7 +106,6 @@ export class CompanyFormComponent implements OnInit {
         .pipe(
           finalize(() => {
             this.isBusy.set(false);
-            this.isEditable.set(false);
           }),
         )
         .subscribe({
@@ -149,26 +137,32 @@ export class CompanyFormComponent implements OnInit {
   }
 
   edit() {
-    this.isEditable.set(true);
+
+    this.editMode.set(true);
     this.companyNameForm.get('companyName')?.enable();
     setTimeout(() => {
       this.companyNameInput.nativeElement.focus();
       this.companyNameInput.nativeElement.select();
     }, 0);
+
   }
 
   cancel() {
-    this.isEditable.set(false);
+
+    this.editMode.set(false);
     this.companyNameForm.get('companyName')?.disable();
     this.companyNameForm.get('companyName')?.setValue(this.companyService.organization()?.companyName || '');
     setTimeout(() => {
       this.companyNameInput.nativeElement.blur();
     }, 0);
+
   }
 
   hasError(error: string): boolean {
+
     return !!this.companyNameForm.get('companyName')?.hasError(error) &&
            !!this.companyNameForm.get('companyName')?.touched;
+           
   }
 
   getErrorMessage(): Observable<string> {

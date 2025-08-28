@@ -94,13 +94,13 @@ export class WiFiCredentialsComponent implements OnInit {
       }
     });
 
-    // Handle device errors
+    // Handle device errors - only react to new errors, not persistent error state
     effect(() => {
       const message = this.errorSignal();
-      if (message) {
-        console.log('Error received:', message);
+      if (message && this.isSendingCredentials()) {
+        console.log('Error received while sending credentials:', message);
         console.log('Resetting isSendingCredentials from', this.isSendingCredentials(), 'to false');
-        // Reset loading state when any device error is received
+        // Reset loading state when any device error is received during credential sending
         this.isSendingCredentials.set(false);
         console.log('isSendingCredentials after reset:', this.isSendingCredentials());
       }
@@ -114,10 +114,7 @@ export class WiFiCredentialsComponent implements OnInit {
 
   async onSubmit() {
 
-    console.log('Before submit - isSendingCredentials:', this.isSendingCredentials());
     this.isSendingCredentials.set(true);
-    console.log('After setting - isSendingCredentials:', this.isSendingCredentials());
-
     console.log('[WiFiCredentialsComponent]: form submitted:', this.credentialsForm.value);
 
     try {

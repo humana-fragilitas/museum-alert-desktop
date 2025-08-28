@@ -49,7 +49,21 @@ export class AuthService {
 
     console.log('[AuthService]: instance created');
 
+    this.win.addEventListener('online', () => {
+      console.log('[AuthService]: system is online; refreshing session...');
+      this.fetchSession({ forceRefresh: true });
+    });
+
     if (win.electron) {
+
+      win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
+        this.ngZone.run(() => {
+          if (this.isSessionTokenExpired()) {
+            console.log('[AuthService]: user session is expired; refreshing session...');
+            this.fetchSession({ forceRefresh: true });
+          }
+        });
+      });
 
       win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
         this.ngZone.run(() => {
@@ -57,6 +71,13 @@ export class AuthService {
             console.log('[AuthService]: user session is expired; refreshing session...');
             this.fetchSession({ forceRefresh: true });
           }
+        });
+      });
+
+      win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
+        this.ngZone.run(() => {
+          console.log('[AuthService]: system resumed; refreshing session...');
+          this.fetchSession({ forceRefresh: true });
         });
       });
 
@@ -166,19 +187,11 @@ export class AuthService {
 
   }
 
-  // TO DO: remove this after testing
-  cancelSession() {
-    this.sessionDataSignal.set(null);
-  }
-
   isSessionTokenExpired(): boolean {
 
-    console.log('[AuthService]: checking if session token is expired...');
     const timeToExpiration = this.accessTokenExpirationTimeMS();
     const refreshTime = msToHMS(timeToExpiration);
-    console.log(`[AuthService]: user session will be refreshed in ${refreshTime.h} hours, ${refreshTime.m} minutes, ${refreshTime.s} seconds`);
     const isExpired = timeToExpiration === 0;
-    console.log(`[AuthService]: session token is ${isExpired ? '' : 'not '}expired`);
     return isExpired;
 
   }

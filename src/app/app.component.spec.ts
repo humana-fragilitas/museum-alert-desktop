@@ -33,7 +33,7 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     mockTranslate = { setDefaultLang: jest.fn() };
-    mockAuth = { user: signal(null), cancelSession: jest.fn() };
+    mockAuth = { user: signal(null) };
     await TestBed.configureTestingModule({
       imports: [AppComponent, CommonModule, RouterOutlet, NavBarComponent],
       providers: [
@@ -57,11 +57,6 @@ describe('AppComponent', () => {
 
   it('should expose user signal from AuthService', () => {
     expect(component.user).toBe(mockAuth.user);
-  });
-
-  it('should call cancelSession on AuthService', () => {
-    component.cancelSession();
-    expect(mockAuth.cancelSession).toHaveBeenCalled();
   });
 
   it('should log APP_CONFIG and environment info', () => {

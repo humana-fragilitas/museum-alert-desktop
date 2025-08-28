@@ -1,5 +1,3 @@
-// TO DO: check if this model is realistic
-
 export interface ClaimKeyPair {
     PrivateKey: string;
     PublicKey: string;

@@ -91,5 +91,6 @@ export enum DeviceEvent {
 export enum MainProcessEvent {
     WINDOW_FOCUSED = 'window-focused',
     SYSTEM_RESUMED = 'system-resumed',
-    SESSION_CHECK = 'session-check'
+    SESSION_CHECK = 'session-check',
+    SYSTEM_SUSPENDED = "system-suspended"
 }

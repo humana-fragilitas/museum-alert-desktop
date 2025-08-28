@@ -46,10 +46,6 @@ export class AppComponent {
   
   }
 
-  cancelSession() {
-    this.authService.cancelSession();
-  }
-
 }
 
 /* EXAMPLE OF STANDARD IMPORTS

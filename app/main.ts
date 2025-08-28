@@ -94,19 +94,24 @@ try {
 
     const mainWindow = createWindow();
 
-    // mainWindow.on('focus', () => {
-    //   console.log('[Main process]: window focused');
-    //   //mainWindow.webContents.send(MainProcessEvent.WINDOW_FOCUSED);
-    // });
+    mainWindow.on('focus', () => {
+      console.log('[Main process]: window focused');
+      mainWindow.webContents.send(MainProcessEvent.WINDOW_FOCUSED);
+    });
 
     setInterval(() => {
       mainWindow.webContents.send(MainProcessEvent.SESSION_CHECK);
     }, 1000);
 
-    // powerMonitor.on('resume', () => {
-    //   console.log('[Main process]: system is resuming');
-    //   //mainWindow.webContents.send(MainProcessEvent.SYSTEM_RESUMED);
-    // });
+    powerMonitor.on('suspend', () => {
+      console.log('[Main process]: system is suspending');
+      mainWindow.webContents.send(MainProcessEvent.SYSTEM_SUSPENDED);
+    });
+
+    powerMonitor.on('resume', () => {
+      console.log('[Main process]: system is resuming');
+      mainWindow.webContents.send(MainProcessEvent.SYSTEM_RESUMED);
+    });
 
     new SerialCom(mainWindow).startDeviceDetection();
 
