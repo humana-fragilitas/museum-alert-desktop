@@ -105,7 +105,7 @@ Refer to the [museum-alert-api documentation](https://github.com/humana-fragilit
 
 This project provides comprehensive npm scripts for development, building, testing, and deployment. Commands are organized by functionality.
 
-**Important Note**: this application is designed specifically as an Electron desktop application. While some commands include web/browser functionality, they are primarily used internally for development features (like hot reload) and are not recommended for production use as a web application.
+**Important Note**: this application is designed specifically as an Electron desktop application. While some commands include Web/browser functionality, they are primarily used internally for development features (like hot reload) and are not recommended for production use as a web application.
 
 ### Development Commands
 
@@ -158,7 +158,7 @@ This project provides comprehensive npm scripts for development, building, testi
 - **Before Commit**: `npm test`;
 - **Full Testing**: `npm run test:ci && npm run e2e`.
 
-**Note**: Web-only commands like `npm run ng:serve` are not recommended for this project as the application is designed to leverage Electron's native capabilities (serial port communication, file system access, etc.) that are not available in standard web browsers.
+**Note**: web-only commands like `npm run ng:serve` are not recommended for this project as the application is designed to leverage Electron's native capabilities (serial port communication, file system access, etc.) that are not available in standard web browsers.
 
 ## Disclaimer
 
