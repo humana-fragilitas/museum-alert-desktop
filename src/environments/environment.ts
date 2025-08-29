@@ -2,7 +2,7 @@ export const APP_CONFIG = {
   production: false,
   environment: 'DEV',
   aws: {
-    apiGateway: 'https://7pc0fjhe41.execute-api.eu-west-2.amazonaws.com/dev',
+    apiGateway: 'https://xdoyi75fek.execute-api.eu-west-2.amazonaws.com/dev',
     region: 'eu-west-2',
     algorithm: 'AWS4-HMAC-SHA256',
     IoTCore: {
@@ -12,9 +12,9 @@ export const APP_CONFIG = {
     amplify: {
       Auth: {
         Cognito: {
-          userPoolId: 'eu-west-2_XvWC7eAVT',
-          userPoolClientId: '795qisbbrjmjuf7snin8c5ff5k',
-          identityPoolId: 'eu-west-2:99d28df1-8458-4e36-b23c-27bee9032e95',
+          userPoolId: 'eu-west-2_EXrQRxAwz',
+          userPoolClientId: '7pe02g46np9g35gtlsdnbv1l34',
+          identityPoolId: 'eu-west-2:e804caa4-e9b5-4c04-aef0-7dbf91916dbb',
           mandatorySignIn: true,
           authenticationFlowType: 'USER_SRP_AUTH'
         }
