@@ -160,14 +160,6 @@ This project provides comprehensive npm scripts for development, building, testi
 
 **Note**: Web-only commands like `npm run ng:serve` are not recommended for this project as the application is designed to leverage Electron's native capabilities (serial port communication, file system access, etc.) that are not available in standard web browsers.
 
-## E2E Testing
-
-E2E Test scripts can be found in `e2e` folder.
-
-| Command       | Description               |
-|---------------|---------------------------|
-| `npm run e2e` | Execute end to end tests  |
-
 ## Disclaimer
 
 ### Important Notice
