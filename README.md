@@ -101,14 +101,70 @@ This desktop application depends on the infrastructure and configuration generat
 
 Refer to the [museum-alert-api documentation](https://github.com/humana-fragilitas/museum-alert-api) for detailed setup instructions.
 
-## Included Commands
+## Available Commands
 
-| Command                  | Description                                                                                           |
-|--------------------------|-------------------------------------------------------------------------------------------------------|
-| `npm run ng:serve`       | Execute the app in the web browser (DEV mode)                                                         |
-| `npm run web:build`      | Build the app that can be used directly in the web browser. Your built files are in the /dist folder. |
-| `npm run electron:local` | Builds your application and start electron locally                                                    |
-| `npm run electron:build` | Builds your application and creates an app consumable based on your operating system                  |
+This project provides comprehensive npm scripts for development, building, testing, and deployment. Commands are organized by functionality:
+
+**Important Note**: This application is designed specifically as an Electron desktop application. While some commands include web/browser functionality, they are primarily used internally for development features (like hot reload) and are not recommended for production use as a web application.
+
+### Development Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npm start` | Starts the full development environment with hot reload | **Recommended**: Primary development command - runs both Angular dev server and Electron in parallel |
+| `npm run ng:serve` | Starts only the Angular development server in web mode | **Internal use**: Provides hot reload capability for `npm start` - not recommended for standalone development |
+| `npm run electron:serve` | Starts Electron pointing to the development server | **Internal use**: Used internally by `npm start` - waits for Angular dev server to be ready |
+
+### Build Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npm run build` | Basic build with default environment | Standard build for local testing |
+| `npm run build:dev` | Build with development environment configuration | **Recommended**: Development builds with dev-specific settings |
+| `npm run build:prod` | Build with production environment configuration | **Recommended**: Production builds for distribution |
+| `npm run web:build` | Build for web deployment (no Electron) | **Not recommended**: Creates web version but application requires Electron features |
+
+### Electron Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npm run electron:local` | Builds with dev config and runs Electron locally | **Recommended**: Testing the full Electron app without packaging |
+| `npm run electron:build` | Builds with production config and packages the app | **Recommended**: Creating distributable Electron applications for your OS |
+| `npm run electron` | Runs Electron directly | Low-level command - typically not used directly |
+
+### Testing Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npm test` | Runs unit tests once | Quick test validation |
+| `npm run test:ci` | Runs unit tests with coverage report | CI/CD pipelines and coverage analysis |
+| `npm run test:watch` | Runs unit tests in watch mode | Active development with continuous testing |
+| `npm run e2e` | Runs end-to-end tests | Full application testing before releases |
+| `npm run e2e:show-trace` | Opens Playwright trace viewer | Debugging failed E2E tests |
+
+### Code Quality Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npm run lint` | Runs ESLint to check code quality | Code review and maintaining standards |
+
+### Utility Commands
+
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `npm run ng` | Angular CLI passthrough | Running Angular CLI commands directly |
+| `npm run version` | Generates changelog and prepares version | Release preparation |
+| `npm run electron:serve-tsc` | Compiles TypeScript for Electron main process | Used internally by other commands |
+
+### Common Workflows
+
+- **Daily Development**: `npm start` (starts everything you need for Electron development)
+- **Local Electron Testing**: `npm run electron:local` (test full desktop application)
+- **Production Build**: `npm run electron:build` (create distributable desktop app)
+- **Before Commit**: `npm run lint && npm test`
+- **Full Testing**: `npm run test:ci && npm run e2e`
+
+**Note**: Web-only commands like `npm run ng:serve` are not recommended for this project as the application is designed to leverage Electron's native capabilities (serial port communication, file system access, etc.) that are not available in standard web browsers.
 
 ## E2E Testing
 
