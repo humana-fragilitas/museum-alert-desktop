@@ -8,3 +8,5 @@ coverage
 *.js.map
 !jest.config.js
 .DS_Store
+e2e/tracing
+e2e/screenshots

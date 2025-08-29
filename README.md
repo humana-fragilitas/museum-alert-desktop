@@ -139,7 +139,7 @@ This project provides comprehensive npm scripts for development, building, testi
 | `npm test` | Runs unit tests once | Quick test validation |
 | `npm run test:ci` | Runs unit tests with coverage report | CI/CD pipelines and coverage analysis |
 | `npm run test:watch` | Runs unit tests in watch mode | Active development with continuous testing |
-| `npm run e2e` | Runs end-to-end tests | Full application testing before releases |
+| `npm run e2e` | Runs end-to-end tests | Basic example of application testing before releases |
 | `npm run e2e:show-trace` | Opens Playwright trace viewer | Debugging failed E2E tests |
 
 ### Utility Commands
