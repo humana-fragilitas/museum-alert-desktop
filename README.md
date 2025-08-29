@@ -70,14 +70,6 @@ This project uses different environment files depending on which npm script is e
 - **Production builds**: Use `environment.prod.ts`
 - **Web production**: Uses `environment.web.prod.ts`
 
-The application code is managed by `app/main.ts`. In this sample, the app runs with a simple Angular App (http://localhost:4200), and an Electron window. \
-The Angular component contains an example of Electron and NodeJS native lib import. \
-You can disable "Developer Tools" by commenting `win.webContents.openDevTools();` in `app/main.ts`.
-
-## Browser mode
-
-Maybe you only want to execute the application in the browser with hot reload? Just run `npm run ng:serve:web`.
-
 ## Included Commands
 
 | Command                  | Description                                                                                           |
@@ -102,19 +94,6 @@ E2E Test scripts can be found in `e2e` folder.
 | Command       | Description               |
 |---------------|---------------------------|
 | `npm run e2e` | Execute end to end tests  |
-
-Note: To make it work behind a proxy, you can add this proxy exception in your terminal  
-`export {no_proxy,NO_PROXY}="127.0.0.1,localhost"`
-
-## Debug with VsCode
-
-[VsCode](https://code.visualstudio.com/) debug configuration is available! In order to use it, you need the extension [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome).
-
-Then set some breakpoints in your application's source code.
-
-Finally from VsCode press **Ctrl+Shift+D** and select **Application Debug** and press **F5**.
-
-Please note that Hot reload is only available in Renderer process.
 
 ## Disclaimer
 
@@ -177,8 +156,6 @@ The [museum-alert-desktop](https://github.com/humana-fragilitas/museum-alert-des
 ---
 
 **Last Updated**: July 2025.
-
-**Contact**: For questions about this disclaimer, please open an issue in the project repository.
 
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license]: https://github.com/humana-fragilitas/museum-alert-desktop/blob/main/LICENSE.md
