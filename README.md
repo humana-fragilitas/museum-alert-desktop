@@ -142,12 +142,6 @@ This project provides comprehensive npm scripts for development, building, testi
 | `npm run e2e` | Runs end-to-end tests | Full application testing before releases |
 | `npm run e2e:show-trace` | Opens Playwright trace viewer | Debugging failed E2E tests |
 
-### Code Quality Commands
-
-| Command | Description | When to Use |
-|---------|-------------|-------------|
-| `npm run lint` | Runs ESLint to check code quality | Code review and maintaining standards |
-
 ### Utility Commands
 
 | Command | Description | When to Use |

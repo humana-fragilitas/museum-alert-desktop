@@ -44,7 +44,6 @@
     "e2e": "npm run build:prod && playwright test -c e2e/playwright.config.ts e2e/",
     "e2e:show-trace": "playwright show-trace e2e/tracing/trace.zip",
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
-    "lint": "ng lint"
   },
   "dependencies": {
     "@angular/animations": "19.2.14",
@@ -94,7 +93,6 @@
     "@types/node": "22.15.29",
     "@typescript-eslint/eslint-plugin": "8.33.1",
     "@typescript-eslint/parser": "8.33.1",
-    "conventional-changelog-cli": "4.1.0",
     "electron": "36.4.0",
     "electron-builder": "26.0.12",
     "electron-debug": "4.1.0",
