@@ -130,7 +130,7 @@ This project provides comprehensive npm scripts for development, building, testi
 |---------|-------------|-------------|
 | `npm run electron:local` | Builds with dev config and runs Electron locally | **Recommended**: Testing the full Electron app without packaging |
 | `npm run electron:build` | Builds with production config and packages the app | **Recommended**: Creating distributable Electron applications for your OS |
-| `npm run electron` | Runs Electron directly | Low-level command - typically not used directly |
+| `npm run electron` | Runs Electron directly without building | **Not recommended**: Requires manual build steps first - use `electron:local` or `electron:build` instead |
 
 ### Testing Commands
 
