@@ -106,6 +106,8 @@ export class AuthService {
       } 
     });
 
+    this.fetchSession();
+
   }
  
   async fetchSession(options: FetchAuthSessionOptions = { forceRefresh: false }) { 
@@ -190,7 +192,7 @@ export class AuthService {
   isSessionTokenExpired(): boolean {
 
     const timeToExpiration = this.accessTokenExpirationTimeMS();
-    return timeToExpiration === 0;
+    return timeToExpiration <= 0;
 
   }
 

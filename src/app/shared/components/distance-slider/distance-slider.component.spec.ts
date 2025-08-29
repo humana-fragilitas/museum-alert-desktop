@@ -83,8 +83,8 @@ describe('DistanceSliderComponent', () => {
 
   it('should render slider with correct min, max, and value', () => {
     const slider = fixture.debugElement.query(By.css('mat-slider'));
-    expect(slider.attributes['ng-reflect-min']).toBe('5');
-    expect(slider.attributes['ng-reflect-max']).toBe('500');
+    expect(slider.attributes['ng-reflect-min']).toBe('2');
+    expect(slider.attributes['ng-reflect-max']).toBe('400');
     expect(component.sliderValue()).toBe(10);
   });
 
@@ -105,10 +105,10 @@ describe('DistanceSliderComponent', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     fixture.componentRef.setInput('minValue', -1);
     fixture.detectChanges();
-    expect(component.validatedMinValue()).toBe(5);
+    expect(component.validatedMinValue()).toBe(2);
     fixture.componentRef.setInput('maxValue', 0);
     fixture.detectChanges();
-    expect(component.validatedMaxValue()).toBe(500);
+    expect(component.validatedMaxValue()).toBe(400);
     warnSpy.mockRestore();
   });
 

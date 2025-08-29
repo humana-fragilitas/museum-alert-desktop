@@ -143,6 +143,8 @@ describe('AuthService', () => {
   });
 
   it('should skip fetchSession if already fetching', async () => {
+    // Reset the mock to clear the constructor call
+    mockFetchAuthSession.mockClear();
     (service as any).isFetchingSession = true;
     await service.fetchSession();
     expect(mockFetchAuthSession).not.toHaveBeenCalled();
@@ -179,12 +181,12 @@ describe('AuthService', () => {
       expect(expirationTime).toBeLessThanOrEqual(3600000); // 1 hour
     });
 
-    it('should return 0 for expiration time when no session', async () => {
+    it('should return -1 for expiration time when no session', async () => {
       // Set up service with no session
       mockFetchAuthSession.mockResolvedValueOnce({});
       await service.fetchSession();
       const expirationTime = service.accessTokenExpirationTimeMS();
-      expect(expirationTime).toBe(0);
+      expect(expirationTime).toBe(-1);
     });
 
     it('should return false for isSessionTokenExpired when session is valid', async () => {
@@ -202,6 +204,13 @@ describe('AuthService', () => {
         }
       };
       mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
+      await service.fetchSession();
+      expect(service.isSessionTokenExpired()).toBe(true);
+    });
+
+    it('should return true for isSessionTokenExpired when no session data', async () => {
+      // Set up service with no session
+      mockFetchAuthSession.mockResolvedValueOnce({});
       await service.fetchSession();
       expect(service.isSessionTokenExpired()).toBe(true);
     });
@@ -246,7 +255,7 @@ describe('AuthService', () => {
       expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
     });
 
-    it('should check session expiration on window focus', async () => {
+    it('should check session expiration on window focus if session is expired', async () => {
       // Set up expired session
       const expiredSession = {
         ...mockSession,
@@ -256,6 +265,20 @@ describe('AuthService', () => {
         }
       };
       mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
+      await service.fetchSession();
+      
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      const windowFocusCallback = mockIpcOn.mock.calls.find(
+        call => call[0] === MainProcessEvent.WINDOW_FOCUSED
+      )[1];
+      
+      windowFocusCallback();
+      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    });
+
+    it('should check session expiration on window focus if no session data', async () => {
+      // Set up service with no session
+      mockFetchAuthSession.mockResolvedValueOnce({});
       await service.fetchSession();
       
       const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
@@ -278,6 +301,41 @@ describe('AuthService', () => {
       )[1];
       
       windowFocusCallback();
+      expect(fetchSessionSpy).not.toHaveBeenCalled();
+    });
+
+    it('should check session expiration on session check event if session is expired', async () => {
+      // Set up expired session
+      const expiredSession = {
+        ...mockSession,
+        credentials: {
+          ...mockSession.credentials,
+          expiration: new Date(Date.now() - 1000)
+        }
+      };
+      mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
+      await service.fetchSession();
+      
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      const sessionCheckCallback = mockIpcOn.mock.calls.find(
+        call => call[0] === MainProcessEvent.SESSION_CHECK
+      )[1];
+      
+      sessionCheckCallback();
+      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    });
+
+    it('should not refresh session on session check if session is still valid', async () => {
+      await service.fetchSession(); // Valid session
+      
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
+      fetchSessionSpy.mockClear();
+      
+      const sessionCheckCallback = mockIpcOn.mock.calls.find(
+        call => call[0] === MainProcessEvent.SESSION_CHECK
+      )[1];
+      
+      sessionCheckCallback();
       expect(fetchSessionSpy).not.toHaveBeenCalled();
     });
   });
