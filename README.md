@@ -155,7 +155,7 @@ This project provides comprehensive npm scripts for development, building, testi
 - **Daily Development**: `npm start` (starts everything you need for Electron development);
 - **Local Electron Testing**: `npm run electron:local` (test full desktop application);
 - **Production Build**: `npm run electron:build` (create distributable desktop app);
-- **Before Commit**: `npm run lint && npm test`;
+- **Before Commit**: `npm test`;
 - **Full Testing**: `npm run test:ci && npm run e2e`.
 
 **Note**: Web-only commands like `npm run ng:serve` are not recommended for this project as the application is designed to leverage Electron's native capabilities (serial port communication, file system access, etc.) that are not available in standard web browsers.
@@ -219,8 +219,6 @@ By downloading, cloning, forking, or otherwise using this Project, you acknowled
 The [museum-alert-desktop](https://github.com/humana-fragilitas/museum-alert-desktop) project has been derived from Maxime Gris's [angular-electron](https://github.com/maximegris/angular-electron) starter project (see the license for further information).
 
 ---
-
-**Last Updated**: July 2025.
 
 [license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license]: https://github.com/humana-fragilitas/museum-alert-desktop/blob/main/LICENSE.md
