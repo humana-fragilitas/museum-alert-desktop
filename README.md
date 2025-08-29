@@ -26,6 +26,12 @@ This desktop application requires the following components to be deployed and co
    - AWS IoT Core configuration;
    - required environment configuration files.
 
+   **After deploying the museum-alert-api project:**
+   - **Find the configuration**: Look for the `AngularAppConfiguration` output in your CDK deployment console
+   - **Copy the complete configuration**: The deployment output provides a ready-to-copy `APP_CONFIG` object
+   - **Update environment files**: Paste the configuration into the appropriate environment files in `src/environments/environment.*.ts`
+   - **Configuration format**: The output includes all required AWS endpoints, Cognito pool IDs, IoT Core settings, and region configuration
+
 2. **[Museum Alert Sensor (MAS)](https://github.com/humana-fragilitas/museum-alert-sketch)** - Hardware device with firmware that must be built and flashed to the Arduino Nano ESP32 before using this desktop application. The sensor most notably provides:
    - configurable ultrasonic distance barrier (2cm to 4 meters) with WiFi connectivity and alert notifications via MQTT;
    - configurable BLE Eddystone-URL beacon suitable for proximity notifications.
