@@ -48,6 +48,28 @@ Renderer and main processes files are structured as follows:
 
 Voila! You can use your Angular + Electron app in a local development environment with hot reload!
 
+## Environment Configuration
+
+This project uses different environment files depending on which npm script is executed:
+
+| NPM Script | Angular Config | Environment File Used |
+|------------|----------------|----------------------|
+| `npm start` | `-c web` (via `ng:serve`) | `environment.web.ts` |
+| `npm run build` | default (no `-c` flag) | `environment.ts` |
+| `npm run build:dev` | `-c dev` | `environment.dev.ts` |
+| `npm run build:prod` | `-c production` | `environment.prod.ts` |
+| `npm run web:build` | `-c web-production` | `environment.web.prod.ts` |
+| `npm run electron:local` | `-c dev` (via `build:dev`) | `environment.dev.ts` |
+| `npm run electron:build` | `-c production` (via `build:prod`) | `environment.prod.ts` |
+| `npm run e2e` | `-c production` (via `build:prod`) | `environment.prod.ts` |
+
+**Summary:**
+- **Development (npm start)**: Uses `environment.web.ts`
+- **Default build**: Uses `environment.ts` 
+- **Dev builds**: Use `environment.dev.ts`
+- **Production builds**: Use `environment.prod.ts`
+- **Web production**: Uses `environment.web.prod.ts`
+
 The application code is managed by `app/main.ts`. In this sample, the app runs with a simple Angular App (http://localhost:4200), and an Electron window. \
 The Angular component contains an example of Electron and NodeJS native lib import. \
 You can disable "Developer Tools" by commenting `win.webContents.openDevTools();` in `app/main.ts`.
