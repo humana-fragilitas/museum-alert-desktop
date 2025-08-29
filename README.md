@@ -26,7 +26,7 @@ This desktop application requires the following components to be deployed and co
    - AWS IoT Core configuration;
    - required environment configuration files.
 
-   **After deploying the museum-alert-api project:**
+   **After deploying the Museum Alert API Infrastructure:**
    - **find the configuration**: look for the `AngularAppConfiguration` output in your CDK deployment console;
    - **copy the complete configuration**: The deployment output provides a ready-to-copy `APP_CONFIG` object;
    - **update environment files**: Paste the configuration into the appropriate environment files in `src/environments/environment.*.ts`.
