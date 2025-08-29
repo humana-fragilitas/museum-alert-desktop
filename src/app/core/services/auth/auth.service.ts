@@ -190,15 +190,18 @@ export class AuthService {
   isSessionTokenExpired(): boolean {
 
     const timeToExpiration = this.accessTokenExpirationTimeMS();
-    const refreshTime = msToHMS(timeToExpiration);
-    const isExpired = timeToExpiration === 0;
-    return isExpired;
+    return timeToExpiration === 0;
 
   }
 
   accessTokenExpirationTimeMS(): number {
-    const expirationTime = this.sessionData()?.credentials?.expiration?.getTime() || 0;
-    return Math.max(expirationTime - new Date().getTime(), 0);
+
+    if (this.sessionData()?.credentials) {
+      const expirationTime = this.sessionData()?.credentials?.expiration?.getTime() || 0;
+      return Math.max(expirationTime - new Date().getTime(), 0);
+    }
+    return -1;
+
   }
 
 }
