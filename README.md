@@ -13,25 +13,24 @@ Cross-platform Angular Electron desktop application suitable for configuring and
 ## Prerequisites
 
 ### System Requirements
-- **Node.js**: Version 22.12.0 or higher, or 24.0.0 or higher
-- **TypeScript**: Version 5.8.0 to 5.8.x
-- **Operating System**: Windows, macOS, or Linux
+- **Node.js**: version 22.12.0 or higher, or 24.0.0 or higher;
+- **TypeScript**: version 5.8.0 to 5.8.x;
+- **Operating System**: Windows, macOS, or Linux.
 
 ### Project Dependencies
 This desktop application requires the following components to be deployed and configured before use:
 
 1. **[Museum Alert API](https://github.com/humana-fragilitas/museum-alert-api)** - AWS CDK infrastructure project that provides:
-   - AWS API Gateway endpoints
-   - Amazon Cognito authentication services
-   - AWS IoT Core configuration
-   - Required environment configuration files
+   - AWS API Gateway endpoints;
+   - Amazon Cognito authentication services;
+   - AWS IoT Core configuration;
+   - required environment configuration files.
 
-2. **[Museum Alert Sensor (MAS)](https://github.com/humana-fragilitas/museum-alert-sketch)** - Hardware device with firmware for:
-   - ESP32-based sensor functionality
-   - WiFi and Bluetooth connectivity
-   - Museum alerting capabilities
+2. **[Museum Alert Sensor (MAS)](https://github.com/humana-fragilitas/museum-alert-sketch)** - Hardware device with firmware that must be built and flashed to the Arduino Nano ESP32 before using this desktop application. The sensor most notably provides:
+   - configurable ultrasonic distance barrier (4cm to 4 meters) with WiFi connectivity and alert notifications via MQTT;
+   - configurable BLE Eddystone-URL beacon suitable for proximity notifications.
 
-**Important**: Deploy these dependencies in the specified order before setting up this desktop application.
+**Important**: the desktop application is specifically designed to configure, provision on AWS IoT Core, and test the Museum Alert Sensor. Therefore, the sensor firmware must be built and deployed to the hardware device before this desktop application can be used effectively. Deploy these dependencies in the specified order before setting up this desktop application.
 
 ⚠️ **Please read the [disclaimer](#disclaimer) before using this project.**
 
