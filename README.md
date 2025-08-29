@@ -27,7 +27,7 @@ This desktop application requires the following components to be deployed and co
    - required environment configuration files.
 
 2. **[Museum Alert Sensor (MAS)](https://github.com/humana-fragilitas/museum-alert-sketch)** - Hardware device with firmware that must be built and flashed to the Arduino Nano ESP32 before using this desktop application. The sensor most notably provides:
-   - configurable ultrasonic distance barrier (4cm to 4 meters) with WiFi connectivity and alert notifications via MQTT;
+   - configurable ultrasonic distance barrier (2cm to 4 meters) with WiFi connectivity and alert notifications via MQTT;
    - configurable BLE Eddystone-URL beacon suitable for proximity notifications.
 
 **Important**: the desktop application is specifically designed to configure, provision on AWS IoT Core, and test the Museum Alert Sensor. Therefore, the sensor firmware must be built and deployed to the hardware device before this desktop application can be used effectively. Deploy these dependencies in the specified order before setting up this desktop application.
