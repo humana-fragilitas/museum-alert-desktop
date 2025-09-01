@@ -7,7 +7,6 @@ import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { signal } from '@angular/core';
 
-import { ElectronService } from '@services/electron/electron.service';
 import { AuthService } from '@services/auth/auth.service';
 import { APP_CONFIG } from '@env/environment';
 import { NavBarComponent } from '@shared/components/nav-bar/nav-bar.component';
@@ -20,29 +19,12 @@ describe('AppComponent', () => {
   let mockTranslate: Partial<TranslateService>;
   let mockAuth: Partial<AuthService>;
 
-  function createElectronMock(isElectron: boolean) {
-    return {
-      get isElectron() { return isElectron; },
-      ipcRenderer: {
-        // Add minimal required methods if needed
-        on: jest.fn(),
-        send: jest.fn()
-      },
-      childProcess: {
-        // Add minimal required methods if needed
-        spawn: jest.fn(),
-        exec: jest.fn()
-      }
-    } as unknown as ElectronService;
-  }
-
   beforeEach(async () => {
     mockTranslate = { setDefaultLang: jest.fn() };
     mockAuth = { user: signal(null) };
     await TestBed.configureTestingModule({
       imports: [AppComponent, CommonModule, RouterOutlet, NavBarComponent],
       providers: [
-        { provide: ElectronService, useValue: createElectronMock(false) },
         { provide: TranslateService, useValue: mockTranslate },
         { provide: TranslateStore, useValue: {} },
         { provide: AuthService, useValue: mockAuth }
@@ -72,45 +54,4 @@ describe('AppComponent', () => {
     logSpy.mockRestore();
   });
 
-  it('should log electron info if running in electron', async () => {
-    // Reconfigure TestBed for this specific test
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [AppComponent, CommonModule, RouterOutlet, NavBarComponent],
-      providers: [
-        { provide: ElectronService, useValue: createElectronMock(true) },
-        { provide: TranslateService, useValue: mockTranslate },
-        { provide: TranslateStore, useValue: {} },
-        { provide: AuthService, useValue: mockAuth }
-      ]
-    }).compileComponents();
-    
-    const logSpy = jest.spyOn(console, 'log').mockImplementation();
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
-    expect(logSpy).toHaveBeenCalledWith('Run in electron');
-    expect(logSpy).toHaveBeenCalledWith('Electron ipcRenderer', expect.any(Object));
-    expect(logSpy).toHaveBeenCalledWith('NodeJS childProcess', expect.any(Object));
-    logSpy.mockRestore();
-  });
-
-  it('should log browser info if not running in electron', async () => {
-    // Reconfigure TestBed for this specific test
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [AppComponent, CommonModule, RouterOutlet, NavBarComponent],
-      providers: [
-        { provide: ElectronService, useValue: createElectronMock(false) },
-        { provide: TranslateService, useValue: mockTranslate },
-        { provide: TranslateStore, useValue: {} },
-        { provide: AuthService, useValue: mockAuth }
-      ]
-    }).compileComponents();
-    
-    const logSpy = jest.spyOn(console, 'log').mockImplementation();
-    fixture = TestBed.createComponent(AppComponent);
-    component = fixture.componentInstance;
-    expect(logSpy).toHaveBeenCalledWith('Run in browser');
-    logSpy.mockRestore();
-  });
 });

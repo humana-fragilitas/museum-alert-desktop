@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 
 import { Component } from '@angular/core';
-import { ElectronService } from '@services/electron/electron.service';
 import { AuthService } from '@services/auth/auth.service';
 import { APP_CONFIG } from '@env/environment';
 import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
@@ -27,22 +26,12 @@ export class AppComponent {
   public readonly user = this.authService.user;
 
   constructor(
-    private electronService: ElectronService,
     private translate: TranslateService,
     private authService: AuthService
   ) {
 
     this.translate.setDefaultLang('en');
     console.log('APP_CONFIG', APP_CONFIG);
-
-    if (electronService.isElectron) {
-      console.log(process.env); 
-      console.log('Run in electron');
-      console.log('Electron ipcRenderer', this.electronService.ipcRenderer);
-      console.log('NodeJS childProcess', this.electronService.childProcess);
-    } else {
-      console.log('Run in browser');
-    }
   
   }
 

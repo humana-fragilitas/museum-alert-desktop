@@ -17,7 +17,6 @@ import { HttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { authTokenInterceptor } from '@interceptors/auth-token.interceptor';
-import { ElectronService } from '@services/electron/electron.service';
 import { AuthService } from '@services/auth/auth.service';
 import { CompanyService } from '@services/company/company.service';
 import { RedirectService } from '@services/redirect/redirect.service';
@@ -41,7 +40,6 @@ function instantiateEarlyServices() {
   const authConnectionManagerService = inject(AuthConnectionManagerService);
   const mqttService = inject(MqttService);
   const policyService = inject(PolicyService);
-  const electronService = inject(ElectronService);
   const authService = inject(AuthService);
   const authenticatorService = inject(AuthenticatorService);
   const companyService = inject(CompanyService);
