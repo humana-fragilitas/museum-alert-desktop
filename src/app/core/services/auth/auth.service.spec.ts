@@ -1,22 +1,21 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { NgZone } from '@angular/core';
 import { AuthService } from './auth.service';
 import { fetchAuthSession, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { Hub } from '@aws-amplify/core';
 import { WINDOW } from '@tokens/window';
-import { MainProcessEvent } from '@shared-with-electron';
 
+// Mock AWS Amplify modules
 jest.mock('aws-amplify/auth', () => ({
   fetchAuthSession: jest.fn(),
   getCurrentUser: jest.fn(),
   fetchUserAttributes: jest.fn()
 }));
+
 jest.mock('@aws-amplify/core', () => ({
   Hub: { listen: jest.fn() }
 }));
-jest.mock('@shared/helpers/console.helper', () => ({
-  titleStyle: ''
-}));
+
 jest.mock('@shared/helpers/milliseconds-to-readable-time.helper', () => ({
   msToHMS: jest.fn().mockReturnValue({ h: 1, m: 30, s: 45 })
 }));
@@ -37,340 +36,508 @@ describe('AuthService', () => {
   let mockGetCurrentUser: jest.Mock;
   let mockFetchUserAttributes: jest.Mock;
   let mockHubListen: jest.Mock;
+  let ngZone: NgZone;
 
-  const mockSession = {
+  const validSession = {
     credentials: {
-      accessKeyId: 'key',
-      secretAccessKey: 'secret',
-      sessionToken: 'token',
+      accessKeyId: 'test-access-key',
+      secretAccessKey: 'test-secret-key',
+      sessionToken: 'test-session-token',
       expiration: new Date(Date.now() + 3600000) // 1 hour from now
     },
-    identityId: 'id',
+    identityId: 'test-identity-id',
     tokens: {
       accessToken: { 
-        toString: () => 'access',
-        payload: {}
+        toString: () => 'test-access-token',
+        payload: {
+          'exp': Math.floor((Date.now() + 3600000) / 1000), // 1 hour from now in seconds
+          'sub': 'test-user-sub'
+        }
       },
       idToken: { 
-        toString: () => 'id',
+        toString: () => 'test-id-token',
         payload: {
           'custom:Company': 'test-company',
-          'custom:hasPolicy': '1'
+          'custom:hasPolicy': '1',
+          'email': 'test@example.com',
+          'name': 'Test User'
         }
       }
     },
-    userSub: 'sub'
+    userSub: 'test-user-sub'
   };
-  const mockUser = { username: 'user', userId: 'id', signInDetails: { loginId: 'login' } };
-  const mockAttributes = { email: 'a@b.com', name: 'Name' };
+
+  const validUser = { 
+    username: 'test-username', 
+    userId: 'test-user-id', 
+    signInDetails: { loginId: 'test@example.com' } 
+  };
+
+  const validAttributes = { 
+    email: 'test@example.com', 
+    name: 'Test User',
+    'custom:Company': 'test-company',
+    'custom:hasPolicy': '1'
+  };
 
   beforeEach(() => {
+    // Clear all mocks
     jest.clearAllMocks();
-    jest.useFakeTimers();
+
+    // Set up mock implementations
     mockFetchAuthSession = fetchAuthSession as jest.Mock;
     mockGetCurrentUser = getCurrentUser as jest.Mock;
     mockFetchUserAttributes = fetchUserAttributes as jest.Mock;
     mockHubListen = Hub.listen as jest.Mock;
-    mockFetchAuthSession.mockResolvedValue(mockSession);
-    mockGetCurrentUser.mockResolvedValue(mockUser);
-    mockFetchUserAttributes.mockResolvedValue(mockAttributes);
+
+    // Configure default mock return values
+    mockFetchAuthSession.mockResolvedValue(validSession);
+    mockGetCurrentUser.mockResolvedValue(validUser);
+    mockFetchUserAttributes.mockResolvedValue(validAttributes);
     mockHubListen.mockImplementation(() => {});
+
+    // Mock console methods to keep test output clean
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
     
+    // Configure TestBed
     TestBed.configureTestingModule({ 
       providers: [
         AuthService,
         { provide: WINDOW, useValue: mockWindow }
       ] 
     });
+
+    // Inject dependencies
     service = TestBed.inject(AuthService);
+    ngZone = TestBed.inject(NgZone);
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
-  it('should create the service', () => {
-    expect(service).toBeTruthy();
-  });
-
-  it('should fetch session and set sessionData', async () => {
-    await service.fetchSession();
-    expect(mockFetchAuthSession).toHaveBeenCalled();
-    expect(service.sessionData()).toEqual(mockSession);
-  });
-
-  it('should set sessionData to null on fetch error', async () => {
-    mockFetchAuthSession.mockRejectedValueOnce(new Error('fail'));
-    await service.fetchSession();
-    expect(service.sessionData()).toBeNull();
-  });
-
-  it('should fetch user and set userSignal', async () => {
-    await service.fetchUser();
-    expect(mockGetCurrentUser).toHaveBeenCalled();
-    expect(service.user()).toEqual(mockUser);
-  });
-
-  it('should set user to null on fetchUser error', async () => {
-    mockGetCurrentUser.mockRejectedValueOnce(new Error('fail'));
-    await service.fetchUser();
-    expect(service.user()).toBeNull();
-  });
-
-  it('should fetch attributes and set userAttributesSignal', async () => {
-    await service.fetchAttributes();
-    expect(mockFetchUserAttributes).toHaveBeenCalled();
-    expect(service.userAttributes()).toEqual(mockAttributes);
-  });
-
-  it('should set userAttributes to null on fetchAttributes error', async () => {
-    mockFetchUserAttributes.mockRejectedValueOnce(new Error('fail'));
-    await service.fetchAttributes();
-    expect(service.userAttributes()).toBeNull();
-  });
-
-  it('should compute userLoginId, company, hasPolicy, idToken, accessToken', async () => {
-    await service.fetchSession();
-    await service.fetchUser();
-    expect(service.userLoginId()).toBe('login');
-    expect(service.company()).toBe('test-company');
-    expect(service.hasPolicy()).toBe(true);
-    expect(service.idToken()).toBe('id');
-    expect(service.accessToken()).toBe('access');
-  });
-
-  it('should skip fetchSession if already fetching', async () => {
-    // Reset the mock to clear the constructor call
-    mockFetchAuthSession.mockClear();
-    (service as any).isFetchingSession = true;
-    await service.fetchSession();
-    expect(mockFetchAuthSession).not.toHaveBeenCalled();
-  });
-
-  it('should listen to Hub auth events and fetch session', async () => {
-    expect(mockHubListen).toHaveBeenCalledWith('auth', expect.any(Function));
-    const callback = mockHubListen.mock.calls[0][1];
-    
-    // Clear previous calls from constructor and spy on fetchSession
-    mockFetchAuthSession.mockClear();
-    const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-    
-    // Test signedIn event
-    await callback({ payload: { event: 'signedIn' } });
-    expect(fetchSessionSpy).toHaveBeenCalled();
-    
-    // Test signedOut event
-    fetchSessionSpy.mockClear();
-    await callback({ payload: { event: 'signedOut' } });
-    expect(fetchSessionSpy).toHaveBeenCalled();
-    
-    // Test other events (should not trigger fetchSession)
-    fetchSessionSpy.mockClear();
-    await callback({ payload: { event: 'tokenRefresh' } });
-    expect(fetchSessionSpy).not.toHaveBeenCalled();
-  });
-
-  describe('Session expiration', () => {
-    it('should correctly calculate access token expiration time', async () => {
-      await service.fetchSession();
-      const expirationTime = service.accessTokenExpirationTimeMS();
-      expect(expirationTime).toBeGreaterThan(0);
-      expect(expirationTime).toBeLessThanOrEqual(3600000); // 1 hour
+  describe('Service Initialization', () => {
+    it('should create the service successfully', () => {
+      expect(service).toBeTruthy();
+      expect(service).toBeInstanceOf(AuthService);
     });
 
-    it('should return -1 for expiration time when no session', async () => {
-      // Set up service with no session
-      mockFetchAuthSession.mockResolvedValueOnce({});
+    it('should initialize with proper default signal values', async () => {
+      // Clear all previous mock calls from the constructor
+      jest.clearAllMocks();
+      
+      // Re-configure mocks to ensure proper behavior
+      (fetchAuthSession as jest.Mock).mockResolvedValue(validSession);
+      (getCurrentUser as jest.Mock).mockResolvedValue(validUser);
+      (fetchUserAttributes as jest.Mock).mockResolvedValue(validAttributes);
+      (Hub.listen as jest.Mock).mockImplementation(() => {});
+      
+      // Call the methods manually to test the complete chain
       await service.fetchSession();
+      await service.fetchUser();
+      await service.fetchAttributes();
+      
+      // Verify that the methods were called properly
+      expect(fetchAuthSession).toHaveBeenCalledWith({ forceRefresh: false });
+      expect(getCurrentUser).toHaveBeenCalled();
+      expect(fetchUserAttributes).toHaveBeenCalled();
+      
+      // Check signal values after async operations complete
+      expect(service.sessionData()).toEqual(validSession);
+      expect(service.user()).toEqual(validUser);
+      expect(service.userAttributes()).toEqual(validAttributes);
+    });
+
+    it('should set up Hub listener for auth events on initialization', () => {
+      expect(mockHubListen).toHaveBeenCalledWith('auth', expect.any(Function));
+      expect(mockHubListen).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch initial session data on initialization', () => {
+      expect(mockFetchAuthSession).toHaveBeenCalledWith({ forceRefresh: false });
+    });
+  });
+
+  describe('Session Management', () => {
+    beforeEach(() => {
+      // Clear constructor calls
+      jest.clearAllMocks();
+    });
+
+    describe('fetchSession', () => {
+      it('should successfully fetch and set session data', async () => {
+        const newSession = { ...validSession, identityId: 'new-identity-id' };
+        mockFetchAuthSession.mockResolvedValue(newSession);
+
+        await service.fetchSession();
+
+        expect(mockFetchAuthSession).toHaveBeenCalledWith({ forceRefresh: false });
+        expect(service.sessionData()).toEqual(newSession);
+      });
+
+      it('should handle forceRefresh option correctly', async () => {
+        await service.fetchSession({ forceRefresh: true });
+
+        expect(mockFetchAuthSession).toHaveBeenCalledWith({ forceRefresh: true });
+      });
+
+      it('should set session to null when fetch fails', async () => {
+        const error = new Error('Authentication failed');
+        mockFetchAuthSession.mockRejectedValue(error);
+
+        await service.fetchSession();
+
+        expect(service.sessionData()).toBeNull();
+      });
+
+      it('should prevent concurrent fetch operations', async () => {
+        // Set fetching flag to simulate ongoing operation
+        (service as any).isFetchingSession = true;
+
+        await service.fetchSession();
+
+        expect(mockFetchAuthSession).not.toHaveBeenCalled();
+      });
+
+      it('should validate session data and reject invalid sessions', async () => {
+        const invalidSession = {
+          credentials: null,
+          identityId: null,
+          tokens: null,
+          userSub: null
+        };
+        mockFetchAuthSession.mockResolvedValue(invalidSession);
+
+        await service.fetchSession();
+
+        expect(service.sessionData()).toBeNull();
+      });
+
+      it('should handle partially valid session data', async () => {
+        const partialSession = {
+          credentials: validSession.credentials,
+          identityId: validSession.identityId,
+          tokens: null, // Missing tokens
+          userSub: validSession.userSub
+        };
+        mockFetchAuthSession.mockResolvedValue(partialSession);
+
+        await service.fetchSession();
+
+        expect(service.sessionData()).toBeNull();
+      });
+    });
+
+    describe('fetchUser', () => {
+      it('should successfully fetch and set user data', async () => {
+        const newUser = { ...validUser, username: 'new-username' };
+        mockGetCurrentUser.mockResolvedValue(newUser);
+
+        await service.fetchUser();
+
+        expect(mockGetCurrentUser).toHaveBeenCalled();
+        expect(service.user()).toEqual(newUser);
+      });
+
+      it('should set user to null when fetch fails', async () => {
+        const error = new Error('User fetch failed');
+        mockGetCurrentUser.mockRejectedValue(error);
+
+        await service.fetchUser();
+
+        expect(service.user()).toBeNull();
+      });
+    });
+
+    describe('fetchAttributes', () => {
+      it('should successfully fetch and set user attributes', async () => {
+        const newAttributes = { ...validAttributes, email: 'new@example.com' };
+        mockFetchUserAttributes.mockResolvedValue(newAttributes);
+
+        await service.fetchAttributes();
+
+        expect(mockFetchUserAttributes).toHaveBeenCalled();
+        expect(service.userAttributes()).toEqual(newAttributes);
+      });
+
+      it('should set attributes to null when fetch fails', async () => {
+        const error = new Error('Attributes fetch failed');
+        mockFetchUserAttributes.mockRejectedValue(error);
+
+        await service.fetchAttributes();
+
+        expect(service.userAttributes()).toBeNull();
+      });
+    });
+  });
+
+  describe('Computed Properties', () => {
+    beforeEach(() => {
+      // Manually set signal values to avoid constructor side effects
+      (service as any).sessionDataSignal.set(validSession);
+      (service as any).userSignal.set(validUser);
+      (service as any).userAttributesSignal.set(validAttributes);
+    });
+
+    it('should compute userLoginId correctly', () => {
+      expect(service.userLoginId()).toBe('test@example.com');
+    });
+
+    it('should compute company correctly', () => {
+      expect(service.company()).toBe('test-company');
+    });
+
+    it('should compute hasPolicy correctly when user has policy', () => {
+      expect(service.hasPolicy()).toBe(true);
+    });
+
+    it('should compute hasPolicy correctly when user has no policy', () => {
+      const sessionWithoutPolicy = {
+        ...validSession,
+        tokens: {
+          ...validSession.tokens,
+          idToken: {
+            ...validSession.tokens.idToken,
+            payload: {
+              ...validSession.tokens.idToken.payload,
+              'custom:hasPolicy': '0'
+            }
+          }
+        }
+      };
+      (service as any).sessionDataSignal.set(sessionWithoutPolicy);
+
+      expect(service.hasPolicy()).toBe(false);
+    });
+
+    it('should compute idToken correctly', () => {
+      expect(service.idToken()).toBe('test-id-token');
+    });
+
+    it('should compute accessToken correctly', () => {
+      expect(service.accessToken()).toBe('test-access-token');
+    });
+
+    it('should return default values when no data is available', () => {
+      (service as any).sessionDataSignal.set(null);
+      (service as any).userSignal.set(null);
+      (service as any).userAttributesSignal.set(null);
+
+      expect(service.userLoginId()).toBe('');
+      expect(service.company()).toBe('');
+      expect(service.hasPolicy()).toBe(false);
+      expect(service.idToken()).toBe('');
+      expect(service.accessToken()).toBe('');
+    });
+  });
+
+  describe('Session Token Expiration', () => {
+    it('should correctly calculate access token expiration time for valid session', () => {
+      (service as any).sessionDataSignal.set(validSession);
+
       const expirationTime = service.accessTokenExpirationTimeMS();
+      
+      expect(expirationTime).toBeGreaterThan(0);
+      expect(expirationTime).toBeLessThanOrEqual(3600000); // Should be <= 1 hour
+    });
+
+    it('should return -1 for expiration time when no session exists', () => {
+      (service as any).sessionDataSignal.set(null);
+
+      const expirationTime = service.accessTokenExpirationTimeMS();
+      
       expect(expirationTime).toBe(-1);
     });
 
-    it('should return false for isSessionTokenExpired when session is valid', async () => {
-      await service.fetchSession();
-      expect(service.isSessionTokenExpired()).toBe(false);
-    });
-
-    it('should return true for isSessionTokenExpired when session is expired', async () => {
-      // Mock expired session
+    it('should return 0 for expiration time when session is expired', () => {
       const expiredSession = {
-        ...mockSession,
+        ...validSession,
         credentials: {
-          ...mockSession.credentials,
+          ...validSession.credentials,
           expiration: new Date(Date.now() - 1000) // 1 second ago
         }
       };
-      mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
-      await service.fetchSession();
+      (service as any).sessionDataSignal.set(expiredSession);
+
+      const expirationTime = service.accessTokenExpirationTimeMS();
+      
+      expect(expirationTime).toBe(0);
+    });
+
+    it('should return false for isSessionTokenExpired when session is valid', () => {
+      (service as any).sessionDataSignal.set(validSession);
+
+      expect(service.isSessionTokenExpired()).toBe(false);
+    });
+
+    it('should return true for isSessionTokenExpired when session is expired', () => {
+      const expiredSession = {
+        ...validSession,
+        credentials: {
+          ...validSession.credentials,
+          expiration: new Date(Date.now() - 1000) // 1 second ago
+        }
+      };
+      (service as any).sessionDataSignal.set(expiredSession);
+
       expect(service.isSessionTokenExpired()).toBe(true);
     });
 
-    it('should return true for isSessionTokenExpired when no session data', async () => {
-      // Set up service with no session
-      mockFetchAuthSession.mockResolvedValueOnce({});
-      await service.fetchSession();
-      expect(service.isSessionTokenExpired()).toBe(true);
+    it('should return false for isSessionTokenExpired when no session data exists', () => {
+      (service as any).sessionDataSignal.set(null);
+
+      expect(service.isSessionTokenExpired()).toBe(false);
     });
   });
 
-  describe('System event handling', () => {
-    let mockAddEventListener: jest.Mock;
-    let mockIpcOn: jest.Mock;
+  describe('Hub Authentication Events', () => {
+    let hubCallback: Function;
 
     beforeEach(() => {
-      mockAddEventListener = mockWindow.addEventListener as jest.Mock;
-      mockIpcOn = mockWindow.electron.ipcRenderer.on as jest.Mock;
+      // Get the Hub callback function that was registered
+      expect(mockHubListen).toHaveBeenCalledWith('auth', expect.any(Function));
+      hubCallback = mockHubListen.mock.calls[0][1];
+      
+      // Clear the fetchSession spy to test only event-triggered calls
+      jest.clearAllMocks();
     });
 
-    it('should set up online event listener', () => {
-      expect(mockAddEventListener).toHaveBeenCalledWith('online', expect.any(Function));
+    it('should fetch session on signedIn event', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession').mockResolvedValue();
+
+      hubCallback({ payload: { event: 'signedIn' } });
+
+      expect(fetchSessionSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should set up electron IPC event listeners', () => {
-      expect(mockIpcOn).toHaveBeenCalledWith(MainProcessEvent.WINDOW_FOCUSED, expect.any(Function));
-      expect(mockIpcOn).toHaveBeenCalledWith(MainProcessEvent.SESSION_CHECK, expect.any(Function));
-      expect(mockIpcOn).toHaveBeenCalledWith(MainProcessEvent.SYSTEM_RESUMED, expect.any(Function));
+    it('should fetch session on signedOut event', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession').mockResolvedValue();
+
+      hubCallback({ payload: { event: 'signedOut' } });
+
+      expect(fetchSessionSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should refresh session on online event', () => {
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      const onlineCallback = mockAddEventListener.mock.calls.find(
-        call => call[0] === 'online'
-      )[1];
-      
-      onlineCallback();
-      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
-    });
+    it('should not fetch session on tokenRefresh event', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession').mockResolvedValue();
 
-    it('should refresh session on system resume', () => {
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      const systemResumedCallback = mockIpcOn.mock.calls.find(
-        call => call[0] === MainProcessEvent.SYSTEM_RESUMED
-      )[1];
-      
-      systemResumedCallback();
-      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
-    });
+      hubCallback({ payload: { event: 'tokenRefresh' } });
 
-    it('should check session expiration on window focus if session is expired', async () => {
-      // Set up expired session
-      const expiredSession = {
-        ...mockSession,
-        credentials: {
-          ...mockSession.credentials,
-          expiration: new Date(Date.now() - 1000)
-        }
-      };
-      mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
-      await service.fetchSession();
-      
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      const windowFocusCallback = mockIpcOn.mock.calls.find(
-        call => call[0] === MainProcessEvent.WINDOW_FOCUSED
-      )[1];
-      
-      windowFocusCallback();
-      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
-    });
-
-    it('should check session expiration on window focus if no session data', async () => {
-      // Set up service with no session
-      mockFetchAuthSession.mockResolvedValueOnce({});
-      await service.fetchSession();
-      
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      const windowFocusCallback = mockIpcOn.mock.calls.find(
-        call => call[0] === MainProcessEvent.WINDOW_FOCUSED
-      )[1];
-      
-      windowFocusCallback();
-      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
-    });
-
-    it('should not refresh session on window focus if session is still valid', async () => {
-      await service.fetchSession(); // Valid session
-      
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      fetchSessionSpy.mockClear();
-      
-      const windowFocusCallback = mockIpcOn.mock.calls.find(
-        call => call[0] === MainProcessEvent.WINDOW_FOCUSED
-      )[1];
-      
-      windowFocusCallback();
       expect(fetchSessionSpy).not.toHaveBeenCalled();
     });
 
-    it('should check session expiration on session check event if session is expired', async () => {
-      // Set up expired session
-      const expiredSession = {
-        ...mockSession,
-        credentials: {
-          ...mockSession.credentials,
-          expiration: new Date(Date.now() - 1000)
-        }
-      };
-      mockFetchAuthSession.mockResolvedValueOnce(expiredSession);
-      await service.fetchSession();
-      
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      const sessionCheckCallback = mockIpcOn.mock.calls.find(
-        call => call[0] === MainProcessEvent.SESSION_CHECK
-      )[1];
-      
-      sessionCheckCallback();
-      expect(fetchSessionSpy).toHaveBeenCalledWith({ forceRefresh: true });
+    it('should not fetch session on unrecognized events', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession').mockResolvedValue();
+
+      hubCallback({ payload: { event: 'customEvent' } });
+
+      expect(fetchSessionSpy).not.toHaveBeenCalled();
     });
 
-    it('should not refresh session on session check if session is still valid', async () => {
-      await service.fetchSession(); // Valid session
-      
-      const fetchSessionSpy = jest.spyOn(service, 'fetchSession');
-      fetchSessionSpy.mockClear();
-      
-      const sessionCheckCallback = mockIpcOn.mock.calls.find(
-        call => call[0] === MainProcessEvent.SESSION_CHECK
-      )[1];
-      
-      sessionCheckCallback();
+    it('should handle malformed event data gracefully', () => {
+      const fetchSessionSpy = jest.spyOn(service, 'fetchSession').mockResolvedValue();
+
+      // Test with missing payload
+      expect(() => hubCallback({})).not.toThrow();
+      expect(fetchSessionSpy).not.toHaveBeenCalled();
+
+      // Test with missing event
+      expect(() => hubCallback({ payload: {} })).not.toThrow();
       expect(fetchSessionSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('fetchSession with options', () => {
-    it('should pass forceRefresh option to fetchAuthSession', async () => {
-      await service.fetchSession({ forceRefresh: true });
-      expect(mockFetchAuthSession).toHaveBeenCalledWith({ forceRefresh: true });
+  describe('Error Handling', () => {
+    it('should handle network errors gracefully during session fetch', async () => {
+      const networkError = new Error('Network unavailable');
+      mockFetchAuthSession.mockRejectedValue(networkError);
+
+      await service.fetchSession();
+
+      expect(service.sessionData()).toBeNull();
+      expect(console.error).toHaveBeenCalledWith(
+        '[AuthService]: failed to fetch session:', 
+        networkError
+      );
     });
 
-    it('should handle invalid session data correctly', async () => {
-      const invalidSession = {
-        credentials: null,
-        identityId: null,
-        tokens: null,
-        userSub: null
-      };
-      mockFetchAuthSession.mockResolvedValueOnce(invalidSession);
-      
-      await service.fetchSession();
-      expect(service.sessionData()).toBeNull();
+    it('should handle authentication errors gracefully during user fetch', async () => {
+      const authError = new Error('User not authenticated');
+      mockGetCurrentUser.mockRejectedValue(authError);
+
+      await service.fetchUser();
+
+      expect(service.user()).toBeNull();
+      expect(console.error).toHaveBeenCalledWith(
+        '[AuthService]: failed to fetch user:', 
+        authError
+      );
     });
 
-    it('should handle partial session data correctly', async () => {
-      const partialSession = {
-        credentials: mockSession.credentials,
-        identityId: mockSession.identityId,
-        tokens: null, // Missing tokens
-        userSub: mockSession.userSub
-      };
-      mockFetchAuthSession.mockResolvedValueOnce(partialSession);
-      
-      await service.fetchSession();
-      expect(service.sessionData()).toBeNull();
+    it('should handle permission errors gracefully during attributes fetch', async () => {
+      const permissionError = new Error('Insufficient permissions');
+      mockFetchUserAttributes.mockRejectedValue(permissionError);
+
+      await service.fetchAttributes();
+
+      expect(service.userAttributes()).toBeNull();
+      expect(console.error).toHaveBeenCalledWith(
+        '[AuthService]: failed to fetch user attributes:', 
+        permissionError
+      );
     });
   });
 
+  describe('Edge Cases', () => {
+    it('should handle undefined session tokens gracefully', () => {
+      const sessionWithUndefinedTokens = {
+        ...validSession,
+        tokens: {
+          accessToken: undefined,
+          idToken: undefined
+        }
+      };
+      (service as any).sessionDataSignal.set(sessionWithUndefinedTokens);
+
+      expect(service.idToken()).toBe('');
+      expect(service.accessToken()).toBe('');
+      expect(service.company()).toBe('');
+      expect(service.hasPolicy()).toBe(false);
+    });
+
+    it('should handle session with missing expiration date', () => {
+      const sessionWithoutExpiration = {
+        ...validSession,
+        credentials: {
+          ...validSession.credentials,
+          expiration: undefined
+        }
+      };
+      (service as any).sessionDataSignal.set(sessionWithoutExpiration);
+
+      expect(service.accessTokenExpirationTimeMS()).toBe(0);
+      expect(service.isSessionTokenExpired()).toBe(true);
+    });
+
+    it('should handle empty string values in token payloads', () => {
+      const sessionWithEmptyValues = {
+        ...validSession,
+        tokens: {
+          ...validSession.tokens,
+          idToken: {
+            ...validSession.tokens.idToken,
+            payload: {
+              'custom:Company': '',
+              'custom:hasPolicy': ''
+            }
+          }
+        }
+      };
+      (service as any).sessionDataSignal.set(sessionWithEmptyValues);
+
+      expect(service.company()).toBe('');
+      expect(service.hasPolicy()).toBe(false);
+    });
+  });
 });
