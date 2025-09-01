@@ -1,19 +1,12 @@
-import { fetchAuthSession,
-         FetchAuthSessionOptions,
-         AuthSession,
-         getCurrentUser,
-         fetchUserAttributes,
-         GetCurrentUserOutput,
-         FetchUserAttributesOutput } from 'aws-amplify/auth';
-import { Hub, HubCapsule } from '@aws-amplify/core';
-import { AuthHubEventData } from '@aws-amplify/core/dist/esm/Hub/types';
+import { AuthSession } from 'aws-amplify/auth';
 
-import { Injectable, signal, computed, effect, NgZone, Inject } from '@angular/core';
+import { Injectable, effect, NgZone, Inject } from '@angular/core';
+
 import { WINDOW } from '@tokens/window';
 import { MainProcessEvent } from '@shared-with-electron';
-import { msToHMS } from '@shared/helpers/milliseconds-to-readable-time.helper';
 import { AuthService } from '@services/auth/auth.service';
 import { MqttService } from '@services/mqtt/mqtt.service';
+import { distinct, distinctUntilChanged } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -116,34 +109,27 @@ export class AuthConnectionManagerService {
 
   initializeMqttHandlers() {
 
-    this.mqttService.isConnected$.subscribe(isConnected => {
-      if (!isConnected) {
-        // Check if user has policy
-        if (!this.authService.hasPolicy()) {
-        console.log('[AuthConnectionManagerService]: user does not have an iot policy attached yet; skipping...');
-        return;
-        }
-        console.log('[AuthConnectionManagerService]: MQTT is scheduled to reconnect');
-        if (this.authService.isSessionTokenExpired()) {
-          console.log('[AuthConnectionManagerService]: auth session is expired; refreshing session before reconnecting to MQTT broker...');
-          this.authService.fetchSession({ forceRefresh: true });
-        } else if (this.authService.sessionData()) {
-          console.log('[AuthConnectionManagerService]: auth session is valid; reconnecting to MQTT broker...');
-          this.mqttService.handleSessionChange(this.authService.sessionData() as AuthSession);
-          } else {
-          console.log('[AuthConnectionManagerService]: cannot reconnect to MQTT broker - no valid user session');
-          this.mqttService.cleanup();
-        }
-      }
-    });
-
-
-    effect(() => {
-      const isConnected = this.mqttService.isConnected;
-      if (!isConnected) {
-
-      }
-    });
+    this.mqttService.isConnected$
+        .pipe(
+          distinctUntilChanged()
+        ).subscribe(isConnected => {
+          if (!isConnected) {
+            if (!this.authService.hasPolicy()) {
+            console.log('[AuthConnectionManagerService]: user does not have an iot policy attached yet; skipping...');
+            return;
+            }
+            if (this.authService.isSessionTokenExpired()) {
+              console.log('[AuthConnectionManagerService]: auth session is expired; refreshing session before reconnecting to MQTT broker...');
+              this.authService.fetchSession({ forceRefresh: true });
+            } else if (this.authService.sessionData()) {
+              console.log('[AuthConnectionManagerService]: auth session is valid; reconnecting to MQTT broker...');
+              this.mqttService.handleSessionChange(this.authService.sessionData() as AuthSession);
+              } else {
+              console.log('[AuthConnectionManagerService]: cannot reconnect to MQTT broker - no valid user session');
+              this.mqttService.cleanup();
+            }
+          }
+        });
 
   }
 

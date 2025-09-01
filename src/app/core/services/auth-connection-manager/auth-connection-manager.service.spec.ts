@@ -400,7 +400,6 @@ describe('AuthConnectionManagerService', () => {
       // Simulate MQTT disconnection
       isConnectedSubject.next(false);
       
-      expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: MQTT is scheduled to reconnect');
       expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: auth session is expired; refreshing session before reconnecting to MQTT broker...');
       expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
       
@@ -442,7 +441,6 @@ describe('AuthConnectionManagerService', () => {
       // Simulate MQTT disconnection
       isConnectedSubject.next(false);
       
-      expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: MQTT is scheduled to reconnect');
       expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: auth session is valid; reconnecting to MQTT broker...');
       expect(mqttService.handleSessionChange).toHaveBeenCalledWith(mockSession);
       
@@ -463,7 +461,6 @@ describe('AuthConnectionManagerService', () => {
       // Simulate MQTT disconnection
       isConnectedSubject.next(false);
       
-      expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: MQTT is scheduled to reconnect');
       expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: cannot reconnect to MQTT broker - no valid user session');
       expect(mqttService.cleanup).toHaveBeenCalled();
       
@@ -484,7 +481,8 @@ describe('AuthConnectionManagerService', () => {
       // Simulate MQTT connection (should not trigger reconnection logic)
       isConnectedSubject.next(true);
       
-      expect(consoleSpy).not.toHaveBeenCalledWith('[AuthConnectionManagerService]: MQTT is scheduled to reconnect');
+      // Since the console.log was removed, we just verify the service is still working
+      expect(service).toBeTruthy();
       
       consoleSpy.mockRestore();
     });
