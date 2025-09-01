@@ -2,7 +2,7 @@ import { BrowserContext, ElectronApplication, Page, _electron as electron } from
 import { test, expect } from '@playwright/test';
 import * as PATH from 'path';
 
-test.describe('Check Home Page', () => {
+test.describe('Check Default Route', () => {
   let app: ElectronApplication;
   let firstWindow: Page;
   let context: BrowserContext;
@@ -40,17 +40,47 @@ test.describe('Check Home Page', () => {
     expect(windowState.isCrashed).toBeFalsy();
   });
 
+  test('Check Museum Alert logo is present', async () => {
+    const logoElement = await firstWindow.$('.logo');
+    expect(logoElement).toBeTruthy();
+    
+    const logoSrc = await logoElement?.getAttribute('src');
+    expect(logoSrc).toBe('assets/images/museum_alert_logo.svg');
+  });
+
+  test('Check AmplifyUI authenticator is present', async () => {
+    // Wait for the authenticator component to load
+    await firstWindow.waitForSelector('amplify-authenticator', { timeout: 10000 });
+    
+    const authenticatorElement = await firstWindow.$('amplify-authenticator');
+    expect(authenticatorElement).toBeTruthy();
+  });
+
+  test('Check login form elements are present', async () => {
+    // Check for email input field
+    const emailInput = await firstWindow.$('input[type="email"], input[name="email"], input[autocomplete="username"]');
+    expect(emailInput).toBeTruthy();
+    
+    // Check for password input field
+    const passwordInput = await firstWindow.$('input[type="password"], input[name="password"], input[autocomplete="current-password"]');
+    expect(passwordInput).toBeTruthy();
+    
+    // Check for sign in button
+    const signInButton = await firstWindow.$('button[data-amplify-auth-signin], button:has-text("Sign in"), amplify-button[type="submit"]');
+    expect(signInButton).toBeTruthy();
+  });
+
+  test('Check copyright footer is present', async () => {
+    // Check for the footer with copyright text
+    const footerElement = await firstWindow.$('ng-template[amplifyslot="footer"], .amplify-text');
+    expect(footerElement).toBeTruthy();
+  });
+
   // test('Check Home Page design', async ({ browserName}) => {
   //   // Uncomment if you change the design of Home Page in order to create a new screenshot
   //   const screenshot = await firstWindow.screenshot({ path: '/tmp/home.png' });
   //   expect(screenshot).toMatchSnapshot(`home-${browserName}.png`);
   // });
-
-  test('Check title', async () => {
-    const elem = await firstWindow.$('app-home h1');
-    const text = elem ? await elem.innerText() : null;
-    expect(text).toBe('App works !');
-  });
 
   test.afterAll( async () => {
     await context.tracing.stop({ path: 'e2e/tracing/trace.zip' });

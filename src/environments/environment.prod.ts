@@ -1,20 +1,20 @@
 export const APP_CONFIG = {
-  production: true,
-  environment: 'PROD',
+  production: false,
+  environment: 'DEV',
   aws: {
-    apiGateway: 'https://dkeyv8nw8j.execute-api.eu-west-1.amazonaws.com/development',
-    region: 'eu-west-1',
+    apiGateway: 'https://xdoyi75fek.execute-api.eu-west-2.amazonaws.com/dev',
+    region: 'eu-west-2',
     algorithm: 'AWS4-HMAC-SHA256',
     IoTCore: {
-      endpoint: 'avo0w7o1tlck1-ats.iot.eu-west-1.amazonaws.com',
+      endpoint: 'avo0w7o1tlck1-ats.iot.eu-west-2.amazonaws.com',
       service: 'iotdevicegateway'
     },
     amplify: {
       Auth: {
         Cognito: {
-          userPoolId: 'eu-west-1_4iQI3sNjP',
-          userPoolClientId: '6tq3lpqr9guoms6uru5945gbi2',
-          identityPoolId: 'eu-west-1:974597c1-d749-43ec-9afa-721e9508dfa7',
+          userPoolId: 'eu-west-2_EXrQRxAwz',
+          userPoolClientId: '7pe02g46np9g35gtlsdnbv1l34',
+          identityPoolId: 'eu-west-2:e804caa4-e9b5-4c04-aef0-7dbf91916dbb',
           mandatorySignIn: true,
           authenticationFlowType: 'USER_SRP_AUTH'
         }

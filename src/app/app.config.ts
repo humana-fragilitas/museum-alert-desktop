@@ -25,6 +25,7 @@ import { MqttService } from '@services/mqtt/mqtt.service';
 import { PolicyService } from '@services/policy/policy.service';
 import { APP_CONFIG } from '@env/environment';
 import { NotificationService } from '@services/notification/notification.service';
+import { AuthConnectionManagerService } from '@services/auth-connection-manager/auth-connection-manager.service';
 
 
 // AoT requires an exported function for factories
@@ -37,6 +38,7 @@ function instantiateEarlyServices() {
 
   Amplify.configure(APP_CONFIG.aws.amplify);
 
+  const authConnectionManagerService = inject(AuthConnectionManagerService);
   const mqttService = inject(MqttService);
   const policyService = inject(PolicyService);
   const electronService = inject(ElectronService);

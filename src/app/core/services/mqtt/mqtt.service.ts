@@ -4,7 +4,7 @@ import { BehaviorSubject,
          Observable } from 'rxjs';
 import mqtt from 'mqtt';
 
-import { Inject, Injectable, NgZone, effect } from '@angular/core';
+import { Inject, Injectable, NgZone, effect, signal } from '@angular/core';
 
 import { APP_CONFIG } from '@env/environment';
 import { SigV4Service } from '@services/sig-v4/sig-v4.service';
@@ -18,7 +18,6 @@ import { PendingRequest,
          DeviceConfiguration,
          AlarmPayload } from '@models';
 import { WINDOW } from '@tokens/window';
-import { MainProcessEvent } from '@shared-with-electron';
 
 @Injectable({
   providedIn: 'root'
@@ -32,11 +31,10 @@ export class MqttService {
   private isDisconnecting = false;
   private connectionPromise: Nullable<Promise<void>> = null;
   private disconnectionPromise: Nullable<Promise<void>> = null;
-  private reconnectionAttempts = 0;
-  private readonly maximumReconnectionAttempts = 5;
-  private readonly sessionDataSignal = this.authService.sessionData;
+  private readonly isConnectedSubject = new BehaviorSubject<boolean>(false);
 
   readonly messages$ = new BehaviorSubject<Nullable<MqttMessage>>(null);
+  readonly isConnected$ = this.isConnectedSubject.asObservable();
 
   constructor(
     @Inject(WINDOW) private win: Window,
@@ -48,23 +46,11 @@ export class MqttService {
 
     console.log('[MqttService]: instance created');
 
-    /**
-     * Note: MQTT connection state changes are always triggered by session 
-     * retrieval attempts - either successful (connects) or unsuccessful 
-     * (disconnects). System events (online/offline, suspend/resume) also 
-     * trigger session retrieval, ensuring the MQTT connection reflects 
-     * both user session validity and system connectivity
-     */
-
-    this.initializeAuthSubscription();
-    this.initializeSystemEventHandlers();
     this.setupMessageHandlers();
 
   }
 
   async connect(sessionData: AuthSession): Promise<void> {
-
-    this.reconnectionAttempts = 0;
 
     // Check if user has policy
     if (!this.authService.hasPolicy()) {
@@ -109,29 +95,12 @@ export class MqttService {
       this.client = mqtt.connect(url, {
         clientId,
         protocolId: 'MQTT',
-        protocolVersion: 4,
+        protocolVersion: 5,
         port: 443,
         clean: true,
-        reconnectPeriod: 1000,
+        reconnectPeriod: 0,
         connectTimeout: 30 * 1000,
-        keepalive: 60,
-        transformWsUrl: (url, options, client) => {
-          if (++this.reconnectionAttempts >= this.maximumReconnectionAttempts) {
-            this.cleanup();
-            throw new Error('[MqttService]: maximum reconnection attempts reached; disconnecting...');
-          }
-          console.log(`[MqttService]: transforming WebSocket URL for reconnection; ` +
-                      `attempt ${this.reconnectionAttempts} of ${this.maximumReconnectionAttempts}`);
-          const currentSession = this.sessionDataSignal();
-          if (this.authService.isSessionTokenExpired()) {
-            throw new Error('[MqttService]: Session token expired, preventing reconnection');
-          } else if (currentSession) {
-            return this.sigV4Service.getSignedURL(currentSession);
-          } else {
-          console.log('[MqttService]: no session available, preventing reconnection');
-          throw new Error('[MqttService]: No session available for reconnection');
-          }
-        }
+        keepalive: 60
       });
 
       // Setup event handlers once per client instance
@@ -246,8 +215,7 @@ export class MqttService {
   }
 
   get isConnected(): boolean {
-    const connected = this.client?.connected || false;
-    return connected;
+    return !!this.client?.connected;
   }
 
   onMessageOfType<T extends MqttMessageType>(
@@ -320,34 +288,7 @@ export class MqttService {
     this.clearPendingRequests();
   }
 
-  private initializeAuthSubscription(): void {
-    effect(() => {
-      const sessionData = this.sessionDataSignal();
-      this.handleSessionChange(sessionData);
-    });
-  }
-
-  private initializeSystemEventHandlers(): void {
-
-    this.win.addEventListener('offline', () => {
-      this.ngZone.run(() => {
-        console.log('[MqttService]: system is offline; disconnecting...');
-        this.cleanup();
-      });
-    });
-
-    if (this.win.electron) {
-      this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_SUSPENDED, () => {
-        this.ngZone.run(() => {
-          console.log('[MqttService]: system suspended; initiating disconnect...');
-          this.cleanup();
-        });
-      });
-    }
-
-  }
-
-  private async handleSessionChange(sessionData: Nullable<AuthSession>): Promise<void> {
+  async handleSessionChange(sessionData: Nullable<AuthSession>): Promise<void> {
 
     console.log(`[MqttService]: session data changed, current connection status: `+ 
                 `${ this.isConnected ? 'connected' : 'disconnected' }`);
@@ -413,6 +354,7 @@ export class MqttService {
 
     this.client.on('connect', () => {
       console.log('[MqttService]: MQTT broker connected successfully');
+      this.isConnectedSubject.next(true);
       
       const company = sessionData.tokens?.idToken?.payload['custom:Company'];
       const topicToSubscribe = `companies/${company}/events`;
@@ -429,18 +371,22 @@ export class MqttService {
     this.client.on('message', (topic, message) => {
       console.log(`[MqttService]: MQTT message received on topic ${topic}:`, message.toString());
       this.handleIncomingMessage(message);
+      this.isConnectedSubject.next(false);
     });
 
     this.client.on('error', (error) => {
       console.error('[MqttService]: MQTT client error:', error);
+      this.isConnectedSubject.next(false);
     });
 
     this.client.on('disconnect', (packet) => {
       console.log('[MqttService]: MQTT client disconnected:', packet);
+      this.isConnectedSubject.next(false);
     });
 
     this.client.on('close', () => {
       console.log('[MqttService]: MQTT connection closed');
+      this.isConnectedSubject.next(false);
     });
 
     this.client.on('reconnect', () => {
@@ -449,6 +395,7 @@ export class MqttService {
 
     this.client.on('offline', () => {
       console.log('[MqttService]: MQTT client is offline');
+      this.isConnectedSubject.next(false);
     });
     
   }

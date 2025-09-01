@@ -49,40 +49,6 @@ export class AuthService {
 
     console.log('[AuthService]: instance created');
 
-    this.win.addEventListener('online', () => {
-      console.log('[AuthService]: system is online; refreshing session...');
-      this.fetchSession({ forceRefresh: true });
-    });
-
-    if (win.electron) {
-
-      win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
-        this.ngZone.run(() => {
-          if (this.isSessionTokenExpired()) {
-            console.log('[AuthService]: user session is expired; refreshing session...');
-            this.fetchSession({ forceRefresh: true });
-          }
-        });
-      });
-
-      win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
-        this.ngZone.run(() => {
-          if (this.isSessionTokenExpired()) {
-            console.log('[AuthService]: user session is expired; refreshing session...');
-            this.fetchSession({ forceRefresh: true });
-          }
-        });
-      });
-
-      win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
-        this.ngZone.run(() => {
-          console.log('[AuthService]: system resumed; refreshing session...');
-          this.fetchSession({ forceRefresh: true });
-        });
-      });
-
-    }
-
     effect(() => {
       const session = this.sessionDataSignal();
       if (session) {
@@ -100,11 +66,13 @@ export class AuthService {
 
     Hub.listen('auth', (data: HubCapsule<string, AuthHubEventData>) => {
       const { payload } = data;
-      if (payload.event == 'signedIn' ||
-          payload.event == 'signedOut') {
+      if (payload?.event == 'signedIn' ||
+          payload?.event == 'signedOut') {
         this.fetchSession();
       } 
     });
+
+    this.fetchSession();
 
   }
  
@@ -140,7 +108,7 @@ export class AuthService {
 
     } catch (exception) {
 
-      console.log(`[AuthService]: can't retrieve session data`, exception);
+      console.error('[AuthService]: failed to fetch session:', exception);
       this.sessionDataSignal.set(null);
 
     } finally {
@@ -163,7 +131,7 @@ export class AuthService {
 
     } catch (exception) {
 
-      console.log(`[AuthService]: can't retrieve user data`, exception);
+      console.error('[AuthService]: failed to fetch user:', exception);
       this.userSignal.set(null);
 
     }
@@ -180,7 +148,7 @@ export class AuthService {
 
     } catch (exception) {
 
-      console.log(`[AuthService]: can't retrieve user attributes`, exception);
+      console.error('[AuthService]: failed to fetch user attributes:', exception);
       this.userAttributesSignal.set(null);
 
     }
@@ -190,15 +158,18 @@ export class AuthService {
   isSessionTokenExpired(): boolean {
 
     const timeToExpiration = this.accessTokenExpirationTimeMS();
-    const refreshTime = msToHMS(timeToExpiration);
-    const isExpired = timeToExpiration === 0;
-    return isExpired;
+    return timeToExpiration === 0;
 
   }
 
   accessTokenExpirationTimeMS(): number {
-    const expirationTime = this.sessionData()?.credentials?.expiration?.getTime() || 0;
-    return Math.max(expirationTime - new Date().getTime(), 0);
+
+    if (this.sessionData()?.credentials) {
+      const expirationTime = this.sessionData()?.credentials?.expiration?.getTime() || 0;
+      return Math.max(expirationTime - new Date().getTime(), 0);
+    }
+    return -1;
+
   }
 
 }

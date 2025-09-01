@@ -26,8 +26,8 @@ import { DialogType } from '@models/ui.models';
 })
 export class DistanceSliderComponent implements OnInit {
 
-  private minDefaultValue = 5;
-  private maxDefaultValue = 500;
+  private minDefaultValue = 2;
+  private maxDefaultValue = 400;
   private _minValue = signal<number>(this.minDefaultValue);
   private _maxValue = signal<number>(this.maxDefaultValue);
   private _value = signal<number>(this.minDefaultValue);
