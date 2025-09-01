@@ -6,7 +6,7 @@ import { WINDOW } from '@tokens/window';
 import { MainProcessEvent } from '@shared-with-electron';
 import { AuthService } from '@services/auth/auth.service';
 import { MqttService } from '@services/mqtt/mqtt.service';
-import { distinct, distinctUntilChanged } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -114,14 +114,10 @@ export class AuthConnectionManagerService {
           distinctUntilChanged()
         ).subscribe(isConnected => {
           if (!isConnected) {
-            if (!this.authService.hasPolicy()) {
-            console.log('[AuthConnectionManagerService]: user does not have an iot policy attached yet; skipping...');
-            return;
-            }
             if (this.authService.isSessionTokenExpired()) {
               console.log('[AuthConnectionManagerService]: auth session is expired; refreshing session before reconnecting to MQTT broker...');
               this.authService.fetchSession({ forceRefresh: true });
-            } else if (this.authService.sessionData()) {
+            } else if (this.authService.sessionData() && this.authService.hasPolicy()) {
               console.log('[AuthConnectionManagerService]: auth session is valid; reconnecting to MQTT broker...');
               this.mqttService.handleSessionChange(this.authService.sessionData() as AuthSession);
               } else {

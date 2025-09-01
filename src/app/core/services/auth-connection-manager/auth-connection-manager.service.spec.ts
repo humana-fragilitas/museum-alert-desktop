@@ -370,25 +370,7 @@ describe('AuthConnectionManagerService', () => {
       expect(service).toBeTruthy();
     });
 
-    it('should handle MQTT reconnection when user has no policy', () => {
-      authService.hasPolicy.mockReturnValue(false);
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      
-      const injector = TestBed.inject(TestBed);
-      runInInjectionContext(injector, () => {
-        service.initializeMqttHandlers();
-      });
-      
-      // Simulate MQTT disconnection
-      isConnectedSubject.next(false);
-      
-      expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: user does not have an iot policy attached yet; skipping...');
-      
-      consoleSpy.mockRestore();
-    });
-
     it('should refresh session when MQTT disconnects and session is expired', () => {
-      authService.hasPolicy.mockReturnValue(true);
       authService.isSessionTokenExpired.mockReturnValue(true);
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
@@ -406,7 +388,7 @@ describe('AuthConnectionManagerService', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should reconnect MQTT when session is valid but MQTT is disconnected', () => {
+    it('should reconnect MQTT when session is valid and user has policy', () => {
       const mockSession: AuthSession = {
         identityId: 'test-id',
         credentials: {
@@ -428,9 +410,9 @@ describe('AuthConnectionManagerService', () => {
         userSub: 'test-sub'
       };
 
-      authService.hasPolicy.mockReturnValue(true);
       authService.isSessionTokenExpired.mockReturnValue(false);
       authService.sessionData.mockReturnValue(mockSession);
+      authService.hasPolicy.mockReturnValue(true);
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       const injector = TestBed.inject(TestBed);
@@ -447,8 +429,48 @@ describe('AuthConnectionManagerService', () => {
       consoleSpy.mockRestore();
     });
 
+    it('should cleanup MQTT when session is valid but user has no policy', () => {
+      const mockSession: AuthSession = {
+        identityId: 'test-id',
+        credentials: {
+          accessKeyId: 'key',
+          secretAccessKey: 'secret',
+          sessionToken: 'token',
+          expiration: new Date(Date.now() + 3600000)
+        },
+        tokens: {
+          accessToken: { 
+            toString: () => 'access',
+            payload: {}
+          },
+          idToken: { 
+            toString: () => 'id',
+            payload: {}
+          }
+        },
+        userSub: 'test-sub'
+      };
+
+      authService.isSessionTokenExpired.mockReturnValue(false);
+      authService.sessionData.mockReturnValue(mockSession);
+      authService.hasPolicy.mockReturnValue(false);
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      const injector = TestBed.inject(TestBed);
+      runInInjectionContext(injector, () => {
+        service.initializeMqttHandlers();
+      });
+      
+      // Simulate MQTT disconnection
+      isConnectedSubject.next(false);
+      
+      expect(consoleSpy).toHaveBeenCalledWith('[AuthConnectionManagerService]: cannot reconnect to MQTT broker - no valid user session');
+      expect(mqttService.cleanup).toHaveBeenCalled();
+      
+      consoleSpy.mockRestore();
+    });
+
     it('should cleanup MQTT when no valid session is available', () => {
-      authService.hasPolicy.mockReturnValue(true);
       authService.isSessionTokenExpired.mockReturnValue(false);
       authService.sessionData.mockReturnValue(null);
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();

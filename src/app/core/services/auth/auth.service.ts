@@ -105,6 +105,8 @@ export class AuthService {
       console.log('[AuthService]: access token:', this.accessToken());
       console.log('[AuthService]: id token:', this.idToken());
       console.log(`[AuthService]: user session is set to expire at: ${session.credentials!.expiration}`);
+      const refreshTime = msToHMS(this.accessTokenExpirationTimeMS());
+      console.log(`[AuthService]: user session will be refreshed in ${refreshTime.h} hours, ${refreshTime.m} minutes, ${refreshTime.s} seconds`);
 
     } catch (exception) {
 
@@ -114,8 +116,6 @@ export class AuthService {
     } finally {
 
       this.isFetchingSession = false;
-      const refreshTime = msToHMS(this.accessTokenExpirationTimeMS());
-      console.log(`[AuthService]: user session will be refreshed in ${refreshTime.h} hours, ${refreshTime.m} minutes, ${refreshTime.s} seconds`);
 
     }
 
