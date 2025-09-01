@@ -1,19 +1,25 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { AuthSession } from 'aws-amplify/auth';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+
+import { TestBed,
+         fakeAsync,
+         tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { of, BehaviorSubject } from 'rxjs';
-import { signal, ApplicationRef } from '@angular/core';
+import { provideHttpClientTesting,
+         HttpTestingController } from '@angular/common/http/testing';
+import { signal,
+         ApplicationRef } from '@angular/core';
 
 import { PolicyService } from './policy.service';
-import { AuthService } from '../auth/auth.service';
-import { ErrorService } from '../error/error.service';
-import { DialogService } from '../dialog/dialog.service';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { AuthSession } from 'aws-amplify/auth';
+import { AuthService } from '@services/auth/auth.service';
+import { ErrorService } from '@services/error/error.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { APP_CONFIG } from '@env/environment';
+
 
 // Mock environment
-jest.mock('../../../../environments/environment', () => ({
+jest.mock('@env/environment', () => ({
   APP_CONFIG: {
     aws: {
       apiGateway: 'https://test-api.example.com'

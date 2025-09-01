@@ -1,11 +1,14 @@
-import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { DistanceSliderComponent } from './distance-slider.component';
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+
+import { DistanceSliderComponent } from './distance-slider.component';
 import { FormatDistancePipe } from '@pipes/format-distance.pipe';
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
 import { DialogService } from '@services/dialog/dialog.service';
 import { DialogType } from '@models/ui.models';
+
 
 const mockSettingsSignal = signal<any>({ distance: 10 });
 const mockIsBusySignal = signal(false);

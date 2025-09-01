@@ -1,10 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { DialogComponent } from './dialog.component';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { DialogType } from '@models';
-import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
+import { MAT_DIALOG_DATA,
+         MatDialogRef } from '@angular/material/dialog';
+import { By } from '@angular/platform-browser';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { DialogType } from '@models';
+import { DialogComponent } from './dialog.component';
+
 
 const baseData = {
   type: DialogType.ERROR,
@@ -26,12 +32,13 @@ describe('DialogComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         DialogComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: MatDialogRef, useValue: dialogRefMock },
-        { provide: MAT_DIALOG_DATA, useValue: { ...baseData } }
+        { provide: MAT_DIALOG_DATA, useValue: { ...baseData } },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DialogComponent);

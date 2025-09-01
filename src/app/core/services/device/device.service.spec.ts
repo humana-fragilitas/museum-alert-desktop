@@ -1,11 +1,21 @@
-import { TestBed } from '@angular/core/testing';
-import { NgZone, ApplicationRef } from '@angular/core';
-import { DeviceService, USBCommandTimeoutException, USBCommandDeviceException } from './device.service';
-import { WINDOW } from '../../tokens/window';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { DeviceEvent, DeviceMessageType, DeviceAppState, USBCommandType, DeviceIncomingData, WiFiNetwork } from '@shared-with-electron';
 import { PortInfo } from '@serialport/bindings-cpp';
-import { v4 as uuidv4 } from 'uuid';
+
+import { TestBed } from '@angular/core/testing';
+import { NgZone,
+         ApplicationRef } from '@angular/core';
+
+import { DeviceService,
+         USBCommandTimeoutException,
+         USBCommandDeviceException } from './device.service';
+import { WINDOW } from '@tokens/window';
+import { APP_CONFIG } from '@env/environment';
+import { DeviceEvent,
+         DeviceMessageType,
+         DeviceAppState,
+         USBCommandType,
+         DeviceIncomingData,
+         WiFiNetwork } from '@shared-with-electron';
+
 
 jest.mock('uuid', () => ({ v4: jest.fn(() => 'uuid') }));
 

@@ -1,18 +1,21 @@
-import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
-import { ActivatedRouteSnapshot, RouterStateSnapshot, GuardResult } from '@angular/router';
-import { signal, WritableSignal, Injector, runInInjectionContext } from '@angular/core';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AuthSession } from 'aws-amplify/auth';
 
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { ActivatedRouteSnapshot,
+         RouterStateSnapshot,
+         GuardResult } from '@angular/router';
+import { signal,
+         WritableSignal,
+         Injector,
+         runInInjectionContext } from '@angular/core';
+
 import { publicOnlyGuard } from './public-only.guard';
 import { AuthService } from '@services/auth/auth.service';
 
-// Type for nullable AuthSession
-type Nullable<T> = T | null;
 
-// Mock AuthService interface
 interface MockAuthService {
   sessionData: WritableSignal<Nullable<AuthSession>>;
 }

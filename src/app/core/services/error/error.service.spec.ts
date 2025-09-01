@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
+
 import { ErrorService } from './error.service';
 import { DeviceErrorType } from '@shared-with-electron';
 import { DialogService } from '@services/dialog/dialog.service';
+
 
 describe('ErrorService', () => {
   let service: ErrorService;

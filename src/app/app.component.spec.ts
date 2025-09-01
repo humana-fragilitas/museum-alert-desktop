@@ -1,13 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AppComponent } from './app.component';
-import { TranslateService, TranslateStore } from '@ngx-translate/core';
+import { TranslateService,
+         TranslateStore } from '@ngx-translate/core';
+
+import { ComponentFixture,
+         TestBed } from '@angular/core/testing';
+import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { signal } from '@angular/core';
+
 import { ElectronService } from '@services/electron/electron.service';
 import { AuthService } from '@services/auth/auth.service';
 import { APP_CONFIG } from '@env/environment';
 import { NavBarComponent } from '@shared/components/nav-bar/nav-bar.component';
-import { RouterOutlet } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { signal } from '@angular/core';
+import { AppComponent } from './app.component';
+
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;

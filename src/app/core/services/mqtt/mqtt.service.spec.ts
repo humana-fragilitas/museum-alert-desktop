@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+
 import { MqttService } from './mqtt.service';
-import { AuthService } from '../auth/auth.service';
-import { DeviceService } from '../device/device.service';
-import { SigV4Service } from '../sig-v4/sig-v4.service';
-import { NgZone } from '@angular/core';
-import { WINDOW } from '../../tokens/window';
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceService } from '@services/device/device.service';
+import { SigV4Service } from '@services/sig-v4/sig-v4.service';
+import { WINDOW } from '@tokens/window';
+
 
 // Mock mqtt module
 const mockMqttClient = {

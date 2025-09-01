@@ -23,14 +23,17 @@ const mockDayjs: any = Object.assign(
   }
 );
 
-import { TestBed } from '@angular/core/testing';
-import { SigV4Service } from './sig-v4.service';
 import { AuthSession } from 'aws-amplify/auth';
 import * as CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 
+import { TestBed } from '@angular/core/testing';
+
+import { SigV4Service } from './sig-v4.service';
+
+
 // Mock environment config
-jest.mock('../../../../environments/environment', () => ({
+jest.mock('@env/environment', () => ({
   APP_CONFIG: {
     aws: {
       IoTCore: {

@@ -1,10 +1,15 @@
-import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { ProvisioningComponent } from './provisioning.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { of,
+         throwError } from 'rxjs';
+
+import { TestBed,
+         ComponentFixture,
+         fakeAsync } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of, throwError } from 'rxjs';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
 import { DialogType } from '@models';
 import { ProvisioningService } from '@services/provisioning/provisioning.service';
 import { DeviceService } from '@services/device/device.service';
@@ -13,9 +18,10 @@ import { DeviceRegistryService } from '@services/device-registry/device-registry
 import { DialogService } from '@services/dialog/dialog.service';
 import { CompanyService } from '@services/company/company.service';
 import { ErrorService } from '@services/error/error.service';
+import { ProvisioningComponent } from './provisioning.component';
+
 
 const mockCompanySignal = signal<any>({ companyName: 'TestOrg' });
-
 const mockAuthService = { idToken: jest.fn(() => 'id-token') };
 const mockProvisioningService = { createClaim: jest.fn(() => of({ data: { certificatePem: 'cert', keyPair: { PrivateKey: 'priv' } } })) };
 const mockDeviceService = {
@@ -37,7 +43,6 @@ describe('ProvisioningComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ProvisioningComponent,
-        HttpClientTestingModule,
         TranslateModule.forRoot()
       ],
       providers: [
@@ -47,7 +52,9 @@ describe('ProvisioningComponent', () => {
         { provide: DialogService, useValue: mockDialogService },
         { provide: DeviceRegistryService, useValue: mockDeviceRegistryService },
         { provide: CompanyService, useValue: mockCompanyService },
-        { provide: ErrorService, useValue: mockErrorService }
+        { provide: ErrorService, useValue: mockErrorService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ProvisioningComponent);

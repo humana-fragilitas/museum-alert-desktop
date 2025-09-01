@@ -1,13 +1,18 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { NavBarComponent } from './nav-bar.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
 import { CompanyService } from '@services/company/company.service';
 import { AuthService } from '@services/auth/auth.service';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
-import { RouterTestingModule } from '@angular/router/testing';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NavBarComponent } from './nav-bar.component';
+
 
 describe('NavBarComponent', () => {
   let fixture: ComponentFixture<NavBarComponent>;
@@ -25,14 +30,15 @@ describe('NavBarComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         NavBarComponent,
-        RouterTestingModule,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: CompanyService, useValue: mockCompanyService },
         { provide: AuthService, useValue: mockAuthService },
-        { provide: AuthenticatorService, useValue: mockAuthenticatorService }
+        { provide: AuthenticatorService, useValue: mockAuthenticatorService },
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(NavBarComponent);

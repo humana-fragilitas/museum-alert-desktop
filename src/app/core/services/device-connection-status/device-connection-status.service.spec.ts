@@ -1,11 +1,19 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { signal, ApplicationRef } from '@angular/core';
+import { Subject } from 'rxjs';
+
+import { TestBed,
+         fakeAsync,
+         tick } from '@angular/core/testing';
+import { signal,
+         ApplicationRef } from '@angular/core';
+
 import { DeviceConnectionStatusService } from './device-connection-status.service';
-import { MqttService } from '../mqtt/mqtt.service';
-import { DeviceService } from '../device/device.service';
-import { MqttMessageType, BaseMqttMessage, ConnectionStatus, DeviceConfiguration, AlarmPayload } from '../../models';
+import { MqttService } from '@services/mqtt/mqtt.service';
+import { DeviceService } from '@services/device/device.service';
+import { MqttMessageType,
+         BaseMqttMessage,
+         ConnectionStatus } from '@models';
 import { DeviceErrorType } from '@shared-with-electron';
-import { BehaviorSubject, Subject } from 'rxjs';
+
 
 describe('DeviceConnectionStatusService', () => {
   let service: DeviceConnectionStatusService;

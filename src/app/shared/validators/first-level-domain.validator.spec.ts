@@ -1,5 +1,7 @@
 import { FormControl } from '@angular/forms';
+
 import { firstLevelDomainValidator } from './first-level-domain.validator';
+
 
 describe('firstLevelDomainValidator', () => {
   let validator: ReturnType<typeof firstLevelDomainValidator>;

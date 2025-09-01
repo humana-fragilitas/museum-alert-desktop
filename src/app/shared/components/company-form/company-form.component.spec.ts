@@ -1,13 +1,20 @@
-import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { CompanyFormComponent } from './company-form.component';
+import { of } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture,
+         fakeAsync,
+         tick } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of, throwError } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { CompanyFormComponent } from './company-form.component';
 import { CompanyService } from '@services/company/company.service';
 import { DialogService } from '@services/dialog/dialog.service';
 import { ErrorService } from '@services/error/error.service';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 
 const mockCompanySignal = signal<any>({ companyName: 'TestOrg' });
 const mockOrganizationSignal = signal<any>({ companyName: 'TestOrg' });
@@ -32,13 +39,14 @@ describe('CompanyFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CompanyFormComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: CompanyService, useValue: mockCompanyService },
         { provide: DialogService, useValue: mockDialogService },
-        { provide: ErrorService, useValue: mockErrorService }
+        { provide: ErrorService, useValue: mockErrorService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(CompanyFormComponent);

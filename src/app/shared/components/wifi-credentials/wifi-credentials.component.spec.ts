@@ -1,13 +1,19 @@
-import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { WiFiCredentialsComponent } from './wifi-credentials.component';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture,
+         fakeAsync,
+         tick } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
 import { DeviceService } from '@services/device/device.service';
 import { ErrorService } from '@services/error/error.service';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { WiFiCredentialsComponent } from './wifi-credentials.component';
+
 
 const mockWiFiNetworksSignal = signal<any[]>([]);
 const mockErrorSignal = signal<string | null>(null);
@@ -33,12 +39,13 @@ describe('WiFiCredentialsComponent', () => {
       imports: [
         WiFiCredentialsComponent,
         TranslateModule.forRoot(),
-        HttpClientTestingModule,
         NoopAnimationsModule
       ],
       providers: [
         { provide: DeviceService, useValue: mockDeviceService },
-        { provide: ErrorService, useValue: mockErrorService }
+        { provide: ErrorService, useValue: mockErrorService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(WiFiCredentialsComponent);

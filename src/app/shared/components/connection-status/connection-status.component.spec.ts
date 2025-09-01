@@ -1,11 +1,15 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ConnectionStatusComponent } from './connection-status.component';
-import { signal } from '@angular/core';
-import { By } from '@angular/platform-browser';
-import { Subject, of } from 'rxjs';
-import { DeviceConnectionStatusService } from '@services/device-connection-status/device-connection-status.service';
+import { Subject } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { ConnectionStatusComponent } from './connection-status.component';
+import { DeviceConnectionStatusService } from '@services/device-connection-status/device-connection-status.service';
+
 
 describe('ConnectionStatusComponent', () => {
   let fixture: ComponentFixture<ConnectionStatusComponent>;
@@ -23,11 +27,12 @@ describe('ConnectionStatusComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ConnectionStatusComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
-        { provide: DeviceConnectionStatusService, useValue: mockService }
+        { provide: DeviceConnectionStatusService, useValue: mockService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ConnectionStatusComponent);

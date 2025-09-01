@@ -1,14 +1,21 @@
-import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { DeviceControlComponent } from './device-control.component';
+import { Subject } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture,
+         fakeAsync,
+         tick } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of, Subject } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { DeviceControlComponent } from './device-control.component';
 import { DeviceService } from '@services/device/device.service';
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
 import { DeviceConnectionStatusService } from '@services/device-connection-status/device-connection-status.service';
 import { MqttService } from '@services/mqtt/mqtt.service';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 
 const mockSerialNumber = signal('SN123');
 const mockSettings = signal<any>({ distance: 5 });
@@ -42,14 +49,15 @@ describe('DeviceControlComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         DeviceControlComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: DeviceService, useValue: mockDeviceService },
         { provide: DeviceConfigurationService, useValue: mockDeviceConfigService },
         { provide: DeviceConnectionStatusService, useValue: mockDeviceConnectionStatusService },
-        { provide: MqttService, useValue: mockMqttService }
+        { provide: MqttService, useValue: mockMqttService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DeviceControlComponent);

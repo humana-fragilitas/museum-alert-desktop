@@ -1,9 +1,13 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { SettingsTableComponent } from './settings-table.component';
-import { By } from '@angular/platform-browser';
-import { FormatDistancePipe } from '@pipes/format-distance.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { SettingsTableComponent } from './settings-table.component';
+
 
 describe('SettingsTableComponent', () => {
   let fixture: ComponentFixture<SettingsTableComponent>;
@@ -15,8 +19,11 @@ describe('SettingsTableComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         SettingsTableComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(SettingsTableComponent);

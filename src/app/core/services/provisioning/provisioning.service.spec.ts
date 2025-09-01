@@ -1,15 +1,18 @@
-import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { BehaviorSubject } from 'rxjs';
 
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting,
+         HttpTestingController } from '@angular/common/http/testing';
+
 import { ProvisioningService } from './provisioning.service';
-import { AuthService } from '../auth/auth.service';
-import { DeviceService } from '../device/device.service';
-import { APP_CONFIG } from '../../../../environments/environment';
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceService } from '@services/device/device.service';
+import { APP_CONFIG } from '@env/environment';
+
 
 // Mock the environment config
-jest.mock('../../../../environments/environment', () => ({
+jest.mock('@env/environment', () => ({
   APP_CONFIG: {
     aws: {
       apiGateway: 'https://api.example.com'

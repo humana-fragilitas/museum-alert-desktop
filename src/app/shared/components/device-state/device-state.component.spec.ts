@@ -1,11 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { DeviceStateComponent } from './device-state.component';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
 import { DeviceService } from '@services/device/device.service';
 import { DeviceAppState } from '@shared-with-electron';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { DeviceStateComponent } from './device-state.component';
+
 
 describe('DeviceStateComponent', () => {
   let fixture: ComponentFixture<DeviceStateComponent>;
@@ -28,11 +33,12 @@ describe('DeviceStateComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         DeviceStateComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
-        { provide: DeviceService, useValue: mockDeviceService }
+        { provide: DeviceService, useValue: mockDeviceService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DeviceStateComponent);

@@ -1,13 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { DeviceComponent } from './device.component';
-import { DeviceStateComponent } from '@shared/components/device-state/device-state.component';
-import { WizardComponent } from '@shared/components/wizard-component/wizard.component';
-import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { TranslateService,
+         TranslateStore,
+         TranslateModule } from '@ngx-translate/core';
+
+
+import { ComponentFixture,
+         TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { TranslateService, TranslateStore, TranslateModule } from '@ngx-translate/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { DeviceComponent } from './device.component';
+
 
 describe('DeviceComponent', () => {
   let fixture: ComponentFixture<DeviceComponent>;
@@ -20,13 +25,14 @@ describe('DeviceComponent', () => {
       imports: [
         DeviceComponent,
         TranslateModule.forRoot(),
-        NoopAnimationsModule,
-        HttpClientTestingModule
+        NoopAnimationsModule
       ],
       providers: [
         TranslateService,
         TranslateStore,
-        { provide: MatSnackBar, useValue: { open: jest.fn() } }
+        { provide: MatSnackBar, useValue: { open: jest.fn() } },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DeviceComponent);

@@ -1,13 +1,17 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ProfileComponent } from './profile.component';
-import { signal, WritableSignal } from '@angular/core';
+import { TranslateModule,
+         TranslateService } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
+import { ProfileComponent } from './profile.component';
 import { CompanyService } from '@services/company/company.service';
 import { AuthService } from '@services/auth/auth.service';
-import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRoute } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
 
 // Mock signals for company and loginId
 const mockCompany = signal<any>({ companyName: 'TestOrg', members: [{ email: 'user@example.com', role: 'admin', joinedAt: new Date() }] });
@@ -23,7 +27,6 @@ describe('ProfileComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ProfileComponent,
-        RouterTestingModule,
         TranslateModule.forRoot(),
         NoopAnimationsModule
       ],
@@ -33,7 +36,8 @@ describe('ProfileComponent', () => {
           company: mockCompany 
         } },
         { provide: AuthService, useValue: { userLoginId: mockLoginId } },
-        TranslateService
+        TranslateService,
+        provideRouter([])
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ProfileComponent);

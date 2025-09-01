@@ -1,9 +1,14 @@
-import { TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
+import { fetchAuthSession,
+         getCurrentUser,
+         fetchUserAttributes } from 'aws-amplify/auth';
+import { Hub } from '@aws-amplify/core';
+
+import { TestBed } from '@angular/core/testing';
 import { NgZone } from '@angular/core';
 import { AuthService } from './auth.service';
-import { fetchAuthSession, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
-import { Hub } from '@aws-amplify/core';
+
 import { WINDOW } from '@tokens/window';
+
 
 // Mock AWS Amplify modules
 jest.mock('aws-amplify/auth', () => ({

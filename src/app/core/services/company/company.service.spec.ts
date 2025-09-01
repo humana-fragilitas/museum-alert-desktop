@@ -1,15 +1,24 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed,
+         fakeAsync,
+         tick,
+         flush } from '@angular/core/testing';
+import { signal,
+         ApplicationRef } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { CompanyService } from './company.service';
-import { AuthService } from '../auth/auth.service';
-import { CompanyWithUserContext, UpdateCompanyRequest, UpdateCompanyResponse, CompanyRole, SuccessApiResponse } from '../../models';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { of } from 'rxjs';
-import { fakeAsync, tick, flush } from '@angular/core/testing';
-import { signal, ChangeDetectorRef, ApplicationRef } from '@angular/core';
+import { provideHttpClientTesting,
+         HttpTestingController } from '@angular/common/http/testing';
 
-jest.mock('../../../../environments/environment', () => ({
+import { CompanyService } from './company.service';
+import { AuthService } from '@services/auth/auth.service';
+import { CompanyWithUserContext,
+         UpdateCompanyRequest,
+         UpdateCompanyResponse,
+         CompanyRole,
+         SuccessApiResponse } from '@models';
+import { APP_CONFIG } from '@env/environment';
+
+
+jest.mock('@env/environment', () => ({
   APP_CONFIG: { aws: { apiGateway: 'https://api.example.com' } }
 }));
 

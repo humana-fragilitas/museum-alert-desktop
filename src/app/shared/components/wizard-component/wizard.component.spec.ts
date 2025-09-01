@@ -1,17 +1,25 @@
-import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
-import { WizardComponent } from './wizard.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { of } from 'rxjs';
+
+import { TestBed,
+         ComponentFixture,
+         fakeAsync,
+         tick,
+         flushMicrotasks } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of, throwError } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 import { DeviceService } from '@services/device/device.service';
 import { DeviceRegistryService } from '@services/device-registry/device-registry.service';
 import { DialogService } from '@services/dialog/dialog.service';
 import { ErrorService } from '@services/error/error.service';
-import { DeviceAppState, USBCommandType } from '@shared-with-electron';
+import { DeviceAppState } from '@shared-with-electron';
 import { DialogType } from '@models';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { WizardComponent } from './wizard.component';
+
 
 describe('WizardComponent', () => {
   let fixture: ComponentFixture<WizardComponent>;
@@ -51,15 +59,16 @@ describe('WizardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         WizardComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: DeviceService, useValue: mockDeviceService },
         { provide: DeviceRegistryService, useValue: mockDeviceRegistryService },
         { provide: DialogService, useValue: mockDialogService },
         { provide: MatSnackBar, useValue: mockSnackBar },
-        { provide: ErrorService, useValue: mockErrorService }
+        { provide: ErrorService, useValue: mockErrorService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     

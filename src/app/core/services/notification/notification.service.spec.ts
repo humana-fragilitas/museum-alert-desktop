@@ -1,11 +1,19 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TranslateService,
+         TranslateStore } from '@ngx-translate/core';
+
+import { TestBed,
+         fakeAsync,
+         tick } from '@angular/core/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslateService, TranslateStore } from '@ngx-translate/core';
-import { signal, ApplicationRef } from '@angular/core';
+import { signal,
+         ApplicationRef } from '@angular/core';
+
 import { NotificationService } from './notification.service';
-import { DeviceService } from '../device/device.service';
-import { ErrorService } from '../error/error.service';
-import { DeviceErrorType, DeviceMessageType } from '@shared-with-electron';
+import { DeviceService } from '@services/device/device.service';
+import { ErrorService } from '@services/error/error.service';
+import { DeviceErrorType,
+         DeviceMessageType } from '@shared-with-electron';
+
 
 describe('NotificationService', () => {
   let service: NotificationService;

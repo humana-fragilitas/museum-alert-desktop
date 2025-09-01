@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+
 import { DeviceConfigurationService } from './device-configuration.service';
-import { MqttService } from '../mqtt/mqtt.service';
-import { MqttCommandType, DeviceConfiguration } from '../../models';
+import { MqttService } from '@services/mqtt/mqtt.service';
+import { MqttCommandType,
+         DeviceConfiguration } from '@models';
+
 
 describe('DeviceConfigurationService', () => {
   let service: DeviceConfigurationService;

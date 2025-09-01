@@ -1,6 +1,8 @@
 import { FormControl } from '@angular/forms';
+
 import { validateEddystoneUrl } from '../helpers/eddystone-url.helper';
 import { eddystoneUrlValidator } from './eddystone-encoded-url.validator';
+
 
 jest.mock('../helpers/eddystone-url.helper', () => ({
   validateEddystoneUrl: jest.fn()

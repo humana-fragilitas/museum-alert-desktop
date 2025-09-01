@@ -1,12 +1,16 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { of } from 'rxjs';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting,
+         HttpTestingController } from '@angular/common/http/testing';
+import { HttpErrorResponse,
+         HttpResponse } from '@angular/common/http';
 
 import { DeviceRegistryService } from './device-registry.service';
-import { AuthService } from '../auth/auth.service';
-import { APP_CONFIG } from '../../../../environments/environment';
-import { Sensor, SuccessApiResponse, ErrorApiResponse, ApiResult } from '../../models';
+import { AuthService } from '@services/auth/auth.service';
+import { APP_CONFIG } from '@env/environment';
+import { Sensor,
+         SuccessApiResponse,
+         ApiResult } from '@models';
 
 
 describe('DeviceRegistryService', () => {
@@ -31,10 +35,11 @@ describe('DeviceRegistryService', () => {
   beforeEach(() => {
     authService = { company: jest.fn(() => mockCompany) };
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
         DeviceRegistryService,
-        { provide: AuthService, useValue: authService }
+        { provide: AuthService, useValue: authService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     });
     service = TestBed.inject(DeviceRegistryService);

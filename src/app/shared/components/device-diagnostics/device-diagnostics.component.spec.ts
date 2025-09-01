@@ -1,10 +1,17 @@
-import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
-import { DeviceDiagnosticsComponent } from './device-diagnostics.component';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture,
+         fakeAsync,
+         flushMicrotasks } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { DeviceDiagnosticsComponent } from './device-diagnostics.component';
 import { DeviceService } from '@services/device/device.service';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 
 describe('DeviceDiagnosticsComponent', () => {
   let fixture: ComponentFixture<DeviceDiagnosticsComponent>;
@@ -20,11 +27,12 @@ describe('DeviceDiagnosticsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         DeviceDiagnosticsComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
-        { provide: DeviceService, useValue: mockDeviceService }
+        { provide: DeviceService, useValue: mockDeviceService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(DeviceDiagnosticsComponent);

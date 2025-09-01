@@ -1,7 +1,12 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { HomeComponent } from './home.component';
+import { TranslateModule,
+         TranslateService } from '@ngx-translate/core';
+
+import { TestBed,
+         ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+
+import { HomeComponent } from './home.component';
+
 
 describe('HomeComponent', () => {
   let fixture: ComponentFixture<HomeComponent>;

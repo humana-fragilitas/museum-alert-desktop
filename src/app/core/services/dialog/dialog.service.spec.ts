@@ -1,12 +1,18 @@
-import { TestBed } from '@angular/core/testing';
-import { MatDialog, MatDialogRef, MatDialogConfig } from '@angular/material/dialog';
 import { of } from 'rxjs';
-import { DialogService } from './dialog.service';
-import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
-import { DialogPayload, DialogResult, DialogType } from '../../models';
-import { AuthenticationExpiredError } from '../../interceptors/auth-token.interceptor';
+
+import { TestBed } from '@angular/core/testing';
+import { MatDialog,
+         MatDialogRef,
+         MatDialogConfig } from '@angular/material/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
-import { USBCommandTimeoutException } from '../device/device.service';
+
+import { DialogService } from './dialog.service';
+import { DialogComponent } from '@shared/components/dialog/dialog.component';
+import { DialogPayload,
+         DialogResult,
+         DialogType } from '@models';
+import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
+import { USBCommandTimeoutException } from '@services/device/device.service';
 
 
 describe('DialogService', () => {

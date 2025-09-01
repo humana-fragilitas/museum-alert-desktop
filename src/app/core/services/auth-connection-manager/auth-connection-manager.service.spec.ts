@@ -1,12 +1,16 @@
-import { TestBed } from '@angular/core/testing';
-import { NgZone, runInInjectionContext } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { AuthSession } from 'aws-amplify/auth';
+
+import { TestBed } from '@angular/core/testing';
+import { NgZone,
+         runInInjectionContext } from '@angular/core';
+
 import { AuthConnectionManagerService } from './auth-connection-manager.service';
-import { AuthService } from '../auth/auth.service';
-import { MqttService } from '../mqtt/mqtt.service';
+import { AuthService } from '@services/auth/auth.service';
+import { MqttService } from '@services/mqtt/mqtt.service';
 import { WINDOW } from '@tokens/window';
 import { MainProcessEvent } from '@shared-with-electron';
-import { AuthSession } from 'aws-amplify/auth';
+
 
 describe('AuthConnectionManagerService', () => {
   let service: AuthConnectionManagerService;

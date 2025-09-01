@@ -1,13 +1,18 @@
-import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
-import { BeaconUrlFormComponent } from './beacon-url-form.component';
+import { TranslateModule } from '@ngx-translate/core';
+
 import { signal } from '@angular/core';
-import { FormControl } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { of } from 'rxjs';
+import { TestBed,
+         ComponentFixture,
+         fakeAsync,
+         tick } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+
+import { BeaconUrlFormComponent } from './beacon-url-form.component';
 import { DeviceConfigurationService } from '@services/device-configuration/device-configuration.service';
 import { DialogService } from '@services/dialog/dialog.service';
-import { TranslateModule } from '@ngx-translate/core';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 
 const mockSettingsSignal = signal<any>({ beaconUrl: '' });
 const mockIsBusySignal = signal(false);
@@ -29,12 +34,13 @@ describe('BeaconUrlFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         BeaconUrlFormComponent,
-        TranslateModule.forRoot(),
-        HttpClientTestingModule
+        TranslateModule.forRoot()
       ],
       providers: [
         { provide: DeviceConfigurationService, useValue: mockDeviceConfigService },
-        { provide: DialogService, useValue: mockDialogService }
+        { provide: DialogService, useValue: mockDialogService },
+        provideHttpClient(),
+        provideHttpClientTesting()
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(BeaconUrlFormComponent);

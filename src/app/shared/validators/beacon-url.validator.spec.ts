@@ -1,8 +1,10 @@
 import { FormControl } from '@angular/forms';
+
 import { beaconUrlValidator } from './beacon-url.validator';
 import { urlValidator } from './url.validator';
 import { firstLevelDomainValidator } from './first-level-domain.validator';
 import { eddystoneUrlValidator } from './eddystone-encoded-url.validator';
+
 
 jest.mock('./url.validator');
 jest.mock('./first-level-domain.validator');

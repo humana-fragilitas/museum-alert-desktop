@@ -7,20 +7,28 @@ jest.mock('@env/environment', () => ({
   }
 }));
 
-import { TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptors, HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { HttpRequest, HttpHandler } from '@angular/common/http';
-import { signal, WritableSignal, runInInjectionContext, Injector, InjectionToken } from '@angular/core';
-import { of, throwError, EMPTY } from 'rxjs';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
+import { of,
+         EMPTY } from 'rxjs';
 import { AuthSession } from 'aws-amplify/auth';
+import { AuthenticatorService } from '@aws-amplify/ui-angular';
+
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient,
+         withInterceptors,
+         HttpClient,
+         HttpErrorResponse } from '@angular/common/http';
+import { provideHttpClientTesting,
+         HttpTestingController } from '@angular/common/http/testing';
+import { signal,
+         WritableSignal,
+         Injector,
+         InjectionToken } from '@angular/core';
 
 import { authTokenInterceptor, AuthenticationExpiredError } from './auth-token.interceptor';
 import { AuthService } from '@services/auth/auth.service';
 import { DialogService } from '@services/dialog/dialog.service';
-import { DialogType, HttpStatusCode } from '@models';
-import { APP_CONFIG } from '@env/environment';
+import { DialogType } from '@models';
+
 
 // Create a proper injection token for testing
 const TEST_APP_CONFIG = new InjectionToken('TEST_APP_CONFIG');

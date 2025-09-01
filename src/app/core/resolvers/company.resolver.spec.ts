@@ -1,14 +1,26 @@
-// src/app/core/resolvers/company.resolver.spec.ts
+import { of,
+         throwError } from 'rxjs';
+import { jest } from '@jest/globals';
+import { TranslateService,
+         TranslateLoader,
+         TranslateCompiler,
+         TranslateStore,
+         TranslateParser,
+         MissingTranslationHandler,
+         USE_DEFAULT_LANG,
+         DEFAULT_LANGUAGE,
+         USE_EXTEND } from '@ngx-translate/core';
+
 import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
+
 import { CompanyResolver } from './company.resolver';
-import { CompanyService } from '../services/company/company.service';
-import { NotificationService } from '../services/notification/notification.service';
-import { DialogService } from '../services/dialog/dialog.service';
-import { CompanyRole, CompanyWithUserContext } from '../models';
-import { jest } from '@jest/globals';
-import { TranslateService, TranslateModule, TranslateLoader, TranslateCompiler, TranslateStore, TranslateParser, MissingTranslationHandler, USE_DEFAULT_LANG, DEFAULT_LANGUAGE, USE_EXTEND } from '@ngx-translate/core';
+import { CompanyService } from '@services/company/company.service';
+import { NotificationService } from '@services/notification/notification.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { CompanyRole,
+         CompanyWithUserContext } from '@models';
+
 
 describe('CompanyResolver', () => {
   let resolver: CompanyResolver;

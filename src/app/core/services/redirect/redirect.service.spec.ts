@@ -1,10 +1,18 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { Injector, Signal, WritableSignal, computed, effect, signal, ApplicationRef } from '@angular/core';
 import { AuthSession } from 'aws-amplify/auth';
-import { RedirectService } from './redirect.service';
-import { AuthService } from '../auth/auth.service';
-import { DeviceService } from '../device/device.service';
+
+import { TestBed,
+         fakeAsync,
+         tick } from '@angular/core/testing';
+import { Injector,
+         WritableSignal,
+         signal,
+         ApplicationRef } from '@angular/core';
 import { Router } from '@angular/router';
+
+import { RedirectService } from './redirect.service';
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceService } from '@services/device/device.service';
+
 
 // Type for nullable AuthSession
 type Nullable<T> = T | null;
