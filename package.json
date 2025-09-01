@@ -1,26 +1,18 @@
 {
   "name": "museum-alert-desktop",
   "version": "1.0.0",
-  "description": "Desktop application suitable for configuring Museum Alert Sensors",
+  "description": "Cross-platform desktop application suitable for provisioning, configuring and testing the Museum Alert Sensor (MAS), part of the Museum Alert project",
   "homepage": "https://github.com/humana-fragilitas/museum-alert",
   "author": {
     "name": "Andrea Blasio",
     "email": "andrea@humanafragilitas.com"
   },
   "keywords": [
-    "angular",
-    "angular 19",
-    "electron",
-    "electron 36",
-    "nodejs",
-    "typescript",
-    "jest",
-    "playwright",
-    "eslint",
-    "sass",
-    "windows",
-    "mac",
-    "linux"
+    "iot",
+    "aws",
+    "angular-electron",
+    "mqtt",
+    "aws-amplify-angular"
   ],
   "main": "app/main.js",
   "private": true,
