@@ -40,6 +40,7 @@ export class WiFiCredentialsComponent implements OnInit {
   private wiFiNetworksSignal = this.deviceService.wiFiNetworks;
   private errorSignal = this.deviceService.error;
   private appStatusSignal = this.deviceService.deviceAppStatus;
+  private previousError: any = null;
   
   readonly isSendingCredentials = signal<boolean>(false);
   readonly isRefreshingWiFiNetworks = signal<boolean>(false);
@@ -97,13 +98,16 @@ export class WiFiCredentialsComponent implements OnInit {
     // Handle device errors - only react to new errors, not persistent error state
     effect(() => {
       const message = this.errorSignal();
-      if (message && this.isSendingCredentials()) {
-        console.log('Error received while sending credentials:', message);
+      // Only reset if this is a NEW error (different from previous) and we're currently sending
+      if (message && message !== this.previousError && this.isSendingCredentials()) {
+        console.log('New error received while sending credentials:', message);
         console.log('Resetting isSendingCredentials from', this.isSendingCredentials(), 'to false');
         // Reset loading state when any device error is received during credential sending
         this.isSendingCredentials.set(false);
         console.log('isSendingCredentials after reset:', this.isSendingCredentials());
       }
+      // Update the previous error tracker
+      this.previousError = message;
     });
 
   }
