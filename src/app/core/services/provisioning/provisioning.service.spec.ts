@@ -7,7 +7,6 @@ import { provideHttpClientTesting,
 
 import { ProvisioningService } from './provisioning.service';
 import { AuthService } from '@services/auth/auth.service';
-import { DeviceService } from '@services/device/device.service';
 import { APP_CONFIG } from '@env/environment';
 
 
@@ -24,11 +23,9 @@ describe('ProvisioningService', () => {
   let service: ProvisioningService;
   let httpMock: HttpTestingController;
   let authService: jest.Mocked<Pick<AuthService, 'sessionData' | 'idToken'>>;
-  let deviceService: jest.Mocked<Pick<DeviceService, 'generateCid'>>;
   let sessionSignal: BehaviorSubject<any>;
 
   // Mock data
-  const mockCid = 'cid-123' as const;
   const mockIdToken = 'id-token-abc' as const;
   const mockSession = {
     tokens: {
@@ -43,15 +40,11 @@ describe('ProvisioningService', () => {
       sessionData: sessionSignal,
       idToken: jest.fn(() => mockIdToken)
     } as any;
-    deviceService = {
-      generateCid: jest.fn(() => mockCid)
-    } as any;
     await TestBed.configureTestingModule({
       providers:
       [
         ProvisioningService,
         { provide: AuthService, useValue: authService },
-        { provide: DeviceService, useValue: deviceService },
         provideHttpClient(),
         provideHttpClientTesting()
       ]
@@ -70,7 +63,7 @@ describe('ProvisioningService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should create a provisioning claim and map cid/idToken', (done) => {
+  it('should create a provisioning claim and map idToken', (done) => {
     // Arrange
     const expectedUrl = `${APP_CONFIG.aws.apiGateway}/provisioning-claims/`;
 
@@ -78,9 +71,7 @@ describe('ProvisioningService', () => {
     service.createClaim().subscribe(result => {
       // Assert
       expect((result as any).foo).toBe('bar');
-      expect((result as any).cid).toBe(mockCid);
       expect((result as any).idToken).toBe(mockIdToken);
-      expect(deviceService.generateCid).toHaveBeenCalled();
       expect(authService.idToken).toHaveBeenCalled();
       done();
     });
@@ -102,7 +93,6 @@ describe('ProvisioningService', () => {
     // Act
     service.createClaim().subscribe(result => {
       // Assert
-      expect((result as any).cid).toBe(mockCid);
       expect((result as any).idToken).toBe(''); // Expect empty string
       done();
     });
@@ -126,22 +116,22 @@ describe('ProvisioningService', () => {
     req.flush('fail', { status: 500, statusText: 'Internal Server Error' });
   });
 
-  it('should call generateCid once per request', () => {
+  it('should call idToken method once per request', (done) => {
     // Act
-    const sub = service.createClaim().subscribe();
+    service.createClaim().subscribe(() => {
+      // Assert
+      expect(authService.idToken).toHaveBeenCalledTimes(1);
+      done();
+    });
     
-    // Assert
-    expect(deviceService.generateCid).toHaveBeenCalledTimes(1);
-    
-    // Clean up
+    // Complete the HTTP request
     const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/provisioning-claims/`);
     req.flush(mockApiResponse);
-    sub.unsubscribe();
   });
 
   it('should handle empty API response', (done) => {
     service.createClaim().subscribe(result => {
-      expect(result).toMatchObject({ cid: mockCid, idToken: mockIdToken });
+      expect(result).toMatchObject({ idToken: mockIdToken });
       done();
     });
     const req = httpMock.expectOne(`${APP_CONFIG.aws.apiGateway}/provisioning-claims/`);

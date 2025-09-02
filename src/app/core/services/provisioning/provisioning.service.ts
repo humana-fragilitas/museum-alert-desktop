@@ -23,12 +23,10 @@ export class ProvisioningService {
 
   createClaim(): Observable<ApiResult<ProvisioningClaimResponse>> {
 
-    const cid = this.deviceService.generateCid();
     const apiUrl = `${APP_CONFIG.aws.apiGateway}/provisioning-claims/`;
     return this.httpClient.post(apiUrl, null).pipe(
       map((response: any) => ({
         ...response,
-        cid,
         idToken: this.authService.idToken()
       }))
     );
