@@ -147,7 +147,7 @@ export class WizardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isRequestingReset.set(true);
         try {
           await firstValueFrom(this.deviceRegistryService.deleteSensor(serialNumber));
-          await this.deviceService.sendUSBCommand(USBCommandType.HARD_RESET, null);
+          await this.deviceService.sendUSBCommand(USBCommandType.RESET, null);
         } catch (error) {
           console.error('An error occurred while trying to delete and reset sensor:', error);
         } finally {

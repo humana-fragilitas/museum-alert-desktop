@@ -180,7 +180,7 @@ describe('DeviceService', () => {
   it('should handle sendUSBCommand and resolve on response', async () => {
     service['serialNumberSignal'].set('SN');
     const sendSpy = jest.spyOn(mockWindow.electron.ipcRenderer, 'send');
-    const promise = service.sendUSBCommand(USBCommandType.HARD_RESET, {} as any);
+    const promise = service.sendUSBCommand(USBCommandType.RESET, {} as any);
     // Simulate response
     const cid = Object.keys(service['pendingRequests'])[0];
     service.parseIncomingData({ type: DeviceMessageType.ACKNOWLEDGMENT, sn: 'SN', cid } as any);
@@ -190,14 +190,14 @@ describe('DeviceService', () => {
 
   it('should reject sendUSBCommand on timeout', async () => {
     service['serialNumberSignal'].set('SN');
-    const promise = service.sendUSBCommand(USBCommandType.HARD_RESET, {} as any);
+    const promise = service.sendUSBCommand(USBCommandType.RESET, {} as any);
     jest.advanceTimersByTime(1001);
     await expect(promise).rejects.toThrow(USBCommandTimeoutException);
   });
 
   it('should reject sendUSBCommand on device error', async () => {
     service['serialNumberSignal'].set('SN');
-    const promise = service.sendUSBCommand(USBCommandType.HARD_RESET, {} as any);
+    const promise = service.sendUSBCommand(USBCommandType.RESET, {} as any);
     const cid = Object.keys(service['pendingRequests'])[0];
     service.parseIncomingData({ type: DeviceMessageType.ERROR, sn: 'SN', cid, data: { error: 1 } } as any);
     await expect(promise).rejects.toThrow(USBCommandDeviceException);
