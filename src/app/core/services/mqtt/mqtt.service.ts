@@ -4,7 +4,7 @@ import { BehaviorSubject,
          Observable } from 'rxjs';
 import mqtt from 'mqtt';
 
-import { Inject, Injectable, NgZone, effect, signal } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 
 import { APP_CONFIG } from '@env/environment';
 import { SigV4Service } from '@services/sig-v4/sig-v4.service';
@@ -17,7 +17,7 @@ import { PendingRequest,
          MqttMessageType,
          DeviceConfiguration,
          AlarmPayload } from '@models';
-import { WINDOW } from '@tokens/window';
+
 
 @Injectable({
   providedIn: 'root'
@@ -27,8 +27,6 @@ export class MqttService {
   private pendingRequests: Record<string, PendingRequest<any>> = {};
   private client: mqtt.MqttClient | undefined;
   private lastIdentityId: string | undefined;
-  private isConnecting = false;
-  private isDisconnecting = false;
   private connectionPromise: Nullable<Promise<void>> = null;
   private disconnectionPromise: Nullable<Promise<void>> = null;
   private readonly isConnectedSubject = new BehaviorSubject<boolean>(false);
@@ -37,8 +35,6 @@ export class MqttService {
   readonly isConnected$ = this.isConnectedSubject.asObservable();
 
   constructor(
-    @Inject(WINDOW) private win: Window,
-    private ngZone: NgZone,
     private authService: AuthService,
     private sigV4Service: SigV4Service,
     private deviceService: DeviceService
@@ -82,8 +78,6 @@ export class MqttService {
   }
 
   private async establishConnection(sessionData: AuthSession): Promise<void> {
-
-    this.isConnecting = true;
 
     try {
 
@@ -136,10 +130,6 @@ export class MqttService {
       this.cleanup();
       throw error;
 
-    } finally {
-
-      this.isConnecting = false;
-
     }
 
   }
@@ -153,7 +143,7 @@ export class MqttService {
     }
 
     // If not connected and not connecting, nothing to do
-    if (!this.client && !this.isConnecting) {
+    if (!this.client && !this.connectionPromise) {
       console.log('[MqttService]: no client to disconnect');
       return;
     }
@@ -169,8 +159,6 @@ export class MqttService {
   }
 
   private async terminateConnection(): Promise<void> {
-
-    this.isDisconnecting = true;
 
     try {
       // Clear all pending requests
@@ -196,10 +184,6 @@ export class MqttService {
     } catch (error) {
 
       console.error('[MqttService]: error during MQTT disconnect:', error);
-
-    } finally {
-
-      this.isDisconnecting = false;
 
     }
 
