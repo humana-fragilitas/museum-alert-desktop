@@ -57,6 +57,7 @@ export class AuthConnectionManagerService {
       this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
         this.ngZone.run(() => {
           console.log('[AuthConnectionManagerService]: system resumed; refreshing session...');
+          this.mqttService.cleanup();
           this.authService.fetchSession({ forceRefresh: true });
         });
       });
