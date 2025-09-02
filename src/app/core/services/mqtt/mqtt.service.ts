@@ -154,6 +154,8 @@ export class MqttService {
       await this.disconnectionPromise;
     } finally {
       this.disconnectionPromise = null;
+      this.connectionPromise = null;
+      this.lastIdentityId = undefined
     }
 
   }
