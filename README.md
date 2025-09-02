@@ -15,7 +15,7 @@ Cross-platform Angular Electron desktop application suitable for provisioning, c
 ## Prerequisites
 
 ### System Requirements
-- **Node.js**: version 22.12.0 or higher, or 24.0.0 or higher;
+- **Node.js**: version 22.19.0 or higher;
 - **Operating System**: Windows, macOS, or Linux.
 
 ### Project Dependencies
