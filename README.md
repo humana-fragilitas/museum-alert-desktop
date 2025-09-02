@@ -36,8 +36,6 @@ This desktop application requires the following components to be deployed and co
    - configurable ultrasonic distance barrier (2cm to 4 meters) with WiFi connectivity and alert notifications via MQTT;
    - configurable BLE Eddystone-URL beacon suitable for proximity notifications.
 
-**Note**: the desktop application is specifically designed to configure, provision on AWS IoT Core, and test the Museum Alert Sensor (MAS). Therefore, the sensor firmware must be built and deployed to the hardware device before this desktop application can be used effectively. Deploy these dependencies in the specified order before setting up this desktop application.
-
 ## Getting Started
 
 ### Environment Configuration
@@ -75,37 +73,37 @@ cd ..
 
 | Directory | Process Type | Technology Stack | Description |
 |-----------|--------------|------------------|-------------|
-| `src/`    | Renderer     | Angular/Web      | User interface and web-based functionality |
+| `src/`    | Renderer     | Angular/Web      | User interface and Web-based functionality |
 | `app/`    | Main         | Node.js/Electron | System integration and native platform features |
 
 ## Available Commands
 
-**Note**: Museum Alert Desktop is specifically designed as an Electron desktop application; while some commands include Web/browser functionality, they are primarily used internally for development features (like hot reload) and are not recommended for production use as a Web application.
+**Note**: Museum Alert Desktop is specifically designed as an Electron desktop application; while some commands include Web/browser functionality, they are primarily used internally for development features (like hot reload).
 
 ### Development Commands
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `npm start` | Starts the full development environment with hot reload | **Recommended**: Primary development command - runs both Angular dev server and Electron in parallel |
-| `npm run ng:serve` | Starts only the Angular development server in web mode | **Internal use**: Provides hot reload capability for `npm start` - not recommended for standalone development |
-| `npm run electron:serve` | Starts Electron pointing to the development server | **Internal use**: Used internally by `npm start` - waits for Angular dev server to be ready |
+| `npm start` | Starts the full development environment with hot reload | **Recommended**: primary development command - runs both Angular dev server and Electron in parallel |
+| `npm run ng:serve` | Starts only the Angular development server in Web mode | **Internal use**: provides hot reload capability for `npm start` - not recommended for standalone development |
+| `npm run electron:serve` | Starts Electron pointing to the development server | **Internal use**: used internally by `npm start` - waits for Angular dev server to be ready |
 
 ### Build Commands
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
 | `npm run build` | Basic build with default environment | Standard build for local testing |
-| `npm run build:dev` | Build with development environment configuration | **Recommended**: Development builds with dev-specific settings |
-| `npm run build:prod` | Build with production environment configuration | **Recommended**: Production builds for distribution |
-| `npm run web:build` | Build for web deployment (no Electron) | **Not recommended**: Creates web version but application requires Electron features |
+| `npm run build:dev` | Build with development environment configuration | **Recommended**: development builds with dev-specific settings |
+| `npm run build:prod` | Build with production environment configuration | **Recommended**: production builds for distribution |
+| `npm run web:build` | Build for Web deployment (no Electron) | **Not recommended**: creates Web version but application requires Electron features |
 
 ### Electron Commands
 
 | Command | Description | When to Use |
 |---------|-------------|-------------|
-| `npm run electron:local` | Builds with dev config and runs Electron locally | **Recommended**: Testing the full Electron app without packaging |
-| `npm run electron:build` | Builds with production config and packages the app | **Recommended**: Creating distributable Electron applications for your OS |
-| `npm run electron` | Runs Electron directly without building | **Not recommended**: Requires manual build steps first - use `electron:local` or `electron:build` instead |
+| `npm run electron:local` | Builds with dev config and runs Electron locally | **Recommended**: testing the full Electron app without packaging |
+| `npm run electron:build` | Builds with production config and packages the app | **Recommended**: creating distributable Electron applications for your OS |
+| `npm run electron` | Runs Electron directly without building | **Not recommended**: requires manual build steps first - use `electron:local` or `electron:build` instead |
 
 ### Testing Commands
 
