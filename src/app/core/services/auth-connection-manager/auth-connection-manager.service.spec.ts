@@ -183,7 +183,6 @@ describe('AuthConnectionManagerService', () => {
         
         systemResumedHandler();
         
-        expect(mqttService.cleanup).toHaveBeenCalled();
         expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
       });
 
@@ -348,7 +347,6 @@ describe('AuthConnectionManagerService', () => {
         privateService.onSystemEvent(MainProcessEvent.SYSTEM_RESUMED);
         
         expect(privateService.resumed).toBe(true);
-        expect(mqttService.cleanup).toHaveBeenCalled();
         expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
       });
     });

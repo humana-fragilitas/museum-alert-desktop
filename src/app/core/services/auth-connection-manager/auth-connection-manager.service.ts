@@ -100,7 +100,7 @@ export class AuthConnectionManagerService {
 
   }
 
-  public onSystemEvent(event: string) {
+  public onSystemEvent(event: MainProcessEvent) {
 
     switch(event) {
       case MainProcessEvent.WINDOW_FOCUSED:
