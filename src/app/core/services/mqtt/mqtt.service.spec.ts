@@ -114,15 +114,6 @@ describe('MqttService', () => {
 
   describe('Connection Management', () => {
     describe('connect()', () => {
-      it('should skip connection if user has no policy', async () => {
-        authService.hasPolicy.mockReturnValue(false);
-        
-        await service.connect(mockSessionData as any);
-        
-        expect(mqtt.connect).not.toHaveBeenCalled();
-        expect(service.isConnected).toBe(false);
-      });
-
       it('should return early if already connected', async () => {
         mockMqttClient.connected = true;
         (service as any).client = mockMqttClient;
@@ -490,16 +481,69 @@ describe('MqttService', () => {
         
         expect(connectSpy).toHaveBeenCalledWith(mockSessionData);
       });
+
+      it('should log appropriate messages for session changes', async () => {
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+        const connectSpy = jest.spyOn(service, 'connect').mockResolvedValue();
+        const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
+        
+        // Set initial connected state
+        (service as any).client = mockMqttClient;
+        mockMqttClient.connected = true;
+        
+        // Test session change with valid session
+        await service.handleSessionChange(mockSessionData as any);
+        
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[MqttService]: session data changed, current connection status: connected')
+        );
+        expect(connectSpy).toHaveBeenCalledWith(mockSessionData);
+        
+        // Test session change with null session
+        await service.handleSessionChange(null);
+        
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[MqttService]: no session data, disconnecting MQTT'
+        );
+        expect(disconnectSpy).toHaveBeenCalled();
+        
+        consoleSpy.mockRestore();
+      });
     });
   });
 
   describe('Cleanup', () => {
-    it('should cleanup resources', () => {
+    it('should cleanup resources by calling disconnect', () => {
       const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
       
       service.cleanup();
       
       expect(disconnectSpy).toHaveBeenCalled();
+    });
+
+    it('should clear pending requests on cleanup', () => {
+      // Set up pending request
+      const mockReject = jest.fn();
+      const mockTimeout = setTimeout(() => {}, 1000);
+      
+      (service as any).pendingRequests = {
+        'test-cid': {
+          resolve: jest.fn(),
+          reject: mockReject,
+          timeout: mockTimeout
+        }
+      };
+      
+      // Mock disconnect to avoid actual connection termination
+      jest.spyOn(service, 'disconnect').mockResolvedValue();
+      
+      service.cleanup();
+      
+      // Verify pending requests are cleared immediately
+      expect(mockReject).toHaveBeenCalledWith(
+        new Error('[MqttService]: connection closed')
+      );
+      expect((service as any).pendingRequests['test-cid']).toBeUndefined();
     });
   });
 

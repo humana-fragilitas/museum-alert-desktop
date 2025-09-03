@@ -2,14 +2,10 @@ import { of } from 'rxjs';
 import { AuthSession } from 'aws-amplify/auth';
 import { AuthenticatorService } from '@aws-amplify/ui-angular';
 
-import { TestBed,
-         fakeAsync,
-         tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting,
          HttpTestingController } from '@angular/common/http/testing';
-import { signal,
-         ApplicationRef } from '@angular/core';
 
 import { PolicyService } from './policy.service';
 import { AuthService } from '@services/auth/auth.service';
@@ -34,8 +30,6 @@ describe('PolicyService', () => {
   let errorService: any;
   let dialogService: any;
   let authenticatorService: any;
-  let sessionSignal: any;
-  let applicationRef: ApplicationRef;
 
   const mockSession: AuthSession = {
     tokens: {
@@ -48,15 +42,13 @@ describe('PolicyService', () => {
   } as any;
 
   beforeEach(async () => {
-    sessionSignal = signal(null);
     authService = {
-      sessionData: sessionSignal,
-      hasPolicy: jest.fn(() => false),
       fetchSession: jest.fn(() => Promise.resolve())
     };
     errorService = { };
     dialogService = { openDialog: jest.fn(() => of(null)) };
     authenticatorService = { signOut: jest.fn() };
+    
     await TestBed.configureTestingModule({
       providers: [
         PolicyService,
@@ -68,8 +60,8 @@ describe('PolicyService', () => {
         provideHttpClientTesting()
       ]
     });
+    
     service = TestBed.inject(PolicyService);
-    applicationRef = TestBed.inject(ApplicationRef);
     httpMock = TestBed.inject(HttpTestingController);
     jest.clearAllMocks();
   });
@@ -78,39 +70,27 @@ describe('PolicyService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should call attachPolicyWithRetry when session has no policy', fakeAsync(() => {
-    const spy = jest.spyOn(service as any, 'attachPolicyWithRetry').mockResolvedValue(undefined);
-    sessionSignal.set(mockSession);
-    applicationRef.tick(); // Trigger effects
-    tick(); // Wait for effect to run
-    expect(spy).toHaveBeenCalledWith(mockSession);
-  }));
-
-  it('should not call attachPolicyWithRetry when session has policy', fakeAsync(() => {
-    const spy = jest.spyOn(service as any, 'attachPolicyWithRetry');
-    authService.hasPolicy.mockReturnValue(true);
-    sessionSignal.set(mockSession);
-    applicationRef.tick(); // Trigger effects
-    tick(); // Wait for effect to run
-    expect(spy).not.toHaveBeenCalled();
-  }));
-
-  it('should not call attachPolicyWithRetry when session is null', fakeAsync(() => {
-    const spy = jest.spyOn(service as any, 'attachPolicyWithRetry').mockResolvedValue(undefined);
-    sessionSignal.set(null);
-    applicationRef.tick(); // Trigger effects
-    tick(); // Wait for effect to run
-    expect(spy).not.toHaveBeenCalled();
-  }));
-
-  it('should POST to /user-policy and refresh session on attachPolicy success', async () => {
+  it('should successfully attach policy and refresh session', async () => {
     const expectedUrl = `${APP_CONFIG.aws.apiGateway}/user-policy`;
+    
     const promise = service.attachPolicy(mockSession);
+    
     const req = httpMock.expectOne(expectedUrl);
     expect(req.request.method).toBe('POST');
-    req.flush({ data: { attached: true }, timestamp: Date.now() });
-    await promise;
-    expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
+    expect(req.request.body).toBeNull();
+    
+    // Mock successful response
+    req.flush({ 
+      data: { 
+        policyName: 'test-policy',
+        identityId: 'test-identity',
+        company: 'test-company'
+      }, 
+      timestamp: Date.now() 
+    });
+    
+    const result = await promise;
+    expect((result as any).data.policyName).toBe('test-policy');
   });
 
   it('should retry attachPolicy on error and eventually succeed', async () => {
@@ -135,7 +115,6 @@ describe('PolicyService', () => {
     await promise;
     
     expect(callCount).toBe(2);
-    expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
   });
 
   it('should throw after max retries in attachPolicy', async () => {

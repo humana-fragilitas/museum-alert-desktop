@@ -4,6 +4,7 @@ import { NgZone, signal } from '@angular/core';
 import { AuthConnectionManagerService } from './auth-connection-manager.service';
 import { AuthService } from '@services/auth/auth.service';
 import { MqttService } from '@services/mqtt/mqtt.service';
+import { PolicyService } from '@services/policy/policy.service';
 import { WINDOW } from '@tokens/window';
 import { MainProcessEvent } from '@shared-with-electron';
 
@@ -11,6 +12,7 @@ describe('AuthConnectionManagerService', () => {
   let service: AuthConnectionManagerService;
   let authService: jest.Mocked<AuthService>;
   let mqttService: jest.Mocked<MqttService>;
+  let policyService: jest.Mocked<PolicyService>;
   let mockWindow: any;
   let ngZone: NgZone;
 
@@ -22,9 +24,12 @@ describe('AuthConnectionManagerService', () => {
         payload: {
           'custom:Company': 'test-company'
         }
+      },
+      accessToken: {
+        payload: {}
       }
     }
-  };
+  } as any;
 
   beforeEach(() => {
     // Enable console logging for tests
@@ -67,11 +72,17 @@ describe('AuthConnectionManagerService', () => {
       get isConnected() { return false; }
     } as any;
 
+    // Mock PolicyService
+    policyService = {
+      attachPolicy: jest.fn().mockResolvedValue(undefined)
+    } as any;
+
     TestBed.configureTestingModule({
       providers: [
         AuthConnectionManagerService,
         { provide: AuthService, useValue: authService },
         { provide: MqttService, useValue: mqttService },
+        { provide: PolicyService, useValue: policyService },
         { provide: WINDOW, useValue: mockWindow }
       ]
     });
@@ -138,6 +149,10 @@ describe('AuthConnectionManagerService', () => {
 
     describe('WINDOW_FOCUSED event', () => {
       it('should trigger session refresh when session is expired', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
         Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
@@ -159,6 +174,10 @@ describe('AuthConnectionManagerService', () => {
 
     describe('SESSION_CHECK event', () => {
       it('should trigger session refresh when MQTT is disconnected', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(false);
         Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
@@ -179,6 +198,10 @@ describe('AuthConnectionManagerService', () => {
 
     describe('SYSTEM_RESUMED event', () => {
       it('should cleanup MQTT and refresh session', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
         
         systemResumedHandler();
@@ -223,6 +246,10 @@ describe('AuthConnectionManagerService', () => {
 
     describe('online event', () => {
       it('should set online state and refresh session if needed', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
         
         onlineHandler();
@@ -276,6 +303,10 @@ describe('AuthConnectionManagerService', () => {
   describe('Session Refresh Logic', () => {
     describe('shouldRefreshSession()', () => {
       it('should return true when session is expired and conditions are met', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
         Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
@@ -287,6 +318,10 @@ describe('AuthConnectionManagerService', () => {
       });
 
       it('should return true when MQTT is disconnected and conditions are met', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(false);
         Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
@@ -341,6 +376,10 @@ describe('AuthConnectionManagerService', () => {
 
     describe('SYSTEM_RESUMED processing', () => {
       it('should set resumed state, cleanup MQTT, and refresh session', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
         privateService.resumed = false;
         
@@ -364,6 +403,10 @@ describe('AuthConnectionManagerService', () => {
 
     describe('SYSTEM_ONLINE processing', () => {
       it('should set online state and refresh session if needed', () => {
+        // Set up session data using the signal
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
         privateService.online = false;
         
@@ -413,6 +456,62 @@ describe('AuthConnectionManagerService', () => {
     });
   });
 
+  describe('Auth Session Handling', () => {
+    let sessionDataSignal: any;
+
+    beforeEach(() => {
+      // Get the session signal from the auth service mock
+      sessionDataSignal = authService.sessionData as any;
+      // Clear all mocks before each test
+      jest.clearAllMocks();
+    });
+
+    it('should cleanup MQTT and handle session change when user has policy', async () => {
+      // Mock user with policy
+      authService.hasPolicy.mockReturnValue(true);
+      
+      // Trigger the effect by setting session data
+      sessionDataSignal.set(mockSessionData);
+      
+      // Wait for effect to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      expect(mqttService.cleanup).toHaveBeenCalled();
+      expect(mqttService.handleSessionChange).toHaveBeenCalledWith(mockSessionData);
+      expect(policyService.attachPolicy).not.toHaveBeenCalled();
+      expect(authService.fetchSession).not.toHaveBeenCalled();
+    });
+
+    it('should attach policy and refresh session when user has no policy', async () => {
+      // Mock user without policy
+      authService.hasPolicy.mockReturnValue(false);
+      
+      // Trigger the effect by setting session data
+      sessionDataSignal.set(mockSessionData);
+      
+      // Wait for effect to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      expect(policyService.attachPolicy).toHaveBeenCalledWith(mockSessionData);
+      expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
+      expect(mqttService.cleanup).not.toHaveBeenCalled();
+      expect(mqttService.handleSessionChange).not.toHaveBeenCalled();
+    });
+
+    it('should not do anything when session is null', async () => {
+      // Trigger the effect with null session
+      sessionDataSignal.set(null);
+      
+      // Wait for effect to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      expect(mqttService.cleanup).not.toHaveBeenCalled();
+      expect(mqttService.handleSessionChange).not.toHaveBeenCalled();
+      expect(policyService.attachPolicy).not.toHaveBeenCalled();
+      expect(authService.fetchSession).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Non-Electron Environment', () => {
     beforeEach(() => {
       // Create service without electron
@@ -428,6 +527,7 @@ describe('AuthConnectionManagerService', () => {
           AuthConnectionManagerService,
           { provide: AuthService, useValue: authService },
           { provide: MqttService, useValue: mqttService },
+          { provide: PolicyService, useValue: policyService },
           { provide: WINDOW, useValue: mockWindowWithoutElectron }
         ]
       });

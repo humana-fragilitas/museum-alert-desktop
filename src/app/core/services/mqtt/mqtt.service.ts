@@ -45,11 +45,6 @@ export class MqttService {
 
   async connect(sessionData: AuthSession): Promise<void> {
 
-    if (!this.authService.hasPolicy()) {
-      console.log('[MqttService]: user does not have an iot policy attached yet; skipping...');
-      return;
-    }
-
     if (this.connectionPromise) {
       console.log('[MqttService]: connection already in progress, waiting...');
       return this.connectionPromise;

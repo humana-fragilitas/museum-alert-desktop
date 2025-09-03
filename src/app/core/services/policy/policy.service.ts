@@ -2,8 +2,7 @@ import { AuthenticatorService } from '@aws-amplify/ui-angular';
 import { AuthSession } from 'aws-amplify/auth';
 import { firstValueFrom } from 'rxjs';
 
-import { Injectable,
-         effect } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient,
          HttpErrorResponse } from '@angular/common/http';
 
@@ -14,8 +13,6 @@ import { ApiResult,
          SuccessApiResponse,
          AttachPolicyResponse } from '@models';
 import { ErrorService } from '@services/error/error.service';
-import { DialogType } from '@models/ui.models';
-import { AuthenticationExpiredError } from '@interceptors/auth-token.interceptor';
 import { DialogService } from '@services/dialog/dialog.service';
 
 
@@ -24,25 +21,13 @@ import { DialogService } from '@services/dialog/dialog.service';
 })
 export class PolicyService {
 
-  private readonly sessionDataSignal = this.authService.sessionData;
-
   constructor(
     private readonly httpClient: HttpClient, 
     private readonly authService: AuthService,
     private readonly errorService: ErrorService,
     private readonly dialogService: DialogService,
     private readonly authenticatorService: AuthenticatorService
-  ) {
-
-    effect(() => {
-      const session = this.sessionDataSignal();
-      if (session && !this.authService.hasPolicy()) {
-        console.log(`[PolicyService]: authenticated user has no IoT policy attached`);
-        this.attachPolicyWithRetry(session);
-      }
-    });
-
-  }
+  ) { }
 
   async attachPolicy(
     session: AuthSession, 
@@ -99,7 +84,7 @@ export class PolicyService {
     try {
       const result = await attemptAttach();
       // Always refresh session after successful policy attachment
-      this.authService.fetchSession({ forceRefresh: true });
+      // this.authService.fetchSession({ forceRefresh: true });
       return result;
     } catch (error) {
       console.error(
@@ -180,18 +165,6 @@ export class PolicyService {
         this.authenticatorService.signOut();
       });
 
-
-      // this.errorService.showModal({
-      //   data: {
-      //     type: DialogType.ERROR,
-      //     title: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_TITLE',
-      //     message: 'ERRORS.APPLICATION.IOT_POLICY_ATTACHMENT_FAILED_MESSAGE'
-      //   },
-      //   exception: exception as HttpErrorResponse | AuthenticationExpiredError,
-      //   onClosed: () => {
-      //     this.authenticatorService.signOut();
-      //   }
-      // });
     }
     
   }

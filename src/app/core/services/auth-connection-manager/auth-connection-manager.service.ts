@@ -4,6 +4,7 @@ import { WINDOW } from '@tokens/window';
 import { MainProcessEvent } from '@shared-with-electron';
 import { AuthService } from '@services/auth/auth.service';
 import { MqttService } from '@services/mqtt/mqtt.service';
+import { PolicyService } from '@services/policy/policy.service';
 
 
 @Injectable({
@@ -19,6 +20,7 @@ export class AuthConnectionManagerService {
   constructor(@Inject(WINDOW) private win: Window,
                               private ngZone: NgZone,
                               private authService: AuthService,
+                              private policyService: PolicyService,
                               private mqttService: MqttService) {
 
     this.initializeSystemHandlers();
@@ -90,11 +92,19 @@ export class AuthConnectionManagerService {
 
   private initializeAuthHandlers() {
 
-    effect(() => {
+    effect(async () => {
       const session = this.authService.sessionData();
-      console.log(`[AuthConnectionManagerService]: ${ session ? 'valid session' : 'no session' } available`);
+      const hasPolicy = this.authService.hasPolicy();
       if (session) {
-        this.mqttService.handleSessionChange(session);
+        if (hasPolicy) {
+           console.log(`[AuthConnectionManagerService]: authenticated user has IoT policy; handling MQTT session...`);
+           this.mqttService.cleanup();
+           this.mqttService.handleSessionChange(session);
+        } else {
+          console.log(`[AuthConnectionManagerService]: authenticated user has no IoT policy; attaching policy...`);
+          await this.policyService.attachPolicy(session);
+          this.authService.fetchSession({ forceRefresh: true });
+        }
       }
     });
 
@@ -134,8 +144,11 @@ export class AuthConnectionManagerService {
   }
 
   private shouldRefreshSession(): boolean {
-    return (this.authService.isSessionTokenExpired() ||
-           !this.mqttService.isConnected) && this.online && this.resumed;
+    return  !!this.authService.sessionData() &&
+              this.online &&
+              this.resumed &&
+             (this.authService.isSessionTokenExpired() ||
+             !this.mqttService.isConnected);
   }
 
 }
