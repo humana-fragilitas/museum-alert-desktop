@@ -92,5 +92,7 @@ export enum MainProcessEvent {
     WINDOW_FOCUSED = 'window-focused',
     SYSTEM_RESUMED = 'system-resumed',
     SESSION_CHECK = 'session-check',
-    SYSTEM_SUSPENDED = "system-suspended"
+    SYSTEM_SUSPENDED = 'system-suspended',
+    SYSTEM_ONLINE = 'system-online',
+    SYSTEM_OFFLINE = 'system-offline'
 }
