@@ -104,14 +104,11 @@ export class AuthConnectionManagerService {
 
     switch(event) {
       case MainProcessEvent.WINDOW_FOCUSED:
-        console.log('[AuthConnectionManagerService]: system resumed');
-        this.resumed = true;
-        this.mqttService.cleanup();
+        console.log('[AuthConnectionManagerService]: window focused');
         break;
       case MainProcessEvent.SYSTEM_RESUMED:
         console.log('[AuthConnectionManagerService]: system resumed');
         this.resumed = true;
-        this.mqttService.cleanup();
         break;
       case MainProcessEvent.SYSTEM_SUSPENDED:
         console.log('[AuthConnectionManagerService]: system suspended');
