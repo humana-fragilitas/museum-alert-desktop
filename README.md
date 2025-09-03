@@ -7,7 +7,7 @@
 [![MacOS Build][macos-build-badge]][macos-build]
 [![Windows Build][windows-build-badge]][windows-build]
 
-Cross-platform Angular Electron desktop application suitable for provisioning, configuring and testing the **[Museum Alert Sensor (MAS)](https://github.com/humana-fragilitas/museum-alert-sketch)**, part of the **[Museum Alert](https://github.com/humana-fragilitas/museum-alert)** project.
+Cross-platform desktop application built with Angular and Electron for provisioning, configuring, and testing the **[Museum Alert Sensor (MAS)](https://github.com/humana-fragilitas/museum-alert-sketch)**, part of the **[Museum Alert](https://github.com/humana-fragilitas/museum-alert)** project.
 
 **Important: please review the [disclaimer](#disclaimer) before using this project.**
 
@@ -16,10 +16,10 @@ Cross-platform Angular Electron desktop application suitable for provisioning, c
 
 ### System Requirements
 - **Node.js**: version 22.19.0 or higher;
-- **Operating System**: Windows, macOS, or Linux.
+- **Operating System**: Windows, macOS, or GNU/Linux.
 
 ### Project Dependencies
-This desktop application requires the following components to be deployed and configured before use:
+"Museum Alert Desktop" requires the following components to be deployed and configured before use:
 
 1. **[Museum Alert API](https://github.com/humana-fragilitas/museum-alert-api)** - AWS CDK infrastructure project that provides:
    - AWS API Gateway endpoints;
@@ -55,7 +55,7 @@ Different environment files are available depending on which npm script is execu
 
 ### Installation
 
-This project follows the [Electron Builder two package.json structure](https://www.electron.build/tutorials/two-package-structure), requiring separate dependency installations for the renderer and main processes.
+This project follows the [Electron Builder's two package.json structure](https://www.electron.build/tutorials/two-package-structure), requiring separate dependency installations for the renderer and main processes.
 
 **Step 1: Install renderer process dependencies (Angular/Web)**
 ```bash
