@@ -19,6 +19,8 @@ module.exports = {
     '^.+\\.js$': 'ts-jest',
   },
   moduleNameMapper: {
+    // Fix the cross-module import issue for @shared-with-electron
+    '^@shared-with-electron$': '<rootDir>/app/shared/index.ts',
     ...pathsToModuleNameMapper(compilerOptions.paths, {
       prefix: '<rootDir>/src/',
     }),

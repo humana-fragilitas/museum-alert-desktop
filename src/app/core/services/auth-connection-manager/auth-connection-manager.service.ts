@@ -1,13 +1,9 @@
-import { AuthSession } from 'aws-amplify/auth';
-import { AuthenticatorService } from '@aws-amplify/ui-angular';
-
 import { Injectable, effect, NgZone, Inject } from '@angular/core';
 
 import { WINDOW } from '@tokens/window';
 import { MainProcessEvent } from '@shared-with-electron';
 import { AuthService } from '@services/auth/auth.service';
 import { MqttService } from '@services/mqtt/mqtt.service';
-import { distinctUntilChanged, Subscription } from 'rxjs';
 
 
 @Injectable({
@@ -15,8 +11,6 @@ import { distinctUntilChanged, Subscription } from 'rxjs';
 })
 export class AuthConnectionManagerService {
 
-  private readonly MAX_RETRY_ATTEMPTS = 5;
-  private retryAttempts = 0;
   private online = true;
   private resumed = true;
   private onlineHandler?: () => void;
@@ -24,54 +18,44 @@ export class AuthConnectionManagerService {
 
   constructor(@Inject(WINDOW) private win: Window,
                               private ngZone: NgZone,
-                              private authenticatorService: AuthenticatorService,
                               private authService: AuthService,
                               private mqttService: MqttService) {
 
     this.initializeSystemHandlers();
     this.initializeAuthHandlers();
-    this.initializeMqttHandlers();
 
     console.log('[AuthConnectionManagerService]: instance created');
 
   }
 
-  // new methods
-  initializeSystemHandlers() {
+  private initializeSystemHandlers() {
 
     if (this.win.electron) {
 
       this.win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
         this.ngZone.run(() => {
-          if (this.authService.isSessionTokenExpired()) {
-            console.log('[AuthConnectionManagerService]: user session is expired; refreshing session...');
-            this.authService.fetchSession({ forceRefresh: true });
-          }
+          this.onSystemEvent(MainProcessEvent.WINDOW_FOCUSED);
         });
       });
 
       this.win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
         this.ngZone.run(() => {
-          if (this.shouldRefreshSession()) {
-            console.log('[AuthConnectionManagerService]: user session is expired; refreshing session...');
-            this.authService.fetchSession({ forceRefresh: true });
-          }
+          this.onSystemEvent(MainProcessEvent.SESSION_CHECK);
         });
       });
 
       this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
         this.ngZone.run(() => {
           console.log('[AuthConnectionManagerService]: system resumed; refreshing session...');
-          this.resumed = true;
-          this.mqttService.cleanup();
+          this.onSystemEvent(MainProcessEvent.SYSTEM_RESUMED);
         });
       });
 
       this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_SUSPENDED, () => {
+        this.onSystemEvent(MainProcessEvent.SYSTEM_SUSPENDED);
         this.ngZone.run(() => {
           console.log('[AuthConnectionManagerService]: system suspended; initiating disconnect...');
-          this.resumed = false;
-          this.mqttService.cleanup();
+          this.onSystemEvent(MainProcessEvent.SYSTEM_SUSPENDED);
         });
       });
 
@@ -80,15 +64,14 @@ export class AuthConnectionManagerService {
     this.offlineHandler = () => {
       this.ngZone.run(() => {
         console.log('[AuthConnectionManagerService]: system is offline; disconnecting from MQTT broker...');
-        this.online = false
-        this.mqttService.cleanup();
+         this.onSystemEvent(MainProcessEvent.SYSTEM_OFFLINE);
       });
     };
 
     this.onlineHandler = () => {
       this.ngZone.run(() => {
         console.log('[AuthConnectionManagerService]: system is online; refreshing session...');
-        this.online = true;
+         this.onSystemEvent(MainProcessEvent.SYSTEM_ONLINE);
       });
     };
 
@@ -105,10 +88,11 @@ export class AuthConnectionManagerService {
    * both user session validity and system connectivity
    */
 
-  initializeAuthHandlers() {
+  private initializeAuthHandlers() {
 
     effect(() => {
       const session = this.authService.sessionData();
+      console.log(`[AuthConnectionManagerService]: ${ session ? 'valid session' : 'no session' } available`);
       if (session) {
         this.mqttService.handleSessionChange(session);
       }
@@ -116,30 +100,46 @@ export class AuthConnectionManagerService {
 
   }
 
-  shouldRefreshSession(): boolean {
-    return (this.authService.isSessionTokenExpired() ||
-           !this.mqttService.isConnected) && this.online && this.resumed;
+  public onSystemEvent(event: string) {
+
+    switch(event) {
+      case MainProcessEvent.WINDOW_FOCUSED:
+        console.log('[AuthConnectionManagerService]: system resumed');
+        this.resumed = true;
+        this.mqttService.cleanup();
+        break;
+      case MainProcessEvent.SYSTEM_RESUMED:
+        console.log('[AuthConnectionManagerService]: system resumed');
+        this.resumed = true;
+        this.mqttService.cleanup();
+        break;
+      case MainProcessEvent.SYSTEM_SUSPENDED:
+        console.log('[AuthConnectionManagerService]: system suspended');
+        this.resumed = false;
+        this.mqttService.cleanup();
+        break;
+      case MainProcessEvent.SYSTEM_ONLINE:
+        console.log('[AuthConnectionManagerService]: system online');
+        this.online = true;
+        break;
+      case MainProcessEvent.SYSTEM_OFFLINE:
+        console.log('[AuthConnectionManagerService]: system offline');
+        this.online = false;
+        this.mqttService.cleanup();
+        break;
+
+    }
+
+    if (this.shouldRefreshSession()) {
+      console.log('[AuthConnectionManagerService]: refreshing session...');
+      this.authService.fetchSession({ forceRefresh: true });
+    }
+
   }
 
-  initializeMqttHandlers() {
-
-    // const subscription = this.mqttService.isConnected$
-    //     .pipe(
-    //       distinctUntilChanged()
-    //     ).subscribe(isConnected => {
-    //       if (!isConnected) {
-    //         if (++this.retryAttempts <= this.MAX_RETRY_ATTEMPTS) {
-    //           console.log(`[AuthConnectionManagerService]: MQTT connection lost, attempting to reconnect... (attempt ${this.retryAttempts})`);
-    //           this.authService.fetchSession({ forceRefresh: true });
-    //         } else {
-    //           console.error('[AuthConnectionManagerService]: maximum MQTT reconnection attempts reached; logging out user');
-    //           this.authenticatorService.signOut();
-    //         }
-    //       } else {
-    //         this.retryAttempts = 0;
-    //       }
-    //     });
-
+  private shouldRefreshSession(): boolean {
+    return (this.authService.isSessionTokenExpired() ||
+           !this.mqttService.isConnected) && this.online && this.resumed;
   }
 
 }
