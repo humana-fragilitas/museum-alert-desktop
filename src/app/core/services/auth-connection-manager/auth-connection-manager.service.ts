@@ -124,7 +124,6 @@ export class AuthConnectionManagerService {
         this.online = false;
         this.mqttService.cleanup();
         break;
-
     }
 
     if (this.shouldRefreshSession()) {
