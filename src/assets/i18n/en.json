@@ -73,7 +73,7 @@
       "CHOOSE_WIFI_NETWORK": "Choose a WiFi network",
       "PROVISION_DEVICE": "Provision device",
       "REGISTER_DEVICE": "Register device",
-      "DEVICE_REGISTRATION_MESSAGE": "Your device is being registered; please wait...",
+      "DEVICE_REGISTRATION_MESSAGE": "Your device is being registered",
       "REGISTRATION_DONE": "Done",
       "FATAL_ERROR_MESSAGE": "An error occurred: you may need to reset the device and try again",
       "WAIT_FOR_COMMUNICATION_MESSAGE": "Communicating; please wait..."

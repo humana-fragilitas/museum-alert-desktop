@@ -6,6 +6,12 @@ mat-stepper {
     background: transparent !important;
 }
 
+.registration-spinner {
+    vertical-align: sub;
+    display: inline-block !important;
+    margin-left: 5px;
+}
+
 .mat-horizontal-stepper-header-container {
     pointer-events: none;
 }
