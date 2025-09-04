@@ -69,7 +69,8 @@ describe('AuthConnectionManagerService', () => {
     mqttService = {
       handleSessionChange: jest.fn(),
       cleanup: jest.fn(),
-      get isConnected() { return false; }
+      get isConnected() { return false; },
+      get isConnecting() { return false; }
     } as any;
 
     // Mock PolicyService
@@ -98,19 +99,23 @@ describe('AuthConnectionManagerService', () => {
 
     it('should initialize system handlers for electron environment', () => {
       expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
-        MainProcessEvent.WINDOW_FOCUSED, 
-        expect.any(Function)
-      );
-      expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
-        MainProcessEvent.SESSION_CHECK, 
-        expect.any(Function)
-      );
-      expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
         MainProcessEvent.SYSTEM_RESUMED, 
         expect.any(Function)
       );
       expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
+        MainProcessEvent.STATUS_CHECK, 
+        expect.any(Function)
+      );
+      expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
         MainProcessEvent.SYSTEM_SUSPENDED, 
+        expect.any(Function)
+      );
+      expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
+        MainProcessEvent.SYSTEM_ONLINE, 
+        expect.any(Function)
+      );
+      expect(mockWindow.electron.ipcRenderer.on).toHaveBeenCalledWith(
+        MainProcessEvent.SYSTEM_OFFLINE, 
         expect.any(Function)
       );
     });
@@ -133,102 +138,69 @@ describe('AuthConnectionManagerService', () => {
   });
 
   describe('Electron IPC Event Handling', () => {
-    let windowFocusedHandler: Function;
-    let sessionCheckHandler: Function;
+    let statusCheckHandler: Function;
     let systemResumedHandler: Function;
     let systemSuspendedHandler: Function;
+    let systemOnlineHandler: Function;
+    let systemOfflineHandler: Function;
 
     beforeEach(() => {
       // Extract the handlers from the mock calls
       const ipcCalls = mockWindow.electron.ipcRenderer.on.mock.calls;
-      windowFocusedHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.WINDOW_FOCUSED)?.[1];
-      sessionCheckHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.SESSION_CHECK)?.[1];
+      statusCheckHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.STATUS_CHECK)?.[1];
       systemResumedHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.SYSTEM_RESUMED)?.[1];
       systemSuspendedHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.SYSTEM_SUSPENDED)?.[1];
+      systemOnlineHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.SYSTEM_ONLINE)?.[1];
+      systemOfflineHandler = ipcCalls.find((call: any[]) => call[0] === MainProcessEvent.SYSTEM_OFFLINE)?.[1];
     });
 
-    describe('WINDOW_FOCUSED event', () => {
-      it('should trigger session refresh when session is expired', () => {
-        // Set up session data using the signal
-        const sessionDataSignal = authService.sessionData as any;
-        sessionDataSignal.set(mockSessionData);
+    describe('STATUS_CHECK event', () => {
+      it('should trigger onStatusCheck method', () => {
+        const onStatusCheckSpy = jest.spyOn(service, 'onStatusCheck').mockResolvedValue();
         
-        authService.isSessionTokenExpired.mockReturnValue(true);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
+        statusCheckHandler();
         
-        // Simulate window focus event
-        windowFocusedHandler();
-        
-        expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
-      });
-
-      it('should not refresh session when conditions are not met', () => {
-        authService.isSessionTokenExpired.mockReturnValue(false);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => true, configurable: true });
-        
-        windowFocusedHandler();
-        
-        expect(authService.fetchSession).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('SESSION_CHECK event', () => {
-      it('should trigger session refresh when MQTT is disconnected', () => {
-        // Set up session data using the signal
-        const sessionDataSignal = authService.sessionData as any;
-        sessionDataSignal.set(mockSessionData);
-        
-        authService.isSessionTokenExpired.mockReturnValue(false);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
-        
-        sessionCheckHandler();
-        
-        expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
-      });
-
-      it('should not refresh when session is valid and MQTT is connected', () => {
-        authService.isSessionTokenExpired.mockReturnValue(false);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => true, configurable: true });
-        
-        sessionCheckHandler();
-        
-        expect(authService.fetchSession).not.toHaveBeenCalled();
+        expect(onStatusCheckSpy).toHaveBeenCalled();
       });
     });
 
     describe('SYSTEM_RESUMED event', () => {
-      it('should cleanup MQTT and refresh session', () => {
-        // Set up session data using the signal
-        const sessionDataSignal = authService.sessionData as any;
-        sessionDataSignal.set(mockSessionData);
-        
-        authService.isSessionTokenExpired.mockReturnValue(true);
+      it('should call onSystemEvent with SYSTEM_RESUMED', () => {
+        const onSystemEventSpy = jest.spyOn(service, 'onSystemEvent').mockResolvedValue();
         
         systemResumedHandler();
         
-        expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
-      });
-
-      it('should set resumed state to true', () => {
-        // Access private property for testing
-        const privateService = service as any;
-        privateService.resumed = false;
-        
-        systemResumedHandler();
-        
-        expect(privateService.resumed).toBe(true);
+        expect(onSystemEventSpy).toHaveBeenCalledWith(MainProcessEvent.SYSTEM_RESUMED);
       });
     });
 
     describe('SYSTEM_SUSPENDED event', () => {
-      it('should cleanup MQTT and set suspended state', () => {
+      it('should call onSystemEvent with SYSTEM_SUSPENDED', () => {
+        const onSystemEventSpy = jest.spyOn(service, 'onSystemEvent').mockResolvedValue();
+        
         systemSuspendedHandler();
         
-        expect(mqttService.cleanup).toHaveBeenCalled();
+        expect(onSystemEventSpy).toHaveBeenCalledWith(MainProcessEvent.SYSTEM_SUSPENDED);
+      });
+    });
+
+    describe('SYSTEM_ONLINE event', () => {
+      it('should call onSystemEvent with SYSTEM_ONLINE', () => {
+        const onSystemEventSpy = jest.spyOn(service, 'onSystemEvent').mockResolvedValue();
         
-        // Check private state
-        const privateService = service as any;
-        expect(privateService.resumed).toBe(false);
+        systemOnlineHandler();
+        
+        expect(onSystemEventSpy).toHaveBeenCalledWith(MainProcessEvent.SYSTEM_ONLINE);
+      });
+    });
+
+    describe('SYSTEM_OFFLINE event', () => {
+      it('should call onSystemEvent with SYSTEM_OFFLINE', () => {
+        const onSystemEventSpy = jest.spyOn(service, 'onSystemEvent').mockResolvedValue();
+        
+        systemOfflineHandler();
+        
+        expect(onSystemEventSpy).toHaveBeenCalledWith(MainProcessEvent.SYSTEM_OFFLINE);
       });
     });
   });
@@ -245,19 +217,15 @@ describe('AuthConnectionManagerService', () => {
     });
 
     describe('online event', () => {
-      it('should set online state and refresh session if needed', () => {
-        // Set up session data using the signal
-        const sessionDataSignal = authService.sessionData as any;
-        sessionDataSignal.set(mockSessionData);
-        
-        authService.isSessionTokenExpired.mockReturnValue(true);
-        
+      it('should set online state', () => {
         onlineHandler();
         
         // Check private state
         const privateService = service as any;
         expect(privateService.online).toBe(true);
-        expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
+        
+        // Note: session refresh only happens in onStatusCheck() when both online and resumed are true
+        // This test only verifies the online state is set correctly
       });
     });
 
@@ -308,7 +276,6 @@ describe('AuthConnectionManagerService', () => {
         sessionDataSignal.set(mockSessionData);
         
         authService.isSessionTokenExpired.mockReturnValue(true);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
         const privateService = service as any;
         privateService.online = true;
@@ -317,24 +284,25 @@ describe('AuthConnectionManagerService', () => {
         expect(privateService.shouldRefreshSession()).toBe(true);
       });
 
-      it('should return true when MQTT is disconnected and conditions are met', () => {
+      it('should return false when session is not expired', () => {
         // Set up session data using the signal
         const sessionDataSignal = authService.sessionData as any;
         sessionDataSignal.set(mockSessionData);
         
         authService.isSessionTokenExpired.mockReturnValue(false);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
         const privateService = service as any;
         privateService.online = true;
         privateService.resumed = true;
         
-        expect(privateService.shouldRefreshSession()).toBe(true);
+        expect(privateService.shouldRefreshSession()).toBe(false);
       });
 
       it('should return false when offline', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
         const privateService = service as any;
         privateService.online = false;
@@ -344,8 +312,10 @@ describe('AuthConnectionManagerService', () => {
       });
 
       it('should return false when system is suspended', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
         authService.isSessionTokenExpired.mockReturnValue(true);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
         
         const privateService = service as any;
         privateService.online = true;
@@ -354,15 +324,118 @@ describe('AuthConnectionManagerService', () => {
         expect(privateService.shouldRefreshSession()).toBe(false);
       });
 
-      it('should return false when session is valid and MQTT is connected', () => {
-        authService.isSessionTokenExpired.mockReturnValue(false);
-        Object.defineProperty(mqttService, 'isConnected', { get: () => true, configurable: true });
+      it('should return false when no session data', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(null);
+        
+        authService.isSessionTokenExpired.mockReturnValue(true);
         
         const privateService = service as any;
         privateService.online = true;
         privateService.resumed = true;
         
         expect(privateService.shouldRefreshSession()).toBe(false);
+      });
+    });
+
+    describe('shouldRefreshMqttConnection()', () => {
+      it('should return true when all conditions are met', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
+        authService.hasPolicy.mockReturnValue(true);
+        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
+        Object.defineProperty(mqttService, 'isConnecting', { get: () => false, configurable: true });
+        
+        const privateService = service as any;
+        privateService.online = true;
+        privateService.resumed = true;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(true);
+      });
+
+      it('should return false when no session data', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(null);
+        
+        const privateService = service as any;
+        privateService.online = true;
+        privateService.resumed = true;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(false);
+      });
+
+      it('should return false when user has no policy', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
+        authService.hasPolicy.mockReturnValue(false);
+        
+        const privateService = service as any;
+        privateService.online = true;
+        privateService.resumed = true;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(false);
+      });
+
+      it('should return false when MQTT is already connected', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
+        authService.hasPolicy.mockReturnValue(true);
+        Object.defineProperty(mqttService, 'isConnected', { get: () => true, configurable: true });
+        Object.defineProperty(mqttService, 'isConnecting', { get: () => false, configurable: true });
+        
+        const privateService = service as any;
+        privateService.online = true;
+        privateService.resumed = true;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(false);
+      });
+
+      it('should return false when MQTT is connecting', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
+        authService.hasPolicy.mockReturnValue(true);
+        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
+        Object.defineProperty(mqttService, 'isConnecting', { get: () => true, configurable: true });
+        
+        const privateService = service as any;
+        privateService.online = true;
+        privateService.resumed = true;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(false);
+      });
+
+      it('should return false when offline', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
+        authService.hasPolicy.mockReturnValue(true);
+        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
+        Object.defineProperty(mqttService, 'isConnecting', { get: () => false, configurable: true });
+        
+        const privateService = service as any;
+        privateService.online = false;
+        privateService.resumed = true;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(false);
+      });
+
+      it('should return false when system is suspended', () => {
+        const sessionDataSignal = authService.sessionData as any;
+        sessionDataSignal.set(mockSessionData);
+        
+        authService.hasPolicy.mockReturnValue(true);
+        Object.defineProperty(mqttService, 'isConnected', { get: () => false, configurable: true });
+        Object.defineProperty(mqttService, 'isConnecting', { get: () => false, configurable: true });
+        
+        const privateService = service as any;
+        privateService.online = true;
+        privateService.resumed = false;
+        
+        expect(privateService.shouldRefreshMqttConnection()).toBe(false);
       });
     });
   });
@@ -375,57 +448,44 @@ describe('AuthConnectionManagerService', () => {
     });
 
     describe('SYSTEM_RESUMED processing', () => {
-      it('should set resumed state, cleanup MQTT, and refresh session', () => {
-        // Set up session data using the signal
-        const sessionDataSignal = authService.sessionData as any;
-        sessionDataSignal.set(mockSessionData);
-        
-        authService.isSessionTokenExpired.mockReturnValue(true);
+      it('should set resumed state to true', async () => {
         privateService.resumed = false;
         
-        privateService.onSystemEvent(MainProcessEvent.SYSTEM_RESUMED);
+        await privateService.onSystemEvent(MainProcessEvent.SYSTEM_RESUMED);
         
         expect(privateService.resumed).toBe(true);
-        expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
       });
     });
 
     describe('SYSTEM_SUSPENDED processing', () => {
-      it('should set suspended state and cleanup MQTT', () => {
+      it('should set suspended state and cleanup MQTT', async () => {
         privateService.resumed = true;
         
-        privateService.onSystemEvent(MainProcessEvent.SYSTEM_SUSPENDED);
+        await privateService.onSystemEvent(MainProcessEvent.SYSTEM_SUSPENDED);
         
         expect(privateService.resumed).toBe(false);
-        expect(mqttService.cleanup).toHaveBeenCalled();
+        expect(mqttService.cleanup).toHaveBeenCalledWith(true);
       });
     });
 
     describe('SYSTEM_ONLINE processing', () => {
-      it('should set online state and refresh session if needed', () => {
-        // Set up session data using the signal
-        const sessionDataSignal = authService.sessionData as any;
-        sessionDataSignal.set(mockSessionData);
-        
-        authService.isSessionTokenExpired.mockReturnValue(true);
+      it('should set online state to true', async () => {
         privateService.online = false;
         
-        privateService.onSystemEvent(MainProcessEvent.SYSTEM_ONLINE);
+        await privateService.onSystemEvent(MainProcessEvent.SYSTEM_ONLINE);
         
         expect(privateService.online).toBe(true);
-        expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
       });
     });
 
     describe('SYSTEM_OFFLINE processing', () => {
-      it('should set offline state and cleanup MQTT', () => {
+      it('should set offline state and cleanup MQTT', async () => {
         privateService.online = true;
         
-        // Call the public method directly with the string value
-        service.onSystemEvent(MainProcessEvent.SYSTEM_OFFLINE);
+        await service.onSystemEvent(MainProcessEvent.SYSTEM_OFFLINE);
         
         expect(privateService.online).toBe(false);
-        expect(mqttService.cleanup).toHaveBeenCalled();
+        expect(mqttService.cleanup).toHaveBeenCalledWith(true);
       });
     });
   });
@@ -434,11 +494,11 @@ describe('AuthConnectionManagerService', () => {
     it('should execute IPC event handlers within NgZone', () => {
       const zoneSpy = jest.spyOn(ngZone, 'run');
       
-      // Get the WINDOW_FOCUSED handler and call it
-      const windowFocusedHandler = mockWindow.electron.ipcRenderer.on.mock.calls
-        .find((call: any[]) => call[0] === MainProcessEvent.WINDOW_FOCUSED)?.[1];
+      // Get the STATUS_CHECK handler and call it
+      const statusCheckHandler = mockWindow.electron.ipcRenderer.on.mock.calls
+        .find((call: any[]) => call[0] === MainProcessEvent.STATUS_CHECK)?.[1];
       
-      windowFocusedHandler();
+      statusCheckHandler();
       
       expect(zoneSpy).toHaveBeenCalled();
     });
@@ -466,7 +526,7 @@ describe('AuthConnectionManagerService', () => {
       jest.clearAllMocks();
     });
 
-    it('should cleanup MQTT and handle session change when user has policy', async () => {
+    it('should not take action when user has policy', async () => {
       // Mock user with policy
       authService.hasPolicy.mockReturnValue(true);
       
@@ -476,10 +536,10 @@ describe('AuthConnectionManagerService', () => {
       // Wait for effect to complete
       await new Promise(resolve => setTimeout(resolve, 0));
       
-      expect(mqttService.cleanup).toHaveBeenCalled();
-      expect(mqttService.handleSessionChange).toHaveBeenCalledWith(mockSessionData);
+      // When user has policy, no action should be taken
       expect(policyService.attachPolicy).not.toHaveBeenCalled();
       expect(authService.fetchSession).not.toHaveBeenCalled();
+      expect(mqttService.cleanup).not.toHaveBeenCalled();
     });
 
     it('should attach policy and refresh session when user has no policy', async () => {
@@ -494,19 +554,16 @@ describe('AuthConnectionManagerService', () => {
       
       expect(policyService.attachPolicy).toHaveBeenCalledWith(mockSessionData);
       expect(authService.fetchSession).toHaveBeenCalledWith({ forceRefresh: true });
-      expect(mqttService.cleanup).not.toHaveBeenCalled();
-      expect(mqttService.handleSessionChange).not.toHaveBeenCalled();
     });
 
-    it('should not do anything when session is null', async () => {
+    it('should cleanup MQTT when session is null', async () => {
       // Trigger the effect with null session
       sessionDataSignal.set(null);
       
       // Wait for effect to complete
       await new Promise(resolve => setTimeout(resolve, 0));
       
-      expect(mqttService.cleanup).not.toHaveBeenCalled();
-      expect(mqttService.handleSessionChange).not.toHaveBeenCalled();
+      expect(mqttService.cleanup).toHaveBeenCalledWith(false);
       expect(policyService.attachPolicy).not.toHaveBeenCalled();
       expect(authService.fetchSession).not.toHaveBeenCalled();
     });

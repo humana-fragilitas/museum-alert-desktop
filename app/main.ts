@@ -94,13 +94,21 @@ try {
 
     const mainWindow = createWindow();
 
-    mainWindow.on('focus', () => {
-      console.log('[Main process]: window focused');
-      mainWindow.webContents.send(MainProcessEvent.WINDOW_FOCUSED);
-    });
+    /**
+     * Periodic connection health check using setInterval in conjunction with system events.
+     * 
+     * This approach is more reliable than event-driven solutions because:
+     * - system events (suspend/resume, online/offline) can be missed or inconsistent across platforms;
+     * - handles edge cases like partial wake states, network adapter changes, and credential drift;
+     * - setInterval naturally "catches up" after system sleep, providing immediate status check on wake;
+     * - creates self-healing architecture that detects and corrects connection state mismatches;
+     * - simple to debug - complete system state is evaluated every second regardless of what events fired.
+     * 
+     * The 1-second interval provides good responsiveness for IoT connections while being lightweight.
+     */
 
     setInterval(() => {
-      mainWindow.webContents.send(MainProcessEvent.SESSION_CHECK);
+      mainWindow.webContents.send(MainProcessEvent.STATUS_CHECK);
     }, 1000);
 
     powerMonitor.on('suspend', () => {

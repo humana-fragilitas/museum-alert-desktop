@@ -142,8 +142,9 @@ describe('MqttService', () => {
           port: 443,
           clean: true,
           reconnectPeriod: 0,
-          connectTimeout: 30000,
-          keepalive: 60
+          connectTimeout: 10 * 1000,
+          keepalive: 30,
+          rejectUnauthorized: true
         });
         expect(sigV4Service.getSignedURL).toHaveBeenCalledWith(mockSessionData);
       });
@@ -249,6 +250,28 @@ describe('MqttService', () => {
         
         mockMqttClient.connected = false;
         expect(service.isConnected).toBe(false);
+      });
+    });
+
+    describe('isConnecting getter', () => {
+      it('should return false when no connection promise', () => {
+        expect(service.isConnecting).toBe(false);
+      });
+
+      it('should return true when connection is in progress', async () => {
+        const connectPromise = service.connect(mockSessionData as any);
+        
+        expect(service.isConnecting).toBe(true);
+        
+        // Complete the connection
+        const connectCallback = mockMqttClient.once.mock.calls.find(
+          call => call[0] === 'connect'
+        )?.[1];
+        connectCallback?.();
+        
+        await connectPromise;
+        
+        expect(service.isConnecting).toBe(false);
       });
     });
   });
@@ -495,7 +518,10 @@ describe('MqttService', () => {
         await service.handleSessionChange(mockSessionData as any);
         
         expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[MqttService]: session data changed, current connection status: connected')
+          '[MqttService]: current connection status: connected'
+        );
+        expect(consoleSpy).toHaveBeenCalledWith(
+          '[MqttService]: session data available, attempting to connect...'
         );
         expect(connectSpy).toHaveBeenCalledWith(mockSessionData);
         
@@ -503,7 +529,7 @@ describe('MqttService', () => {
         await service.handleSessionChange(null);
         
         expect(consoleSpy).toHaveBeenCalledWith(
-          '[MqttService]: no session data, disconnecting MQTT'
+          '[MqttService]: no session data, disconnecting...'
         );
         expect(disconnectSpy).toHaveBeenCalled();
         
@@ -513,15 +539,15 @@ describe('MqttService', () => {
   });
 
   describe('Cleanup', () => {
-    it('should cleanup resources by calling disconnect', () => {
+    it('should cleanup resources by calling disconnect', async () => {
       const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
       
-      service.cleanup();
+      await service.cleanup();
       
-      expect(disconnectSpy).toHaveBeenCalled();
+      expect(disconnectSpy).toHaveBeenCalledWith(true);
     });
 
-    it('should clear pending requests on cleanup', () => {
+    it('should clear pending requests on cleanup', async () => {
       // Set up pending request
       const mockReject = jest.fn();
       const mockTimeout = setTimeout(() => {}, 1000);
@@ -537,13 +563,21 @@ describe('MqttService', () => {
       // Mock disconnect to avoid actual connection termination
       jest.spyOn(service, 'disconnect').mockResolvedValue();
       
-      service.cleanup();
+      await service.cleanup();
       
       // Verify pending requests are cleared immediately
       expect(mockReject).toHaveBeenCalledWith(
         new Error('[MqttService]: connection closed')
       );
       expect((service as any).pendingRequests['test-cid']).toBeUndefined();
+    });
+
+    it('should pass immediate parameter to disconnect', async () => {
+      const disconnectSpy = jest.spyOn(service, 'disconnect').mockResolvedValue();
+      
+      await service.cleanup(false);
+      
+      expect(disconnectSpy).toHaveBeenCalledWith(false);
     });
   });
 

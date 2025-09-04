@@ -81,8 +81,9 @@ export class MqttService {
         port: 443,
         clean: true,
         reconnectPeriod: 0,
-        connectTimeout: 30 * 1000,
-        keepalive: 60
+        connectTimeout: 10 * 1000,
+        keepalive: 30,
+        rejectUnauthorized: true
       });
 
       this.setupClientEventHandlers(sessionData);
@@ -90,7 +91,7 @@ export class MqttService {
       // Wait for connection to be established
       await new Promise<void>((resolve, reject) => {
         if (!this.client) {
-          reject(new Error('Client is undefined'));
+          reject(new Error('[MqttService]: client is undefined'));
           return;
         }
 
@@ -113,14 +114,14 @@ export class MqttService {
     } catch (error) {
 
       console.error('[MqttService]: failed to connect to MQTT broker:', error);
-      this.cleanup();
+      this.cleanup(true);
       throw error;
 
     }
 
   }
 
-  async disconnect(): Promise<void> {
+  async disconnect(immediate: boolean = true): Promise<void> {
 
     if (this.disconnectionPromise) {
       console.log('[MqttService]: disconnection already in progress, waiting...');
@@ -132,8 +133,8 @@ export class MqttService {
       return;
     }
 
-    this.disconnectionPromise = this.terminateConnection();
-    
+    this.disconnectionPromise = this.terminateConnection(immediate);
+
     try {
       await this.disconnectionPromise;
     } finally {
@@ -143,7 +144,7 @@ export class MqttService {
 
   }
 
-  private async terminateConnection(): Promise<void> {
+  private async terminateConnection(immediate: boolean = true): Promise<void> {
 
     try {
 
@@ -155,8 +156,8 @@ export class MqttService {
 
         if (this.client.connected) {
           await new Promise<void>((resolve) => {
-            this.client!.end(true, {}, () => {
-              console.log('[MqttService]: MQTT client disconnected gracefully');
+            this.client!.end(immediate, {}, () => {
+              console.log(`[MqttService]: MQTT client disconnected ${immediate ? 'abruptly' : 'gracefully'}`);
               resolve();
             });
           });
@@ -187,6 +188,10 @@ export class MqttService {
 
   get isConnected(): boolean {
     return !!this.client?.connected;
+  }
+
+  get isConnecting(): boolean {
+    return !!this.connectionPromise;
   }
 
   onMessageOfType<T extends MqttMessageType>(
@@ -254,22 +259,23 @@ export class MqttService {
     
   }
 
-  cleanup(): void {
-    this.disconnect();
+  cleanup(immediate: boolean = true): Promise<void> {
     this.clearPendingRequests();
+    return this.disconnect(immediate);
   }
 
   async handleSessionChange(sessionData: Nullable<AuthSession>): Promise<void> {
 
-    console.log(`[MqttService]: session data changed, current connection status: `+ 
+    console.log(`[MqttService]: current connection status: `+ 
                 `${ this.isConnected ? 'connected' : 'disconnected' }`);
 
     if (!sessionData) {
-      console.log('[MqttService]: no session data, disconnecting MQTT');
-      await this.disconnect();
+      console.log('[MqttService]: no session data, disconnecting...');
+      await this.disconnect(true);
       return;
     }
 
+    console.log('[MqttService]: session data available, attempting to connect...');
     await this.connect(sessionData);
 
   }

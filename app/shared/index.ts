@@ -12,9 +12,9 @@ export type DeviceWiFiMessage = Extract<DeviceIncomingData, { type: DeviceMessag
 export type DeviceAckMessage = Extract<DeviceIncomingData, { type: DeviceMessageType.ACKNOWLEDGMENT }>;
 
 export interface WiFiNetwork {
-    encryptionType: number;
-    rssi: number;
-    ssid: string;
+  encryptionType: number;
+  rssi: number;
+  ssid: string;
 }
 
 export enum USBCommandType {
@@ -28,71 +28,70 @@ export enum USBCommandType {
 };
 
 export interface Error {
-    type: DeviceErrorType;
+  type: DeviceErrorType;
 }
 
 export interface DeviceStateUpdate {
-    appState: DeviceAppState
+  appState: DeviceAppState
 }
 
 export enum DeviceAppState {
-    STARTED,
-    INITIALIZE_CIPHERING,
-    CONFIGURE_WIFI,
-    CONFIGURE_CERTIFICATES,
-    CONNECT_TO_WIFI,
-    PROVISION_DEVICE,
-    CONNECT_TO_MQTT_BROKER,
-    DEVICE_INITIALIZED,
-    FATAL_ERROR
-  };
+  STARTED,
+  INITIALIZE_CIPHERING,
+  CONFIGURE_WIFI,
+  CONFIGURE_CERTIFICATES,
+  CONNECT_TO_WIFI,
+  PROVISION_DEVICE,
+  CONNECT_TO_MQTT_BROKER,
+  DEVICE_INITIALIZED,
+  FATAL_ERROR
+};
 
 export enum DeviceMessageType {
-    APP_STATE,
-    WIFI_NETWORKS_LIST,
-    ERROR,
-    ACKNOWLEDGMENT
+  APP_STATE,
+  WIFI_NETWORKS_LIST,
+  ERROR,
+  ACKNOWLEDGMENT
 };
 
 export enum DeviceErrorType {
-    INVALID_WIFI_CREDENTIALS,
-    FAILED_WIFI_CONNECTION_ATTEMPT,
-    INVALID_DEVICE_PROVISIONING_SETTINGS,
-    INVALID_DEVICE_COMMAND,
-    FAILED_PROVISIONING_SETTINGS_STORAGE,
-    FAILED_DEVICE_PROVISIONING_ATTEMPT,
-    FAILED_MQTT_BROKER_CONNECTION,
-    FAILED_DEVICE_CONFIGURATION_RETRIEVAL,
-    FAILED_SENSOR_DETECTION_REPORT
+  INVALID_WIFI_CREDENTIALS,
+  FAILED_WIFI_CONNECTION_ATTEMPT,
+  INVALID_DEVICE_PROVISIONING_SETTINGS,
+  INVALID_DEVICE_COMMAND,
+  FAILED_PROVISIONING_SETTINGS_STORAGE,
+  FAILED_DEVICE_PROVISIONING_ATTEMPT,
+  FAILED_MQTT_BROKER_CONNECTION,
+  FAILED_DEVICE_CONFIGURATION_RETRIEVAL,
+  FAILED_SENSOR_DETECTION_REPORT
 };
 
 export interface WiFiCredentials {
-    ssid: string;
-    password: string;
+  ssid: string;
+  password: string;
 }
 
 export interface ProvisioningSettings {
-    tempCertPem: string;
-    tempPrivateKey: string;
-    idToken: string;
+  tempCertPem: string;
+  tempPrivateKey: string;
+  idToken: string;
 }
 
 export interface USBCommand {
-    command: USBCommandType;
+  command: USBCommandType;
 }
 
 export enum DeviceEvent {
-    FOUND = 'device-found',
-    CONNECTION_STATUS_UPDATE = 'device-connection-status-update',
-    INCOMING_DATA = 'device-incoming-data',
-    OUTGOING_DATA = 'device-outgoing-data'
+  FOUND = 'device-found',
+  CONNECTION_STATUS_UPDATE = 'device-connection-status-update',
+  INCOMING_DATA = 'device-incoming-data',
+  OUTGOING_DATA = 'device-outgoing-data'
 }
 
 export enum MainProcessEvent {
-    WINDOW_FOCUSED = 'window-focused',
-    SYSTEM_RESUMED = 'system-resumed',
-    SESSION_CHECK = 'session-check',
-    SYSTEM_SUSPENDED = 'system-suspended',
-    SYSTEM_ONLINE = 'system-online',
-    SYSTEM_OFFLINE = 'system-offline'
+  SYSTEM_RESUMED = 'system-resumed',
+  STATUS_CHECK = 'status-check',
+  SYSTEM_SUSPENDED = 'system-suspended',
+  SYSTEM_ONLINE = 'system-online',
+  SYSTEM_OFFLINE = 'system-offline'
 }

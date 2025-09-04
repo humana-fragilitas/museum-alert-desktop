@@ -32,36 +32,26 @@ export class AuthConnectionManagerService {
 
   private initializeSystemHandlers() {
 
-    if (this.win.electron) {
+    const systemEvents = [
+      MainProcessEvent.SYSTEM_RESUMED,
+      MainProcessEvent.SYSTEM_SUSPENDED,
+      MainProcessEvent.SYSTEM_ONLINE,
+      MainProcessEvent.SYSTEM_OFFLINE
+    ];
 
-      this.win.electron.ipcRenderer.on(MainProcessEvent.WINDOW_FOCUSED, () => {
+    for (const event of systemEvents) {
+      this.win?.electron?.ipcRenderer.on(event, () => {
         this.ngZone.run(() => {
-          this.onSystemEvent(MainProcessEvent.WINDOW_FOCUSED);
+          this.onSystemEvent(event);
         });
       });
-
-      this.win.electron.ipcRenderer.on(MainProcessEvent.SESSION_CHECK, () => {
-        this.ngZone.run(() => {
-          this.onSystemEvent(MainProcessEvent.SESSION_CHECK);
-        });
-      });
-
-      this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_RESUMED, () => {
-        this.ngZone.run(() => {
-          console.log('[AuthConnectionManagerService]: system resumed; refreshing session...');
-          this.onSystemEvent(MainProcessEvent.SYSTEM_RESUMED);
-        });
-      });
-
-      this.win.electron.ipcRenderer.on(MainProcessEvent.SYSTEM_SUSPENDED, () => {
-        this.onSystemEvent(MainProcessEvent.SYSTEM_SUSPENDED);
-        this.ngZone.run(() => {
-          console.log('[AuthConnectionManagerService]: system suspended; initiating disconnect...');
-          this.onSystemEvent(MainProcessEvent.SYSTEM_SUSPENDED);
-        });
-      });
-
     }
+
+    this.win?.electron?.ipcRenderer.on(MainProcessEvent.STATUS_CHECK, () => {
+      this.ngZone.run(() => {
+        this.onStatusCheck();
+      });
+    });
 
     this.offlineHandler = () => {
       this.ngZone.run(() => {
@@ -82,40 +72,27 @@ export class AuthConnectionManagerService {
 
   }
 
-  /**
-   * Note: MQTT connection state changes are always triggered by session 
-   * retrieval attempts - either successful (connects) or unsuccessful 
-   * (disconnects). System events (online/offline, suspend/resume) also 
-   * trigger session retrieval, ensuring the MQTT connection reflects 
-   * both user session validity and system connectivity
-   */
-
   private initializeAuthHandlers() {
 
     effect(async () => {
       const session = this.authService.sessionData();
       const hasPolicy = this.authService.hasPolicy();
       if (session) {
-        if (hasPolicy) {
-           console.log(`[AuthConnectionManagerService]: authenticated user has IoT policy; handling MQTT session...`);
-           this.mqttService.cleanup();
-           this.mqttService.handleSessionChange(session);
-        } else {
-          console.log(`[AuthConnectionManagerService]: authenticated user has no IoT policy; attaching policy...`);
-          await this.policyService.attachPolicy(session);
-          this.authService.fetchSession({ forceRefresh: true });
+        if (!hasPolicy) {
+           console.log(`[AuthConnectionManagerService]: authenticated user has no IoT policy; attaching policy...`);
+           await this.policyService.attachPolicy(session);
+           await this.authService.fetchSession({ forceRefresh: true });
         }
+      } else {
+        await this.mqttService.cleanup(false);
       }
     });
 
   }
 
-  public onSystemEvent(event: MainProcessEvent) {
+  public async onSystemEvent(event: MainProcessEvent) {
 
     switch(event) {
-      case MainProcessEvent.WINDOW_FOCUSED:
-        console.log('[AuthConnectionManagerService]: window focused');
-        break;
       case MainProcessEvent.SYSTEM_RESUMED:
         console.log('[AuthConnectionManagerService]: system resumed');
         this.resumed = true;
@@ -123,7 +100,7 @@ export class AuthConnectionManagerService {
       case MainProcessEvent.SYSTEM_SUSPENDED:
         console.log('[AuthConnectionManagerService]: system suspended');
         this.resumed = false;
-        this.mqttService.cleanup();
+        await this.mqttService.cleanup(true);
         break;
       case MainProcessEvent.SYSTEM_ONLINE:
         console.log('[AuthConnectionManagerService]: system online');
@@ -132,23 +109,68 @@ export class AuthConnectionManagerService {
       case MainProcessEvent.SYSTEM_OFFLINE:
         console.log('[AuthConnectionManagerService]: system offline');
         this.online = false;
-        this.mqttService.cleanup();
+        await this.mqttService.cleanup(true);
         break;
     }
 
+  }
+
+  public async onStatusCheck() {
+
     if (this.shouldRefreshSession()) {
       console.log('[AuthConnectionManagerService]: refreshing session...');
-      this.authService.fetchSession({ forceRefresh: true });
+      await this.authService.fetchSession({ forceRefresh: true });
+    }
+
+    if (this.shouldRefreshMqttConnection()) {
+      console.log('[AuthConnectionManagerService]: refreshing MQTT connection...');
+      await this.mqttService.handleSessionChange(this.authService.sessionData());
     }
 
   }
 
   private shouldRefreshSession(): boolean {
+
+    // console.log(`[AuthConnectionManagerService]: evaluating session refresh: ` +
+    //             `has session data: ${!!this.authService.sessionData()}, ` +
+    //             `online: ${this.online}, ` +
+    //             `resumed: ${this.resumed}, ` +
+    //             `session token expired: ${this.authService.isSessionTokenExpired()}, ` +
+    //             `MQTT connected: ${this.mqttService.isConnected}`);
+
     return  !!this.authService.sessionData() &&
               this.online &&
               this.resumed &&
-             (this.authService.isSessionTokenExpired() ||
-             !this.mqttService.isConnected);
+              this.authService.isSessionTokenExpired();
+  }
+
+  private shouldRefreshMqttConnection(): boolean {
+
+    // console.log(`[AuthConnectionManagerService]: evaluating MQTT connection refresh: ` +
+    //             `has session data: ${!!this.authService.sessionData()}, ` +
+    //             `policy: ${this.authService.hasPolicy()}, ` +
+    //             `online: ${this.online}, ` +
+    //             `resumed: ${this.resumed}, ` +
+    //             `MQTT connected: ${this.mqttService.isConnected}, ` +
+    //             `MQTT connecting: ${this.mqttService.isConnecting}`);
+
+    const should = (
+              !!this.authService.sessionData() &&
+              this.authService.hasPolicy()
+            ) &&
+            (
+              this.online &&
+              this.resumed
+            ) &&
+            (
+              !this.mqttService.isConnected &&
+              !this.mqttService.isConnecting
+            );
+
+            //console.log(`[AuthConnectionManagerService]: evaluating MQTT connection refresh: `, should);
+
+    return should;
+
   }
 
 }
