@@ -1,0 +1,50 @@
+body .mdc-text-field--filled.mdc-text-field--disabled {
+  background-color: white !important;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: auto;
+}
+
+button {
+  width: fit-content;
+  margin-left: auto;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button-cta {
+  display: flex;
+  flex-direction: row;
+  align-self: flex-end;
+  gap: 10px;
+}
+
+.company-name {
+  margin-bottom: 6px;
+  
+  .mat-mdc-text-field-wrapper {
+    &.mdc-text-field {
+      &.mdc-text-field--filled {
+        &.mdc-text-field--disabled {
+          background-color: transparent !important;
+          
+          mat-label {
+            color: var(--mat-sys-on-surface) !important;
+          }
+          
+          input {
+            color: var(--mat-sys-on-surface) !important;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+<mat-card [class.flash]="flashOnChange()">
+  <mat-card-header class="device-diagnostics">
+    <h4>{{ 'COMPONENTS.DEVICE_DIAGNOSTICS.LABEL' | translate }}</h4>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="device-diagnostics--info">
+      {{ 'COMPONENTS.DEVICE_DIAGNOSTICS.CALL_TO_ACTION' | translate }}
+    </div>
+    <table class="device-diagnostics-table">
+      <tr>
+        <td class="device-spec-label">
+          {{ alarm() ?
+             ('COMPONENTS.DEVICE_DIAGNOSTICS.LAST_ALERT_RECEIVED_AT' | translate) :
+             ('COMPONENTS.DEVICE_DIAGNOSTICS.NO_ALERTS_RECEIVED' | translate) }}
+        </td>
+        <td class="device-spec-value">{{ alarm()?.timestamp | date:'M/d/yy, h:mm:ss a' }}</td>
+      </tr>
+      <tr [style.visibility]="alarm() ? 'visible' : 'hidden'">
+        <td class="device-spec-label">{{ 'COMPONENTS.DEVICE_DIAGNOSTICS.DETECTED_DISTANCE' | translate }}</td>
+        <td class="device-spec-value">{{ (alarm()?.data?.distance ?? 0) | formatDistance }}</td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>

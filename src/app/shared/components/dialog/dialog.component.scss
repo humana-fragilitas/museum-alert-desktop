@@ -1,0 +1,38 @@
+.dialog-container {
+
+  min-width: 300px;
+  max-width: 600px;
+}
+
+.dialog-header {
+  text-align: center;
+  padding-top: 24px;
+}
+
+.dialog-content {
+  padding: 20px 24px;
+}
+
+.dialog-icon {
+  margin-right: 12px;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.dialog-title {
+  margin: 0;
+  padding: 0;
+  font-weight: 500;
+}
+
+.dialog-actions {
+  padding: 0 24px 24px 0;
+}
+
+.icon-error { color: var(--dialog-color-error); }
+.icon-warning { color: var(--dialog-color-warning); }
+.icon-success { color: var(--dialog-color-success); }
+.icon-info { color: var(--dialog-color-info); }
+.icon-confirm { color: var(--dialog-color-confirm); }
+

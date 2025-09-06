@@ -1,0 +1,142 @@
+import { TranslatePipe } from '@ngx-translate/core';
+import { firstValueFrom,
+         map } from 'rxjs';
+
+import { Component,
+         OnInit,
+         signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { ProvisioningService } from '@services/provisioning/provisioning.service';
+import { DeviceService,
+         USBCommandTimeoutException } from '@services/device/device.service';
+import { AuthService } from '@services/auth/auth.service';
+import { DeviceRegistryService } from '@services/device-registry/device-registry.service';
+import { DialogService } from '@services/dialog/dialog.service';
+import { CompanyService } from '@services/company/company.service';
+import { DeviceIncomingData,
+         ProvisioningSettings,
+         USBCommandType } from '@shared-with-electron';
+import { COMMON_MATERIAL_IMPORTS } from '@shared/utils/material-imports';
+import { ApiResult,
+         DialogType,
+         SuccessApiResponse,
+         ProvisioningClaimResponse,
+         Sensor } from '@models';
+
+
+@Component({
+  selector: 'app-provisioning',
+  templateUrl: './provisioning.component.html',
+  styleUrls: ['./provisioning.component.scss'],
+  imports: [
+    CommonModule,
+    TranslatePipe,
+    ...COMMON_MATERIAL_IMPORTS
+  ]
+})
+export class ProvisioningComponent implements OnInit {
+
+  readonly isBusy = signal<boolean>(false);
+  readonly company = this.companyService.organization;
+
+  constructor(private readonly authService: AuthService,
+              private readonly provisioningService: ProvisioningService,
+              private readonly dialogService: DialogService,
+              private readonly deviceRegistryService: DeviceRegistryService,
+              private readonly companyService: CompanyService,
+              readonly deviceService: DeviceService) { }
+
+  ngOnInit(): void {
+    console.log('[ProvisioningComponent]: INIT');
+  }
+
+  async provisionDevice() {
+
+    console.log('[ProvisioningComponent]: Provisioning device...');
+
+    try {
+
+      this.isBusy.set(true);
+      let sensor: Nullable<Sensor>;
+
+      console.log(`[ProvisioningComponent]: step 1/3: checking if sensor has already been registered...`);
+      
+      // Note: assignment and evaluation
+      if (!(sensor = await this.checkIfSensorExists())) {
+
+        console.log(`[ProvisioningComponent]: step 2/3: creating provisioning claim...`);
+        const claim = await this.createClaim();
+
+        console.log(`[ProvisioningComponent]: step 3/3: sending provisioning settings to device...`);
+        await this.sendProvisioningSettingsToDevice(claim!);
+
+      } else {
+
+        this.dialogService.openDialog({
+          type: DialogType.WARNING,
+          showCancel: false,
+          title: 'ERRORS.APPLICATION.DEVICE_EXISTS_TITLE',
+          message: sensor.company ?
+            'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE' :
+              'ERRORS.APPLICATION.DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE',
+          messageParams: {
+            deviceName: sensor.thingName
+          }
+        });
+
+      }
+    } catch(exception) {
+
+      console.log(`[ProvisioningComponent]: an error occurred while provisioning device`);
+
+      this.dialogService.openDialog({
+        exception: exception as HttpErrorResponse | USBCommandTimeoutException,
+        title: 'ERRORS.APPLICATION.PROVISIONING_FAILED_TITLE',
+        message: 'ERRORS.APPLICATION.PROVISIONING_FAILED_MESSAGE'
+      });
+
+    } finally {
+
+      this.isBusy.set(false);
+
+    }
+
+  }
+
+  private async checkIfSensorExists(): Promise<Nullable<Sensor>> {
+    const thingName = this.deviceService.serialNumber();
+    return firstValueFrom(this.deviceRegistryService.checkSensorExists(thingName));
+  }
+
+  private async createClaim(): Promise<Nullable<ProvisioningSettings>> {
+
+    return firstValueFrom(this.provisioningService.createClaim().pipe(
+      map((response: ApiResult<ProvisioningClaimResponse>) => {
+        const claim = (response as SuccessApiResponse<ProvisioningClaimResponse>).data;
+
+        console.log({
+          tempCertPem: claim.certificatePem,
+          tempPrivateKey: claim.keyPair.PrivateKey,
+          idToken: this.authService.idToken()
+        });
+
+        return {
+          tempCertPem: claim.certificatePem,
+          tempPrivateKey: claim.keyPair.PrivateKey,
+          idToken: this.authService.idToken()
+        };
+      })
+    ));
+
+  }
+
+  private async sendProvisioningSettingsToDevice(
+    claim: ProvisioningSettings
+  ): Promise<DeviceIncomingData | void> {
+      return this.deviceService
+                 .sendUSBCommand(USBCommandType.SET_PROVISIONING_CERTIFICATES, claim);
+  }
+
+}

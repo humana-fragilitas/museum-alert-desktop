@@ -1,0 +1,11 @@
+@if(company()?.companyName; as companyName) {
+  <h3 [innerHTML]="'COMPONENTS.PROVISIONING.EXPLANATORY_MESSAGE_WITH_COMPANY' | translate: { companyName }"></h3>
+} @else {
+  <h3 [innerHTML]="'COMPONENTS.PROVISIONING.EXPLANATORY_MESSAGE_WITH_NO_COMPANY' | translate"></h3>
+}
+<button mat-raised-button color="primary" (click)="provisionDevice()" [disabled]="isBusy()">
+  <span class="button-content">
+    {{ 'COMMON.ACTIONS.CONFIRM' | translate }}
+    <mat-progress-spinner *ngIf="isBusy()" mode="indeterminate" diameter="16"></mat-progress-spinner>
+  </span>
+</button>

@@ -1,0 +1,12 @@
+node_modules
+dist
+release
+coverage
+.angular
+.nx
+*.js
+*.js.map
+!jest.config.js
+.DS_Store
+e2e/tracing
+e2e/screenshots

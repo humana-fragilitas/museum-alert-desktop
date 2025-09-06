@@ -1,0 +1,39 @@
+@use '@angular/material' as mat;
+@use '../../../styles.scss' as theme;
+
+h1 {
+  text-align: center;
+}
+
+.company-name-preview {
+  text-transform: uppercase;
+  padding: 6px 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+}
+
+.logo {
+  max-width: 268px;
+}
+
+.footer {
+  padding: var(--amplify-space-large);
+  text-align: center;
+  p.amplify-text {
+    color: var(--amplify-colors-neutral-80);
+  }
+}
+
+[data-amplify-authenticator], [amplify-forgot-password] {
+
+  [data-amplify-footer] {
+    padding-left: var(--amplify-space-xl);
+    padding-right: var(--amplify-space-xl);
+    text-align: center;
+  }
+
+  h3 {
+    font-size: var(--amplify-font-sizes-xl);
+  }
+
+}

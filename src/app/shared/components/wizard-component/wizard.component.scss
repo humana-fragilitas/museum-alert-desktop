@@ -1,0 +1,79 @@
+@use '@angular/material' as mat;
+
+mat-stepper {
+  max-width: 800px;
+  margin: auto;
+  background: transparent !important;
+}
+
+.registration-spinner {
+  vertical-align: sub;
+  display: inline-block !important;
+  margin-left: 5px;
+}
+
+.mat-horizontal-stepper-header-container {
+  pointer-events: none;
+}
+
+.mat-horizontal-stepper-content {
+  overflow: visible !important;
+  h3 {
+    margin-top: 0;
+  }
+}
+
+.reset-container {
+  .reset-button {
+    display: flex;
+    margin: auto;
+  }
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+h3 {
+
+  text-align: center;
+  font-weight: normal;
+  mat-progress-spinner {
+    display: inline-block !important;
+    margin: 20px 0 0 0;
+
+  }
+}
+
+.mat-horizontal-stepper-wrapper {
+  .mat-horizontal-content-container {
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}
+
+.device-summary {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+}
+
+.done-step {
+  h3 {
+    margin-top: 0
+  }
+}
+
+app-device-control, app-device-diagnostics {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  & mat-card {
+    flex: 1;
+  }
+}
+

@@ -1,0 +1,45 @@
+<form [formGroup]="companyNameForm" (ngSubmit)="onSubmit()">
+  <mat-form-field appearance="fill" class="company-name">
+    <mat-label>{{ 'COMPONENTS.COMPANY_FORM.LABEL' | translate }}</mat-label>
+    <input matInput id="company-name" type="text" formControlName="companyName" #companyName>
+    <mat-error *ngIf="(getErrorMessage() | async) && companyNameForm.get('companyName')?.touched">
+      <strong>{{getErrorMessage() | async}}</strong>
+    </mat-error>
+  </mat-form-field>
+  
+  <div class="button-cta">
+
+    <button *ngIf="editMode()"
+            mat-raised-button color="primary"
+            type="submit"
+            [disabled]="companyNameForm.invalid || isBusy()">
+      <span class="button-content">
+        {{ 'COMMON.ACTIONS.SUBMIT' | translate }}
+        <mat-progress-spinner *ngIf="isBusy()" 
+                              mode="indeterminate" 
+                              diameter="16">
+        </mat-progress-spinner>
+      </span>
+    </button>
+    
+    <button *ngIf="editMode()"
+            mat-raised-button color="secondary"
+            [disabled]="isBusy()"
+            (click)="cancel()">
+      <span class="button-content">
+        {{ 'COMMON.ACTIONS.CANCEL' | translate }}
+      </span>
+    </button>
+    
+  </div>
+  
+  <button *ngIf="!editMode()"
+          mat-raised-button color="primary"
+          [disabled]="isBusy()"
+          (click)="edit()">
+    <span class="button-content">
+      {{ 'COMMON.ACTIONS.EDIT' | translate }}
+    </span>
+  </button>
+
+</form>

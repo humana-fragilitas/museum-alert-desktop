@@ -1,0 +1,32 @@
+<div class="dialog-container" [ngClass]="dialogClass">
+
+  <div class="dialog-header">
+    <mat-icon [ngClass]="iconClass" class="dialog-icon">
+      {{ icon }}
+    </mat-icon>
+    <h2 mat-dialog-title class="dialog-title">{{ data.title | translate }}</h2>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <p class="dialog-message">{{ data.message | translate: data.messageParams || {} }}</p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-actions">
+    <button 
+      *ngIf="data.showCancel" 
+      mat-button 
+      (click)="onCancel()"
+      class="cancel-button">
+      {{ (data.cancelText || 'COMMON.ACTIONS.CANCEL') | translate }}
+    </button>
+    <button 
+      mat-raised-button 
+      [color]="buttonColor" 
+      (click)="onConfirm()"
+      class="confirm-button"
+      cdkFocusInitial>
+      {{ (data.confirmText || defaultConfirmText) | translate }}
+    </button>
+  </mat-dialog-actions>
+
+</div>

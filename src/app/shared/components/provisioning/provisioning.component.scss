@@ -1,0 +1,22 @@
+:host {
+  text-align: center;
+  display: block;
+}
+
+h3 {
+  font-weight: normal;
+  mat-spinner {
+    display: inline-block !important;
+  }
+
+  span {
+    text-transform: uppercase;
+  }
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+  

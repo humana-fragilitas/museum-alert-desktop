@@ -1,0 +1,73 @@
+:host {
+  padding-bottom: 2px;
+  mat-card-content {
+    height: 100%;
+    display: flex !important;
+    flex-direction: column;
+  }
+}
+
+mat-card-footer {
+  padding: 16px;
+}
+
+h3 {
+  text-align: center;
+  margin: 0 auto;
+  font-weight: normal;
+}
+
+.device-diagnostics {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+
+  h4 {
+    margin: 0;
+  }
+
+  &--info {
+    margin-top: 20px;
+    font-size: 14px;
+    font-style: italic;
+    color: dimgrey;
+  }
+}
+
+.device-status-label {
+  margin-left: auto;
+}
+
+.diagnostics__alarm {
+
+  border-spacing: 0;
+  width: 100%;
+  margin: 10px 0;
+
+}
+
+.device-spec-value {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.device-diagnostics-table {
+  margin-top: auto;
+  border-collapse: collapse;
+}
+
+.device-diagnostics-table tr td {
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.device-diagnostics-table tr:last-child td {
+  border-bottom: none;
+}
+
+.flash {
+  animation: flash-red 1s ease;
+}
+
+@keyframes flash-red {
+  0%   { background-color: red; }
+  100% { background-color: var(--mdc-elevated-card-container-color, var(--mat-sys-surface-container-low)); }
+}

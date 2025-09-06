@@ -1,0 +1,66 @@
+<mat-card *ngIf="usbConnectionStatus()">
+  <mat-card-header class="device-status">
+    <h4>{{ 'COMPONENTS.DEVICE_STATE.LABEL' | translate }}</h4>
+    <mat-chip [ngSwitch]="deviceAppStatus()"
+              class="device-status-label">
+      <span>{{ 'COMMON.LABELS.STATUS' | translate }}: </span>
+      <span *ngSwitchCase="deviceAppState.INITIALIZE_CIPHERING">
+       {{ 'COMPONENTS.DEVICE_STATE.CIPHERING_INITIALIZATION' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_WIFI">
+        {{ 'COMPONENTS.DEVICE_STATE.WAITING_FOR_WIFI' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONFIGURE_CERTIFICATES">
+        {{ 'COMPONENTS.DEVICE_STATE.WAITING_FOR_PROVISIONING_SETTINGS' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_WIFI">
+        {{ 'COMPONENTS.DEVICE_STATE.CONNECTING_TO_WIFI' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.PROVISION_DEVICE">
+        {{ 'COMPONENTS.DEVICE_STATE.WAITING_FOR_TLS_SETTINGS' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.CONNECT_TO_MQTT_BROKER">
+        {{ 'COMPONENTS.DEVICE_STATE.CONNECTING_TO_MQTT_BROKER' | translate }}
+      </span>
+      <span *ngSwitchCase="deviceAppState.DEVICE_INITIALIZED">
+        {{ 'COMPONENTS.DEVICE_STATE.INITIALIZED' | translate }}
+      </span>
+      <span *ngSwitchDefault>
+        {{ 'COMPONENTS.DEVICE_STATE.IDLE' | translate }}
+      </span>
+    </mat-chip>
+  </mat-card-header>
+  <mat-card-content>
+    <table *ngIf="portInfo() as device" class="device-specs">
+      <tr>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.PATH' | translate }}</td>
+        <td class="device-spec-value">{{ device.path }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.MANUFACTURER' | translate }}</td>
+        <td class="device-spec-value">{{ device.manufacturer }}</td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.SERIAL_NUMBER' | translate }}</td>
+        <td class="device-spec-value">
+          <ng-container *ngIf="serialNumber() as serialNumber; else loading">
+            {{ serialNumber }}
+          </ng-container>
+          <ng-template #loading>
+            <mat-spinner diameter="20"></mat-spinner>
+          </ng-template>
+        </td>
+      </tr>
+      <tr>
+        <td class="device-spec-label">{{ 'COMMON.LABELS.PRODUCT' | translate }}</td>
+        <td class="device-spec-value">{{ device.productId }}</td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>
+
+<mat-card *ngIf="!usbConnectionStatus()">
+  <mat-card-content>
+    <h3 [innerHTML]="'COMPONENTS.DEVICE_STATE.CALL_TO_ACTION' | translate"></h3>
+  </mat-card-content>
+</mat-card>

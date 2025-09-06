@@ -1,0 +1,26 @@
+
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: auto;
+}
+
+button {
+  width: fit-content;
+  margin-left: auto;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button-cta {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: row;
+  align-self: flex-end;
+  gap: 10px;
+}

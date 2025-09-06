@@ -1,0 +1,10 @@
+<table class="device-specs">
+  <tr>
+    <td class="device-spec-label">{{ 'COMMON.LABELS.FIRMWARE' | translate }}</td>
+    <td class="device-spec-value">{{ data()?.firmware }}</td>
+  </tr>
+  <tr>
+    <td class="device-spec-label">{{ 'COMPONENTS.SETTINGS_TABLE.DISTANCE_THRESHOLD' | translate }}</td>
+    <td class="device-spec-value">{{ (data()?.distance ?? 0) | formatDistance }}</td>
+  </tr>
+</table>

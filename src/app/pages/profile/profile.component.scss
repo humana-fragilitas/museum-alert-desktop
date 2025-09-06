@@ -1,0 +1,69 @@
+@use '@angular/material' as mat;
+@use '../../../styles.scss' as theme;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: 20px auto 0 auto;
+}
+
+app-company-form {
+  display: block;
+  margin-top: 20px;
+}
+
+.back-button {
+  margin-left: auto;
+}
+
+mat-card {
+  margin-top: 20px;
+}
+
+mat-list-item {
+
+  padding: 0 0 10px 0;
+  height: auto !important;
+  overflow: visible;
+
+}
+
+.warning-card {
+
+  border: 1px solid var(--mat-sys-on-error-container);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  margin: 20px 0;
+  text-wrap: wrap;
+
+  mat-icon {
+    vertical-align: text-top;
+    margin-right: 5px;
+  }
+}
+
+.warning-text {
+  vertical-align: text-bottom;
+}
+
+table {
+  margin-top: 20px;
+}
+
+.mat-column-username {
+  white-space: nowrap;
+}
+
+.same-user-indicator {
+
+  display: inline-block;
+  border-radius: 10px;
+  line-height: 20px;
+  padding: 0 8px;
+  font-size: 12px;
+  background-color: var(--mat-sys-primary) !important;
+  color: var(--mat-sys-on-primary) !important;
+  pointer-events: none;
+
+}

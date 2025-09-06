@@ -1,0 +1,159 @@
+{
+  "PAGES": {
+      "HOME": {
+          "TITLE": "Welcome to Museum Alert",
+          "COPYRIGHT": "© Andrea Blasio, 2023 - 2025. All Rights Reserved"
+      },
+      "PROFILE": {
+        "COMPANY": {
+          "TITLE": "Your Organization",
+          "MISSING_ORGANIZATION": "It appears that you have not set up your profile yet: please enter a company name."
+        },
+        "MEMBERS": {
+          "TITLE": "Members"
+        }
+      }
+  },
+  "COMPONENTS": {
+    "BEACON_URL_FORM": {
+      "LABEL": "Broadcasted beacon URL",
+      "ERRORS": {
+        "URL_IS_REQUIRED": "URL is required",
+        "URL_IS_INVALID": "URL should be a valid address",
+        "DOMAIN_IS_INVALID": "Invalid domain {{foundDomain}}. Allowed domains: {{allowedDomains}}",
+        "URL_IS_TOO_LONG": "URL too long after encoding: {{length}} bytes (max 18)"
+      }
+    },
+    "COMPANY_FORM": {
+      "LABEL": "Company name",
+      "ERRORS": {
+        "NAME_IS_REQUIRED": "Company name is required",
+        "NAME_IS_TOO_SHORT": "Company name must be at least 3 characters long",
+        "NAME_IS_TOO_LONG": "Company name cannot exceed 50 characters",
+        "NAME_DOES_NOT_MATCH_PATTERN": "Company name can only contain letters, numbers, spaces, hyphens, apostrophes and common business punctuation"
+      }
+    },
+    "DEVICE_CONTROL": {
+      "LABEL": "Device control"
+    },
+    "DEVICE_DIAGNOSTICS": {
+      "LABEL": "Alert diagnostics",
+      "CALL_TO_ACTION": "Try placing you hand in front of the sensor at a distance lesser than you set in the device control panel: red flashes show that the sensor is correctly being able to broacast alerts.",
+      "LAST_ALERT_RECEIVED_AT": "Last alert received at",
+      "NO_ALERTS_RECEIVED": "No alerts have been received yet",
+      "DETECTED_DISTANCE": "Detected distance"
+    },
+    "DEVICE_STATE": {
+      "LABEL": "Device found",
+      "CALL_TO_ACTION": "Please connect your Museum Alert Sensor (MAS)<br>to an available USB port on your machine",
+      "CIPHERING_INITIALIZATION": "Ciphering initialization",
+      "WAITING_FOR_WIFI": "Waiting for WiFi configuration",
+      "WAITING_FOR_PROVISIONING_SETTINGS": "Waiting for provisioning settings",
+      "CONNECTING_TO_WIFI": "Connecting to WiFi",
+      "WAITING_FOR_TLS_SETTINGS": "Waiting for TLS certificate and private key",
+      "CONNECTING_TO_MQTT_BROKER": "Connecting to MQTT broker",
+      "INITIALIZED": "Initialized",
+      "IDLE": "Idle"
+    },
+    "PROVISIONING": {
+      "EXPLANATORY_MESSAGE_WITH_COMPANY": "You are about to enroll your device<br>in your Company's <span>({{companyName}})</span> fleet",
+      "EXPLANATORY_MESSAGE_WITH_NO_COMPANY": "You are about to enroll your device<br>in your Company's fleet"
+    },
+    "SETTINGS_TABLE": {
+      "DISTANCE_THRESHOLD": "Distance threshold"
+    },
+    "WIFI_CREDENTIALS": {
+      "SCANNING_FOR_NETWORKS": "Scanning for WiFi networks...",
+      "AVAILABLE_NETWORKS": "Available WiFi Networks",
+      "REFRESH_NETWORKS": "Refresh WiFi Networks",
+      "NETWORK_IS_REQUIRED": "WiFi network is required",
+      "PASSWORD_IS_REQUIRED": "WiFi network password is required"
+    },
+    "WIZARD": {
+      "CHOOSE_WIFI_NETWORK": "Choose a WiFi network",
+      "PROVISION_DEVICE": "Provision device",
+      "REGISTER_DEVICE": "Register device",
+      "DEVICE_REGISTRATION_MESSAGE": "Your device is being registered",
+      "REGISTRATION_DONE": "Done",
+      "FATAL_ERROR_MESSAGE": "An error occurred: you may need to reset the device and try again",
+      "WAIT_FOR_COMMUNICATION_MESSAGE": "Communicating; please wait..."
+    }
+  },
+  "VALIDATORS": {
+    "URL_VALIDATOR": {
+      "ERRORS": {
+        "INVALID_FORMAT": "The URL format is not valid",
+        "INVALID_HOSTNAME": "The hostname is not valid",
+        "NO_HTTPS": "Protocol must be HTTPS"
+      }
+    }
+  },
+  "COMMON": {
+    "ACTIONS": {
+      "BACK": "Back",
+      "SUBMIT": "Submit",
+      "CANCEL": "Cancel",
+      "EDIT": "Edit",
+      "SIGN_OUT": "Sign out",
+      "CONFIRM": "Confirm",
+      "RESET": "Reset",
+      "RESET_SENSOR": "Reset Sensor",
+      "YES": "Yes",
+      "NO": "No",
+      "OK": "OK",
+      "DISMISS": "Dismiss"
+    },
+    "LABELS": {
+      "YOU": "You",
+      "USERNAME": "Username",
+      "ROLE": "Role",
+      "JOINED": "Joined",
+      "CONNECTED": "Connected",
+      "DISCONNECTED": "Disconnected",
+      "STATUS": "Status",
+      "PATH": "Path",
+      "MANUFACTURER": "Manufacturer",
+      "SERIAL_NUMBER": "Serial number",
+      "PRODUCT": "Product",
+      "FIRMWARE": "Firmware",
+      "PASSWORD": "Password"
+    }
+  },
+  "ERRORS": {
+    "DEVICE": {
+      "INVALID_WIFI_CREDENTIALS": "Cannot connect to WiFi with the provided credentials",
+      "FAILED_WIFI_CONNECTION_ATTEMPT": "Cannot connect to WiFi network",
+      "INVALID_DEVICE_PROVISIONING_SETTINGS": "Device received invalid TLS certificate or private key",
+      "INVALID_DEVICE_COMMAND": "Device received an invalid command via USB",
+      "FAILED_PROVISIONING_SETTINGS_STORAGE": "Device errored while attempting to encryot and store TLS certificate and private key",
+      "FAILED_DEVICE_PROVISIONING_ATTEMPT": "Cannot provision device",
+      "FAILED_MQTT_BROKER_CONNECTION": "Cannot connect device to MQTT broker",
+      "FAILED_DEVICE_CONFIGURATION_RETRIEVAL": "Cannot retrieve device configuration",
+      "FAILED_SENSOR_DETECTION_REPORT": "Device errored while attempting to publish an alarm report",
+      "UNKNOWN_ERROR": "An unknown error occurred"
+    },
+    "APPLICATION": {
+      "DEVICE_EXISTS_TITLE": "Device Already Exists",
+      "DEVICE_EXISTS_IN_OWN_COMPANY_MESSAGE": "Device {{deviceName}} is already registered for your organization. If you performed an hard reset of your sensor and are trying to register it again, please delete the existing device from the registry first.",
+      "DEVICE_EXISTS_IN_OTHER_COMPANY_MESSAGE": "Device {{deviceName}} is already registered for another organization. If you are its legimitate administrator, please delete the existing device from the registry first.",
+      "AUTHENTICATION_EXPIRED_TITLE": "Authentication Expired",
+      "AUTHENTICATION_EXPIRED_MESSAGE": "Please log in again to continue",
+      "PROVISIONING_FAILED_TITLE": "An Error Occurred",
+      "PROVISIONING_FAILED_MESSAGE": "Cannot provision device. Please try again later.",
+      "COMPANY_RETRIEVAL_FAILED_TITLE": "An Error Occurred",
+      "COMPANY_RETRIEVAL_FAILED_MESSAGE": "Cannot retrieve company data. Please try again later.",
+      "COMPANY_UPDATE_FAILED_TITLE": "An Error Occurred",
+      "COMPANY_UPDATE_FAILED_MESSAGE": "Cannot update company data. Please try again later.",
+      "DEVICE_CONFIGURATION_UPDATE_FAILED_TITLE": "An Error Occurred",
+      "DEVICE_CONFIGURATION_UPDATE_FAILED_MESSAGE": "Did not receive a response from the device after sending the configuration update command; settings may not have been updated.",
+      "WIFI_CREDENTIALS_COMMAND_TIMED_OUT": "WiFi credentials command timed out; please retry.",
+      "WIFI_NETWORKS_REFRESH_COMMAND_TIMED_OUT": "WiFi networks refresh request timed out; please retry.",
+      "IOT_POLICY_ATTACHMENT_FAILED_TITLE": "An Error Occurred",
+      "IOT_POLICY_ATTACHMENT_FAILED_MESSAGE": "It was not possible to complete your registration; please log in again"
+    }
+  },
+  "WARNINGS": {
+    "ABOUT_TO_UNREGISTER_AND_RESET_SENSOR_TITLE": "Device Reset Warning",
+    "ABOUT_TO_UNREGISTER_AND_RESET_SENSOR_MESSAGE": "Device {{deviceName}} is about to be unregistered from your Company and reset to factory settings. This operation cannot be undone. Are you sure you want to proceed?"
+  }
+}

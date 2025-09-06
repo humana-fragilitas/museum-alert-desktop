@@ -1,0 +1,31 @@
+<amplify-authenticator [hideSignUp]="false"
+                       [loginMechanisms]="['email']">
+
+  <ng-template amplifySlot="sign-up-form-fields">
+
+    <!--
+      Note: new users are registered as "professional" by default
+      as this application is meant for museums staff only
+    -->
+ 
+    <input 
+      type="hidden" 
+      name="custom:isProfessional" 
+      value="1">
+
+    <amplify-sign-up-form-fields></amplify-sign-up-form-fields>
+
+  </ng-template> 
+
+  <ng-template amplifySlot="footer">
+    <div class="footer">
+      <p class="amplify-text">
+        {{ 'PAGES.HOME.COPYRIGHT' | translate }}
+      </p>
+    </div>
+  </ng-template>
+
+</amplify-authenticator>
+
+
+

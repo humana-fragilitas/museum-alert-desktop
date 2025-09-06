@@ -1,0 +1,8 @@
+<mat-chip class="device-connection-status"
+          [class.connected]="isConnected()">
+  <span class="device-status">
+    <span class="device-status__indicator"></span>
+    {{ isConnected() ? 
+       ('COMMON.LABELS.CONNECTED' | translate) : ('COMMON.LABELS.DISCONNECTED' | translate) }}
+  </span>
+</mat-chip>

@@ -1,0 +1,16 @@
+<nav class="auth-user-nav">
+  <button
+    mat-stroked-button
+    class="auth-user-email"
+    [disabled]="isFetchingCompany()"
+    [routerLink]="['/profile']"
+    routerLinkActive="active-profile-button"
+    [routerLinkActiveOptions]="{exact: true}">
+    <mat-progress-spinner *ngIf="isFetchingCompany()" class="auth-user-email--spinner" mode="indeterminate" diameter="16"></mat-progress-spinner>
+    <mat-icon *ngIf="!isFetchingCompany()" matChipAvatar>account_circle_outline</mat-icon>
+    <span>{{ userAttributes()?.email }}</span>
+  </button>
+  <button mat-raised-button color="primary" (click)="signOut()" >
+    {{ 'COMMON.ACTIONS.SIGN_OUT' | translate }}
+  </button>
+</nav>
